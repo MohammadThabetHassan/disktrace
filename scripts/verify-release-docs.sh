@@ -130,6 +130,9 @@ grep -q 'source identity verification' docs/source-access-architecture-v1.md
 grep -q 'contains no downloaded executable code' docs/design-skill-adoption-v1.md
 grep -q 'defines a single `Palette`' docs/design-skill-adoption-v1.md
 grep -q 'package-ecosystem: cargo' .github/dependabot.yml
+grep -q 'cargo-patch-and-minor' .github/dependabot.yml
+grep -q 'action-patch-and-minor' .github/dependabot.yml
+grep -q 'open-pull-requests-limit: 2' .github/dependabot.yml
 
 test -x scripts/verify-all.sh
 test -x scripts/package-linux-bundle.sh
