@@ -35,6 +35,7 @@ A deterministic 64 MiB sparse control records one expected PNG candidate at a fi
 | macOS | No validation has been performed. | No macOS compatibility or distribution claim is made. |
 | Release governance | `main` is protected by the exact Linux and Windows quality contexts, requires an up-to-date branch, one current CODEOWNERS review for pull requests, linear history, and resolved conversations, and blocks force pushes and deletion. Exact hosted Linux and Windows workflows passed for bounded-PNG revision `a1fd280fe53ccd9b8b74c0a00ac1dbd6743eb5c9`; newer changes require their own exact-SHA evidence. | No semantic tag, signed release artifact, GitHub Release, macOS evidence, or release provenance exists. |
 | Dependency review | Dependabot security updates are enabled. Patch/minor updates are bounded and grouped; major updates are separate review decisions. | A passing dependency PR is not automatically merged or treated as a release decision. |
+| Code scanning | A least-privilege Rust CodeQL workflow is configured for `main`, pull requests, and a weekly schedule. Its first completed run must be tied to the exact analyzed SHA before it is used as evidence. | Configuration alone is not a clean scan, security certification, or production-release claim. |
 
 ## Current readiness assessment
 
@@ -68,3 +69,4 @@ Contributors can begin with the [contribution guide](../CONTRIBUTING.md) and sho
 [6]: release-process.md "Release process and current evidence boundary"
 [7]: fat32-feasibility-v1.md "FAT32 recovery feasibility boundary"
 [8]: maintainer-runbook-v1.md "Maintainer operating contract"
+[9]: security-scanning-v1.md "Security scanning contract"

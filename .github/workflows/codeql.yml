@@ -1,0 +1,53 @@
+name: CodeQL
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '17 3 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: CodeQL Rust analysis
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: rust
+          build-mode: manual
+          queries: security-extended
+          dependency-caching: true
+
+      - name: Install Rust 1.97.1
+        uses: dtolnay/rust-toolchain@1.97.1
+
+      - name: Install Linux build dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libxkbcommon-x11-0
+
+      - name: Build workspace for analysis
+        run: cargo build --workspace --all-targets
+
+      - name: Analyze Rust source
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: '/language:rust'
