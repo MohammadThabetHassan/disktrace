@@ -1,0 +1,20 @@
+# Keep source and documentation text consistent across developer platforms.
+* text=auto eol=lf
+
+# Deterministic recovery fixtures are byte-level test inputs and outputs.
+*.img binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.avi binary
+*.mp4 binary
+*.mov binary
+*.pdf binary
+*.zip binary
+*.docx binary
+*.xlsx binary
+*.pptx binary
+
+# Expected text payloads participate in byte-exact recovery comparisons.
+fixtures/**/expected-*.txt text eol=lf

@@ -26,6 +26,7 @@ for path in \
     docs/release-notes-v0.1.0-draft.md \
     docs/project-status.md \
     docs/gui-workflow-v1.md \
+    .gitattributes \
     rust-toolchain.toml \
     scripts/package-linux-bundle.sh \
     scripts/verify-linux-bundle.sh \
@@ -71,6 +72,8 @@ grep -q 'privacy-first' CONTRIBUTING.md
 grep -q 'private security-reporting channel' SECURITY.md
 grep -q 'rustfmt' rust-toolchain.toml
 grep -q 'clippy' rust-toolchain.toml
+grep -q 'fixtures/\*\*/expected-\*.txt text eol=lf' .gitattributes
+grep -q '\*.img binary' .gitattributes
 grep -q 'cargo clippy --workspace --all-targets -- -D warnings' scripts/verify-all.sh
 grep -q "RUSTDOCFLAGS='-D warnings' cargo doc --workspace --no-deps" scripts/verify-all.sh
 grep -q 'cargo audit' scripts/verify-all.sh
