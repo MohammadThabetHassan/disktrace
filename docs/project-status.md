@@ -33,7 +33,7 @@ A deterministic 64 MiB sparse control records one expected PNG candidate at a fi
 | Linux desktop | Local bundle and native desktop smoke passed; the exact hosted Ubuntu 24.04 `Verify` workflow passed after installing the required XKB runtime dependency. | It is not a signed production installer or a general Linux distribution claim. |
 | Windows path | The exact hosted native Windows distribution workflow passed formatting, linting, tests, portable bundle verification, installer creation, checksums, and review-artifact upload. | It is not SmartScreen, code-signing, independent-user usability, or broad hardware compatibility evidence. |
 | macOS | No validation has been performed. | No macOS compatibility or distribution claim is made. |
-| Release governance | `main` is protected by the exact Linux and Windows quality contexts, requires an up-to-date branch, linear history, and resolved conversations, and blocks force pushes and deletion. Hosted Linux and Windows workflows passed on revision `dc48828`. | No semantic tag, signed release artifact, GitHub Release, macOS evidence, or release provenance exists. |
+| Release governance | `main` is protected by the exact Linux and Windows quality contexts, requires an up-to-date branch, one current CODEOWNERS review for pull requests, linear history, and resolved conversations, and blocks force pushes and deletion. Exact hosted Linux and Windows workflows passed for bounded-PNG revision `a1fd280fe53ccd9b8b74c0a00ac1dbd6743eb5c9`; newer changes require their own exact-SHA evidence. | No semantic tag, signed release artifact, GitHub Release, macOS evidence, or release provenance exists. |
 | Dependency review | Dependabot security updates are enabled. Patch/minor updates are bounded and grouped; major updates are separate review decisions. | A passing dependency PR is not automatically merged or treated as a release decision. |
 
 ## Current readiness assessment
@@ -50,7 +50,9 @@ The current strict assessment is **83/100 for local product and portfolio qualit
 
 The completed PNG increment now has a fixed-window discovery contract, primary-window ownership, boundary/refusal controls, cancellation after a completed window, and legacy candidate parity. The next source-access work is a larger controlled corpus and a separately designed migration for another method; no whole-scan streaming claim is justified yet.
 
-The next recovery-method decision is a feasibility-gated FAT32 deleted-entry increment with conservative contiguous/allocation requirements and deterministic positive/refusal fixtures. The next release-engineering increment is macOS build/package validation, Windows installer acceptance, supply-chain provenance, and an explicit versioned release decision after exact target checks are green. Until those items are complete, source publication should be understood as an invitation to inspect and contribute—not as a production-release guarantee.
+The FAT32 feasibility assessment now explicitly defers a deleted-entry recovery claim. Any future FAT32 increment must first establish conservative geometry parsing, root-directory chain handling, 28-bit FAT allocation rules, contiguous-range constraints, refusal cases, and deterministic positive/refusal fixtures.[7] The next release-engineering increment is macOS build/package validation, Windows installer acceptance, supply-chain provenance, and an explicit versioned release decision after exact target checks are green. Until those items are complete, source publication should be understood as an invitation to inspect and contribute—not as a production-release guarantee.
+
+Maintainer governance is now documented in a versioned runbook, structured public issue forms reject sensitive case material and require evidence-led reporting, and a manual desktop acceptance checklist defines the observations needed before a platform-specific acceptance record can be made. These controls improve reviewability; they do **not** constitute a completed manual acceptance, accessibility certification, signed release, or broader platform claim.[8]
 
 ## How to help responsibly
 
@@ -64,3 +66,5 @@ Contributors can begin with the [contribution guide](../CONTRIBUTING.md) and sho
 [4]: source-access-architecture-v1.md "Source-access architecture v1"
 [5]: ../scripts/measure-large-sparse-scan.sh "Deterministic sparse-control measurement harness"
 [6]: release-process.md "Release process and current evidence boundary"
+[7]: fat32-feasibility-v1.md "FAT32 recovery feasibility boundary"
+[8]: maintainer-runbook-v1.md "Maintainer operating contract"

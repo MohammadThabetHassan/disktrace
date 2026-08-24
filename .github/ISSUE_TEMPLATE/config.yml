@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability reporting
+    url: https://github.com/MohammadThabetHassan/disktrace/security/policy
+    about: Do not report suspected vulnerabilities or attach sensitive evidence publicly. Follow the private reporting route in SECURITY.md.
+  - name: Contribution and safety boundary
+    url: https://github.com/MohammadThabetHassan/disktrace/blob/main/CONTRIBUTING.md
+    about: Read the contribution guide, supported-method boundaries, and public-data restrictions before proposing a change.

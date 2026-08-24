@@ -1,0 +1,85 @@
+name: Recovery-method proposal
+description: Propose a bounded, evidence-led recovery capability without universal-recovery claims.
+title: "recovery-method: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        DiskTrace accepts recovery-method proposals only when their forensic boundary can be stated and tested honestly.
+
+        **Do not attach real disk images, recovered files, personal data, credentials, cryptographic keys, private case records, or executables.** Use synthetic, minimized controls. This form does not promise implementation or support for fragmented, overwritten, TRIM-affected, encrypted, or otherwise ambiguous data.
+  - type: checkboxes
+    id: safe_material
+    attributes:
+      label: Public-reporting confirmation
+      options:
+        - label: This proposal contains no real victim media, recovered payload, credential, key, personal data, or private case information.
+          required: true
+        - label: I understand that any accepted capability must remain local, source-read-only, separate-destination, privacy-first, and explicit about unsupported cases.
+          required: true
+  - type: input
+    id: format
+    attributes:
+      label: Filesystem, format, or artifact type
+      placeholder: "Example: FAT32 deleted short-name entry with a conservative contiguous-allocation boundary"
+    validations:
+      required: true
+  - type: textarea
+    id: user_value
+    attributes:
+      label: Intended user value
+      description: Explain the user problem without claiming that every deleted or formatted file can be restored.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence_model
+    attributes:
+      label: Proposed evidence model and parser boundary
+      description: Describe geometry, metadata, allocation/extent evidence, identity checks, validation rules, and why the resulting range would be justified.
+      placeholder: |
+        Metadata parsed:
+        Allocation or extent evidence required:
+        Candidate range rule:
+        Validation/refusal rule:
+    validations:
+      required: true
+  - type: textarea
+    id: refusal_cases
+    attributes:
+      label: Required refusal and ambiguity cases
+      description: List conditions that must refuse or downgrade the candidate, including fragmentation, overwrites, invalid metadata, unknown allocation state, encryption, or trimming where relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: controls
+    attributes:
+      label: Synthetic positive and refusal controls
+      description: Describe deterministic, non-sensitive fixtures for at least one supported result and one refusal. Include expected ranges/counts if known.
+      placeholder: |
+        Positive control:
+        Refusal control:
+        Expected candidate/range identity:
+        Verification command or test location:
+    validations:
+      required: true
+  - type: textarea
+    id: performance
+    attributes:
+      label: Resource, cancellation, and false-positive considerations
+      description: State expected source-access behavior, memory/windowing impact, cancellation points, and anti-false-positive controls. Do not report synthetic throughput as real-device performance.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Technical references
+      description: Link public format specifications, standards, or publicly accessible technical material. Do not upload sensitive material.
+    validations:
+      required: true
+  - type: checkboxes
+    id: evidence
+    attributes:
+      label: Evidence-led scope acknowledgement
+      options:
+        - label: I understand that implementation requires an explicit contract, source-safe parsing, deterministic positive and refusal coverage, documentation, and local plus hosted verification before a capability can be advertised.
+          required: true

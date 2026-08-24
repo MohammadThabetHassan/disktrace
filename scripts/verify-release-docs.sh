@@ -25,6 +25,8 @@ for path in \
     docs/source-access-architecture-v1.md \
     docs/source-window-discovery-v1.md \
     docs/fat32-feasibility-v1.md \
+    docs/maintainer-runbook-v1.md \
+    docs/desktop-acceptance-v1.md \
     docs/future-github-launch-v1.md \
     docs/release-notes-v0.1.0-draft.md \
     docs/project-status.md \
@@ -56,7 +58,10 @@ for path in \
     .github/workflows/verify.yml \
     .github/workflows/windows-release.yml \
     .github/dependabot.yml \
-    .github/CODEOWNERS; do
+    .github/CODEOWNERS \
+    .github/ISSUE_TEMPLATE/bug-report.yml \
+    .github/ISSUE_TEMPLATE/recovery-method-proposal.yml \
+    .github/ISSUE_TEMPLATE/config.yml; do
     test -s "$path"
 done
 
@@ -143,6 +148,13 @@ grep -q 'legacy `carve_pngs`' docs/source-window-discovery-v1.md
 grep -q 'Explicit non-claims' docs/source-window-discovery-v1.md
 grep -q 'FAT32 deleted-file recovery claim' docs/fat32-feasibility-v1.md
 grep -q 'root directory in a cluster chain' docs/fat32-feasibility-v1.md
+grep -q 'exact commit SHA' docs/maintainer-runbook-v1.md
+grep -q 'Never silently replace a published artifact' docs/maintainer-runbook-v1.md
+grep -q 'No completed manual record is asserted' docs/desktop-acceptance-v1.md
+grep -q 'accessibility certification' docs/desktop-acceptance-v1.md
+grep -q 'real disk images' .github/ISSUE_TEMPLATE/bug-report.yml
+grep -q 'synthetic, minimized controls' .github/ISSUE_TEMPLATE/recovery-method-proposal.yml
+grep -q 'blank_issues_enabled: false' .github/ISSUE_TEMPLATE/config.yml
 grep -q 'contains no downloaded executable code' docs/design-skill-adoption-v1.md
 grep -q 'defines a single `Palette`' docs/design-skill-adoption-v1.md
 grep -q 'package-ecosystem: cargo' .github/dependabot.yml
