@@ -1,0 +1,55 @@
+name: macOS validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: macos-validation-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: macOS 14 ARM64 workspace validation
+    runs-on: macos-14
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install Rust 1.97.1
+        uses: dtolnay/rust-toolchain@1.97.1
+
+      - name: Check formatting, linting, and tests
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --workspace --all-targets -- -D warnings
+          cargo test --workspace
+
+      - name: Build unsigned desktop binary
+        run: cargo build --release -p ef-desktop --bin evidenceforge-desktop
+
+      - name: Verify ARM64 review binary and checksum
+        run: |
+          test -x target/release/evidenceforge-desktop
+          file target/release/evidenceforge-desktop | grep -q 'arm64'
+          mkdir -p dist/macos-14-arm64
+          shasum -a 256 target/release/evidenceforge-desktop > dist/macos-14-arm64/evidenceforge-desktop.sha256
+
+      - name: Upload unsigned review binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: disktrace-macos-14-arm64-unsigned-review-binary
+          path: |
+            target/release/evidenceforge-desktop
+            dist/macos-14-arm64/evidenceforge-desktop.sha256
+          if-no-files-found: error
+          retention-days: 14

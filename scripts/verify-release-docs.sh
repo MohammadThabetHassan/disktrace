@@ -16,6 +16,7 @@ for path in \
     docs/release-process.md \
     docs/dependency-advisories.md \
     docs/security-scanning-v1.md \
+    docs/macos-validation-v1.md \
     docs/design-skill-adoption-v1.md \
     docs/linux-distribution-v1.md \
     docs/windows-distribution-v1.md \
@@ -59,6 +60,7 @@ for path in \
     .github/workflows/verify.yml \
     .github/workflows/windows-release.yml \
     .github/workflows/codeql.yml \
+    .github/workflows/macos-verify.yml \
     .github/dependabot.yml \
     .github/CODEOWNERS \
     .github/ISSUE_TEMPLATE/bug-report.yml \
@@ -108,6 +110,8 @@ grep -q 'zero known vulnerabilities' docs/dependency-advisories.md
 grep -q 'does not prove the absence of all vulnerabilities' docs/security-scanning-v1.md
 grep -q 'security-events: write' docs/security-scanning-v1.md
 grep -q 'build-free mode' docs/security-scanning-v1.md
+grep -q 'unsigned ARM64 desktop binary' docs/macos-validation-v1.md
+grep -q 'universal macOS compatibility' docs/macos-validation-v1.md
 grep -q 'permissions:' .github/workflows/verify.yml
 grep -q 'contents: read' .github/workflows/verify.yml
 grep -q 'cargo install cargo-audit --version 0.22.2 --locked' .github/workflows/verify.yml
@@ -117,6 +121,10 @@ grep -q 'security-events: write' .github/workflows/codeql.yml
 grep -q 'languages: rust' .github/workflows/codeql.yml
 grep -q 'build-mode: none' .github/workflows/codeql.yml
 grep -q 'security-extended' .github/workflows/codeql.yml
+grep -q 'runs-on: macos-14' .github/workflows/macos-verify.yml
+grep -q 'contents: read' .github/workflows/macos-verify.yml
+grep -q 'evidenceforge-desktop' .github/workflows/macos-verify.yml
+grep -q 'unsigned-review-binary' .github/workflows/macos-verify.yml
 grep -q 'windows-2022' .github/workflows/windows-release.yml
 grep -q 'cargo clippy --workspace --all-targets -- -D warnings' .github/workflows/windows-release.yml
 grep -q 'contents: read' .github/workflows/windows-release.yml
