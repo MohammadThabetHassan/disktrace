@@ -26,6 +26,11 @@ jobs:
       - name: Install Rust 1.97.1
         uses: dtolnay/rust-toolchain@1.97.1
 
+      - name: Install Linux desktop smoke dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libxkbcommon-x11-0
+
       - name: Install RustSec advisory scanner
         run: cargo install cargo-audit --version 0.22.2 --locked
 

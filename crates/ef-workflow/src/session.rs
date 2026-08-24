@@ -65,6 +65,7 @@ pub enum RecordedExportIntegrity {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SessionManifest {
     pub schema_version: u32,
     pub session: RecoverySession,
@@ -660,6 +661,36 @@ mod tests {
 
         assert_eq!(loaded, manifest);
         assert_eq!(loaded.verify_source(), SourceIntegrity::Verified);
+        fs::remove_file(source_path).expect("remove source");
+        fs::remove_file(manifest_path).expect("remove manifest");
+    }
+
+    #[test]
+    fn rejects_unknown_top_level_manifest_fields() {
+        let source_path = test_path("unknown-manifest-field.img");
+        let manifest_path = test_path("unknown-manifest-field.json");
+        fs::write(&source_path, b"session source").expect("write source image");
+        let manifest = SessionManifest::new(completed_session(&source_path), vec![candidate()])
+            .expect("manifest");
+        manifest.save(&manifest_path).expect("save manifest");
+
+        let mut document: serde_json::Value =
+            serde_json::from_slice(&fs::read(&manifest_path).expect("read manifest"))
+                .expect("parse saved manifest");
+        document.as_object_mut().expect("manifest object").insert(
+            "unrecognized_forensic_field".to_owned(),
+            serde_json::json!(true),
+        );
+        fs::write(
+            &manifest_path,
+            serde_json::to_vec_pretty(&document).expect("serialize changed manifest"),
+        )
+        .expect("write changed manifest");
+
+        assert!(matches!(
+            SessionManifest::load(&manifest_path),
+            Err(SessionManifestError::ParseManifest { .. })
+        ));
         fs::remove_file(source_path).expect("remove source");
         fs::remove_file(manifest_path).expect("remove manifest");
     }

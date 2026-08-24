@@ -20,6 +20,7 @@ for path in \
     docs/windows-distribution-v1.md \
     docs/local-release-evidence-v1.md \
     docs/case-brief-v1.md \
+    docs/session-persistence-v1.md \
     docs/media-carving-v1.md \
     docs/source-access-architecture-v1.md \
     docs/future-github-launch-v1.md \
@@ -89,6 +90,7 @@ grep -q 'zero known vulnerabilities' docs/dependency-advisories.md
 grep -q 'permissions:' .github/workflows/verify.yml
 grep -q 'contents: read' .github/workflows/verify.yml
 grep -q 'cargo install cargo-audit --version 0.22.2 --locked' .github/workflows/verify.yml
+grep -q 'libxkbcommon-x11-0' .github/workflows/verify.yml
 grep -q 'sh scripts/verify-all.sh' .github/workflows/verify.yml
 grep -q 'windows-2022' .github/workflows/windows-release.yml
 grep -q 'cargo clippy --workspace --all-targets -- -D warnings' .github/workflows/windows-release.yml
@@ -119,6 +121,7 @@ grep -q 'Keyboard commands' docs/gui-workflow-v1.md
 grep -q 'self-contained MP4/MOV' docs/gui-workflow-v1.md
 grep -q 'quick or full format' docs/gui-workflow-v1.md
 grep -q 'Supported recovery methods' README.md
+grep -q 'rejects unrecognized' docs/session-persistence-v1.md
 grep -q 'self-contained MP4/MOV' docs/media-carving-v1.md
 grep -q 'verify-media-recovery.sh' docs/media-carving-v1.md
 grep -q 'source-access architecture' README.md

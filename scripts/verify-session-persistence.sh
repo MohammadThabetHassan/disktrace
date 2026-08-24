@@ -40,4 +40,13 @@ if cargo run -q -p ef-cli -- recover-session "$MANIFEST" "$png_id" "$DESTINATION
 fi
 grep -q 'recorded source image changed' "$WORK/changed-recovery.err"
 
+STRICT_MANIFEST="$WORK/strict-schema-session.json"
+sed '$d' "$MANIFEST" > "$STRICT_MANIFEST"
+printf '%s\n' '  , "unrecognized_forensic_field": true' '}' >> "$STRICT_MANIFEST"
+if cargo run -q -p ef-cli -- session-status "$STRICT_MANIFEST" >"$WORK/strict-schema.out" 2>"$WORK/strict-schema.err"; then
+    printf '%s\n' 'session manifest with an unrecognized field unexpectedly loaded' >&2
+    exit 1
+fi
+grep -q 'unknown field' "$WORK/strict-schema.err"
+
 printf '%s\n' 'session persistence verification passed'

@@ -19,6 +19,8 @@ A persisted session uses a JSON manifest with a versioned schema. The manifest c
 
 The manifest path is explicitly chosen by the user. DiskTrace uses atomic replacement when updating an existing manifest: it writes and synchronizes a sibling temporary file before replacing the target. A failed manifest update must not alter the existing manifest.
 
+DiskTrace v1 also rejects unrecognized **top-level** manifest fields. A future format extension must use an explicit schema-version change rather than relying on an older reader to silently ignore evidence-affecting data.
+
 ## Integrity state
 
 > A loaded candidate catalogue is historical evidence about an earlier scan. It is not permission to export from whatever file now happens to exist at the recorded path.
