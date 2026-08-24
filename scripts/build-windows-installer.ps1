@@ -49,7 +49,7 @@ try {
     }
 
     Remove-Item -Force -ErrorAction SilentlyContinue $InstallerPath, "$InstallerPath.sha256"
-    & $Compiler "/DAppVersion=$Version" "/DSourceDir=$($bundle.FullName)" "/O$OutputDirectory" "/FEDiskTrace-$Version-windows-x86_64-setup" (Join-Path $Root 'installer\windows\evidenceforge.iss')
+    & $Compiler "/DAppVersion=$Version" "/DSourceDir=$($bundle.FullName)" "/O$OutputDirectory" "/FDiskTrace-$Version-windows-x86_64-setup" (Join-Path $Root 'installer\windows\evidenceforge.iss')
     if ($LASTEXITCODE -ne 0) {
         throw "Inno Setup compilation returned exit code $LASTEXITCODE."
     }

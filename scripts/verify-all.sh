@@ -42,6 +42,8 @@ if command -v xvfb-run >/dev/null 2>&1; then
             printf '%s\n' 'desktop smoke launch exited cleanly'
             ;;
         *)
+            printf '%s\n' "desktop smoke launch failed with exit status $status" >&2
+            cat /tmp/evidenceforge-desktop-smoke.stdout >&2
             cat /tmp/evidenceforge-desktop-smoke.stderr >&2
             exit "$status"
             ;;
