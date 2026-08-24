@@ -65,7 +65,7 @@ try {
     }
 
     $primaryLauncherPath = Join-Path $bundle.FullName 'Start DiskTrace.cmd'
-    if ((Get-Content -LiteralPath $primaryLauncherPath -Raw) -notmatch 'evidenceforge-desktop\\.exe') {
+    if ((Get-Content -LiteralPath $primaryLauncherPath -Raw) -notmatch 'evidenceforge-desktop\.exe') {
         throw 'Primary Windows launcher does not start the desktop application.'
     }
 
