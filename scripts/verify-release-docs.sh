@@ -186,6 +186,8 @@ grep -q 'synthetic, minimized controls' .github/ISSUE_TEMPLATE/recovery-method-p
 grep -q 'blank_issues_enabled: false' .github/ISSUE_TEMPLATE/config.yml
 grep -q 'CodeQL Rust analysis' docs/project-status.md
 grep -q 'macOS 14 ARM64 workspace validation' docs/project-status.md
+grep -q 'SBOM transparency' docs/project-status.md
+grep -q 'not an attestation' docs/project-status.md
 grep -q 'contains no downloaded executable code' docs/design-skill-adoption-v1.md
 grep -q 'defines a single `Palette`' docs/design-skill-adoption-v1.md
 grep -q 'package-ecosystem: cargo' .github/dependabot.yml
