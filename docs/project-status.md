@@ -31,11 +31,11 @@ A deterministic 64 MiB sparse control records one expected PNG candidate at a fi
 | Validation area | Current result | What the result does not mean |
 | --- | --- | --- |
 | Linux desktop | Local bundle and native desktop smoke passed; the exact hosted Ubuntu 24.04 `Verify` workflow passed after installing the required XKB runtime dependency.[9] | It is not a signed production installer or a general Linux distribution claim. |
-| Windows path | The exact hosted native Windows distribution workflow passed formatting, linting, tests, portable bundle verification, installer creation, checksums, and review-artifact upload.[12] | It is not SmartScreen, code-signing, independent-user usability, or broad hardware compatibility evidence. |
+| Windows path | The exact hosted native Windows distribution workflow passed formatting, linting, tests, portable bundle verification, installer creation/checksums, a disposable silent installer install/uninstall acceptance gate, and review-artifact upload.[12] | It is not SmartScreen, code-signing, independent-user usability, GUI/accessibility acceptance, upgrade coverage, or broad hardware compatibility evidence. |
 | macOS | The exact hosted macOS 14 ARM64 workflow passed formatting, strict linting, workspace tests, release desktop-binary build, ARM64 identity check, checksum creation, and unsigned review-artifact upload.[11] | It is not Intel-macOS evidence, a `.app` bundle, installer, signing, notarization, Gatekeeper acceptance, manual usability evidence, or a general macOS distribution claim. |
-| Release governance | `main` requires the exact `Rust workspace and recovery fixtures`, `Windows x86_64 bundle and installer`, `CodeQL Rust analysis`, and `macOS 14 ARM64 workspace validation` contexts; it also requires an up-to-date branch, one current CODEOWNERS review for pull requests, linear history, and resolved conversations, and blocks force pushes and deletion. Exact hosted Linux, Windows, macOS 14 ARM64, and CodeQL workflows passed for `54331195476132e675f747d6e227e5c4a0bde312`.[9] [10] [11] [12] | No semantic tag, signed release artifact, GitHub Release, macOS package/manual-acceptance evidence, or release provenance exists. |
+| Release governance | `main` requires the exact `Rust workspace and recovery fixtures`, `Windows x86_64 bundle and installer`, `CodeQL Rust analysis`, and `macOS 14 ARM64 workspace validation` contexts; it also requires an up-to-date branch, one current CODEOWNERS review for pull requests, linear history, and resolved conversations, and blocks force pushes and deletion. Exact hosted Linux, Windows, macOS 14 ARM64, and CodeQL workflows passed for `2762eaa276e0f37e7c6dfb4ebcf740a6d32a964c`.[9] [10] [11] [12] | No semantic tag, signed release artifact, GitHub Release, macOS package/manual-acceptance evidence, or release provenance exists. |
 | Dependency review | Dependabot security updates are enabled. Patch/minor updates are bounded and grouped; major updates are separate review decisions. | A passing dependency PR is not automatically merged or treated as a release decision. |
-| Code scanning | The least-privilege Rust CodeQL workflow completed successfully for exact revision `54331195476132e675f747d6e227e5c4a0bde312`.[10] | A successful scan is not a security certification, a proof that all vulnerabilities are absent, or a production-release claim. |
+| Code scanning | The least-privilege Rust CodeQL workflow completed successfully for exact revision `2762eaa276e0f37e7c6dfb4ebcf740a6d32a964c`.[10] | A successful scan is not a security certification, a proof that all vulnerabilities are absent, or a production-release claim. |
 
 ## Current readiness assessment
 
@@ -69,7 +69,7 @@ Contributors can begin with the [contribution guide](../CONTRIBUTING.md) and sho
 [6]: release-process.md "Release process and current evidence boundary"
 [7]: fat32-feasibility-v1.md "FAT32 recovery feasibility boundary"
 [8]: maintainer-runbook-v1.md "Maintainer operating contract"
-[9]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32785468871 "Hosted Linux verification for 5433119"
-[10]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32785468920 "Hosted CodeQL analysis for 5433119"
-[11]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32785468863 "Hosted macOS 14 ARM64 validation for 5433119"
-[12]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32785468902 "Hosted Windows distribution for 5433119"
+[9]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32789208793 "Hosted Linux verification for 2762eaa"
+[10]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32789208782 "Hosted CodeQL analysis for 2762eaa"
+[11]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32789208762 "Hosted macOS 14 ARM64 validation for 2762eaa"
+[12]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32789208910 "Hosted Windows distribution and installer acceptance for 2762eaa"
