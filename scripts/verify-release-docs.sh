@@ -55,7 +55,8 @@ for path in \
     installer/windows/evidenceforge.iss \
     .github/workflows/verify.yml \
     .github/workflows/windows-release.yml \
-    .github/dependabot.yml; do
+    .github/dependabot.yml \
+    .github/CODEOWNERS; do
     test -s "$path"
 done
 
@@ -147,6 +148,7 @@ grep -q 'defines a single `Palette`' docs/design-skill-adoption-v1.md
 grep -q 'package-ecosystem: cargo' .github/dependabot.yml
 grep -q 'cargo-patch-and-minor' .github/dependabot.yml
 grep -q 'action-patch-and-minor' .github/dependabot.yml
+grep -q '@MohammadThabetHassan' .github/CODEOWNERS
 grep -q 'dtolnay/rust-toolchain' .github/dependabot.yml
 grep -q 'open-pull-requests-limit: 2' .github/dependabot.yml
 
