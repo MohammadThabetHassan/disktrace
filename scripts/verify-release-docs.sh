@@ -24,6 +24,7 @@ for path in \
     docs/media-carving-v1.md \
     docs/source-access-architecture-v1.md \
     docs/source-window-discovery-v1.md \
+    docs/fat32-feasibility-v1.md \
     docs/future-github-launch-v1.md \
     docs/release-notes-v0.1.0-draft.md \
     docs/project-status.md \
@@ -139,6 +140,8 @@ grep -q 'source identity verification' docs/source-access-architecture-v1.md
 grep -q 'Primary window length' docs/source-window-discovery-v1.md
 grep -q 'legacy `carve_pngs`' docs/source-window-discovery-v1.md
 grep -q 'Explicit non-claims' docs/source-window-discovery-v1.md
+grep -q 'FAT32 deleted-file recovery claim' docs/fat32-feasibility-v1.md
+grep -q 'root directory in a cluster chain' docs/fat32-feasibility-v1.md
 grep -q 'contains no downloaded executable code' docs/design-skill-adoption-v1.md
 grep -q 'defines a single `Palette`' docs/design-skill-adoption-v1.md
 grep -q 'package-ecosystem: cargo' .github/dependabot.yml
