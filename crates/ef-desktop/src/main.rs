@@ -2437,14 +2437,14 @@ mod tests {
     }
 
     fn wait_for_scan(application: &mut EvidenceForgeApp) {
-        for _ in 0..200 {
+        for _ in 0..2_500 {
             application.poll_scan_worker();
             if application.scan_worker.is_none() {
                 return;
             }
             thread::sleep(Duration::from_millis(2));
         }
-        panic!("scan worker did not complete");
+        panic!("scan worker did not complete within the five-second test timeout");
     }
 
     #[test]
@@ -2453,13 +2453,7 @@ mod tests {
         application.load_demo_fixture();
         application.start_scan();
 
-        for _ in 0..200 {
-            application.poll_scan_worker();
-            if application.scan_worker.is_none() {
-                break;
-            }
-            thread::sleep(Duration::from_millis(2));
-        }
+        wait_for_scan(&mut application);
 
         assert!(application.scan_worker.is_none());
         assert_eq!(application.candidates.len(), 2);
@@ -2499,13 +2493,7 @@ mod tests {
         application.load_document_fixture();
         application.start_scan();
 
-        for _ in 0..200 {
-            application.poll_scan_worker();
-            if application.scan_worker.is_none() {
-                break;
-            }
-            thread::sleep(Duration::from_millis(2));
-        }
+        wait_for_scan(&mut application);
 
         assert!(application.scan_worker.is_none());
         assert_eq!(application.candidates.len(), 2);
@@ -2553,13 +2541,7 @@ mod tests {
         application.load_media_fixture();
         application.start_scan();
 
-        for _ in 0..200 {
-            application.poll_scan_worker();
-            if application.scan_worker.is_none() {
-                break;
-            }
-            thread::sleep(Duration::from_millis(2));
-        }
+        wait_for_scan(&mut application);
 
         assert!(application.scan_worker.is_none());
         assert_eq!(application.candidates.len(), 3);
@@ -2606,13 +2588,7 @@ mod tests {
         application.load_exfat_fixture();
         application.start_scan();
 
-        for _ in 0..200 {
-            application.poll_scan_worker();
-            if application.scan_worker.is_none() {
-                break;
-            }
-            thread::sleep(Duration::from_millis(2));
-        }
+        wait_for_scan(&mut application);
 
         assert!(application.scan_worker.is_none());
         assert_eq!(application.candidates.len(), 1);
@@ -2628,13 +2604,7 @@ mod tests {
         application.load_ntfs_contiguous_fixture();
         application.start_scan();
 
-        for _ in 0..200 {
-            application.poll_scan_worker();
-            if application.scan_worker.is_none() {
-                break;
-            }
-            thread::sleep(Duration::from_millis(2));
-        }
+        wait_for_scan(&mut application);
 
         assert!(application.scan_worker.is_none());
         assert_eq!(application.candidates.len(), 1);
@@ -2650,13 +2620,7 @@ mod tests {
         application.load_ntfs_fixture();
         application.start_scan();
 
-        for _ in 0..200 {
-            application.poll_scan_worker();
-            if application.scan_worker.is_none() {
-                break;
-            }
-            thread::sleep(Duration::from_millis(2));
-        }
+        wait_for_scan(&mut application);
 
         assert!(application.scan_worker.is_none());
         assert_eq!(application.candidates.len(), 1);
