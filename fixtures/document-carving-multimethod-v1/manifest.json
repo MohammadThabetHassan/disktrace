@@ -1,0 +1,23 @@
+{
+  "fixture_id": "document-carving-multimethod-v1",
+  "scenario": "Raw image with a conventional cross-reference PDF and a minimal DOCX-style Open XML ZIP package",
+  "source": {
+    "file": "source.img",
+    "sha256": "158a22936b26cd4a432bfd5fb448a595fba6ebdc0fe5fee92c34e30aaaded847",
+    "byte_length": 32768
+  },
+  "expected_candidates": [
+    {
+      "id": "pdf-carve-0000",
+      "file_type": "pdf",
+      "source_range_start": 1024,
+      "source_range_length": 223
+    },
+    {
+      "id": "zip-carve-0000",
+      "file_type": "docx",
+      "source_range_start": 16384,
+      "source_range_length": 704
+    }
+  ]
+}

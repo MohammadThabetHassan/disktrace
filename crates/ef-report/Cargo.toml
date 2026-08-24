@@ -1,0 +1,14 @@
+[package]
+name = "ef-report"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ef-core = { path = "../ef-core" }
+ef-policy = { path = "../ef-policy" }
+serde.workspace = true
+serde_json.workspace = true
+sha2.workspace = true
+thiserror.workspace = true
+uuid.workspace = true

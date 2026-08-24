@@ -1,0 +1,60 @@
+name: Windows distribution
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-distribution-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-x86_64:
+    name: Windows x86_64 bundle and installer
+    runs-on: windows-2022
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install Rust 1.97.1
+        uses: dtolnay/rust-toolchain@1.97.1
+
+      - name: Check formatting, linting, and tests
+        shell: pwsh
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --workspace --all-targets -- -D warnings
+          cargo test --workspace
+
+      - name: Build and verify portable ZIP bundle
+        shell: pwsh
+        run: |
+          .\scripts\package-windows-bundle.ps1
+          .\scripts\verify-windows-bundle.ps1 -ArchivePath .\dist\DiskTrace-0.1.0-windows-x86_64.zip -SkipDesktopSmoke
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress --yes
+
+      - name: Build installer and checksums
+        shell: pwsh
+        run: .\scripts\build-windows-installer.ps1
+
+      - name: Upload Windows artifacts for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: DiskTrace-0.1.0-windows-x86_64
+          path: |
+            dist/DiskTrace-0.1.0-windows-x86_64.zip
+            dist/DiskTrace-0.1.0-windows-x86_64.zip.sha256
+            dist/DiskTrace-0.1.0-windows-x86_64-setup.exe
+            dist/DiskTrace-0.1.0-windows-x86_64-setup.exe.sha256
+          if-no-files-found: error

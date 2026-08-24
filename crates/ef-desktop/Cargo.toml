@@ -1,0 +1,17 @@
+[package]
+name = "ef-desktop"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "evidenceforge-desktop"
+path = "src/main.rs"
+
+[dependencies]
+ef-catalogue = { path = "../ef-catalogue" }
+ef-core = { path = "../ef-core" }
+ef-workflow = { path = "../ef-workflow" }
+rfd = { version = "=0.17.2", default-features = false, features = ["xdg-portal"] }
+home.workspace = true
+eframe = { version = "=0.33.3", default-features = false, features = ["accesskit", "default_fonts", "glow", "wayland", "x11"] }

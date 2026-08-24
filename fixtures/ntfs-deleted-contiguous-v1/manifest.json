@@ -1,0 +1,18 @@
+{
+  "fixture_id": "ntfs-deleted-contiguous-v1",
+  "scenario": "NTFS volume with a free contiguous former extent retained by a deleted non-resident MFT record",
+  "source": {
+    "file": "source.img",
+    "sha256": "d1dd5410f31f8e534c5f801e2dee1c7d5fa8b9692a71e95377b1b1646821ab0c",
+    "byte_length": 2097152
+  },
+  "expected_candidates": [
+    {
+      "id": "ntfs-contiguous-0000",
+      "evidence_name": "extent.txt",
+      "file_type": "txt",
+      "source_range_start": 32768,
+      "source_range_length": 16
+    }
+  ]
+}

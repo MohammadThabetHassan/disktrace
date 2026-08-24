@@ -1,0 +1,1 @@
+{"fixture_id":"foundation_session_v1","scenario":"read_only_image_import","source":"source.img","expected":"session_manifest_with_read_only_source"}

@@ -1,0 +1,12 @@
+[package]
+name = "ef-policy"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ef-core = { path = "../ef-core" }
+thiserror.workspace = true
+
+[dev-dependencies]
+uuid.workspace = true

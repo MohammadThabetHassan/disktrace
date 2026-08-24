@@ -1,0 +1,29 @@
+{
+  "fixture_id": "media-carving-multimethod-v1",
+  "scenario": "Raw image with structurally bounded GIF, standard RIFF/AVI, and self-contained MP4 candidates",
+  "source": {
+    "file": "source.img",
+    "sha256": "ded3fbdf2fc556611191cd409a328802c1e881ac4fda2f4b8318cd558200f134",
+    "byte_length": 32768
+  },
+  "expected_candidates": [
+    {
+      "id": "gif-carve-0000",
+      "file_type": "gif",
+      "source_range_start": 1024,
+      "source_range_length": 35
+    },
+    {
+      "id": "avi-carve-0000",
+      "file_type": "avi",
+      "source_range_start": 8192,
+      "source_range_length": 40
+    },
+    {
+      "id": "mp4-carve-0000",
+      "file_type": "mp4",
+      "source_range_start": 16384,
+      "source_range_length": 72
+    }
+  ]
+}

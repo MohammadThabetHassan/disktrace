@@ -1,0 +1,18 @@
+{
+  "fixture_id": "exfat-contiguous-deleted-v1",
+  "scenario": "Checksummed exFAT volume with one deleted root file in a contiguous, currently free cluster extent",
+  "source": {
+    "file": "source.img",
+    "sha256": "f4c4cf157304caffd436529eee35fb395b367016b53ec6162cc0fb2050b4a242",
+    "byte_length": 1048576
+  },
+  "expected_candidates": [
+    {
+      "id": "exfat-root-0000",
+      "evidence_name": "recover.txt",
+      "file_type": "txt",
+      "source_range_start": 21504,
+      "source_range_length": 16
+    }
+  ]
+}

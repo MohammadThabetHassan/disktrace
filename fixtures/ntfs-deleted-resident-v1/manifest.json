@@ -1,0 +1,18 @@
+{
+  "fixture_id": "ntfs-deleted-resident-v1",
+  "scenario": "NTFS volume with a fixed-up deleted MFT record containing one resident unnamed data stream",
+  "source": {
+    "file": "source.img",
+    "sha256": "9272577a3cf93f5d65db7c1ad002e5f2ba0a333323de3b1054c32dfe4e20c29c",
+    "byte_length": 2097152
+  },
+  "expected_candidates": [
+    {
+      "id": "ntfs-resident-0000",
+      "evidence_name": "gone.txt",
+      "file_type": "txt",
+      "source_range_start": 3264,
+      "source_range_length": 15
+    }
+  ]
+}

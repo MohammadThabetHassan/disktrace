@@ -1,0 +1,19 @@
+[package]
+name = "ef-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "evidenceforge"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+ef-catalogue = { path = "../ef-catalogue" }
+ef-core = { path = "../ef-core" }
+ef-policy = { path = "../ef-policy" }
+ef-report = { path = "../ef-report" }
+ef-workflow = { path = "../ef-workflow" }
+serde.workspace = true
+serde_json.workspace = true

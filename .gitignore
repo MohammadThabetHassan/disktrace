@@ -1,0 +1,19 @@
+# Rust build output
+target/
+
+# Locally rebuilt or externally distributed artifacts
+dist/
+
+# Local-only verification notes, screenshots, logs, and advisory output
+local-verification/
+
+# Editor and operating-system state
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local environment files
+.env
+.env.*
+!.env.example

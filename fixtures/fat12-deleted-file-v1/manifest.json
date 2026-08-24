@@ -1,0 +1,29 @@
+{
+  "fixture_id": "fat12_png_multimethod_v1",
+  "scenario": "deleted_fat12_root_entry_and_metadata_free_png_signature",
+  "source": {
+    "path": "source.img",
+    "sha256": "57df3757d790e7120c3fae4410780be0ab4826a0f9acb678fde8e2d984f5df31",
+    "byte_length": 5120
+  },
+  "expected_candidates": [
+    {
+      "id": "fat12-root-0000",
+      "evidence_name": "?ELETED.TXT",
+      "source_offset": 1536,
+      "byte_length": 11,
+      "content_sha256": "cd12b55fe3f747e93ed857ac3b3f629cb584dc8dc251ccfbf64233b638c735bd",
+      "method": "fat12_deleted_root_metadata",
+      "validation": "recovered_unvalidated"
+    },
+    {
+      "id": "png-carve-0000",
+      "evidence_name": "carved-png-0000.png",
+      "source_offset": 4096,
+      "byte_length": 70,
+      "content_sha256": "4ff6ab670a58c14270e034e2090d9a432caa263a14e0a25785386b0c12f880b5",
+      "method": "signature_carving_png",
+      "validation": "content_validated"
+    }
+  ]
+}
