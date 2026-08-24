@@ -17,13 +17,13 @@ DiskTrace uses complementary automated controls to identify selected code and de
 
 The CodeQL workflow runs on pushes to `main`, pull requests targeting `main`, and a weekly scheduled scan. GitHub documents these event types as the normal advanced-setup pattern for current changes, pull-request feedback, and newly discovered issues in an otherwise unchanged default branch.[1] Rust is a supported CodeQL language, and the configured identifier is `rust`.[1] GitHub announced general availability for Rust CodeQL scanning in October 2025.[2]
 
-The workflow uses an Ubuntu 24.04 runner, checks out the repository, initializes CodeQL for Rust with `security-extended` queries, installs the repository’s pinned Rust 1.97.1 toolchain, installs the same XKB runtime dependency used by the existing Linux verification workflow, builds all workspace targets, and submits the analysis category `/language:rust`. The manual build mode deliberately analyzes the workspace’s actual Cargo build rather than relying on a build-free approximation. GitHub documents manual build mode as the option for selecting the source that CodeQL analyzes when automatic build behavior is insufficient or less controlled.[3]
+The workflow uses an Ubuntu 24.04 runner, checks out the repository, initializes CodeQL for Rust with `security-extended` queries in its supported build-free mode, and submits the analysis category `/language:rust`. The first hosted attempt established that the current Rust extractor rejects manual build mode; the workflow therefore uses `build-mode: none`, which GitHub documents as supported for Rust.[3] The repository’s independent Linux verification workflow continues to compile and test the workspace with the pinned Rust toolchain; that build is complementary evidence, not an input CodeQL observes in this workflow.
 
 | Workflow property | Deliberate choice | Rationale |
 |---|---|---|
 | Trigger scope | `main`, pull requests to `main`, and weekly schedule | Covers current changes, pull-request review, and later query/advisory knowledge without a source change. |
 | Language and query suite | Rust with `security-extended` | Covers the project’s primary implementation language and uses a broader supported security query suite. |
-| Build mode | Manual `cargo build --workspace --all-targets` | Records the build command CodeQL observes and keeps it aligned with workspace compilation. |
+| Build mode | Rust `none` (build-free) | Uses the current extractor’s supported Rust mode; independent CI still compiles the workspace. |
 | Runner | `ubuntu-24.04` | Matches the established hosted Linux verification platform. |
 | Permissions | `contents: read` and `security-events: write` only | Limits repository-content access while allowing CodeQL to submit security-analysis results. |
 | Secrets and data handling | No custom secrets, uploads of source images, recovered payloads, telemetry, or runtime AI | Preserves the project’s local-first and privacy-first operating boundary. |
@@ -36,7 +36,7 @@ Treat a CodeQL alert as a security-review input, not an automatic proof of explo
 |---|---|---|
 | Confirmed or plausibly exploitable issue | Contain exposure, assess source-safety/privacy impact, correct it, and use the private disclosure path. | Preserve safe metadata, fix reference, tests, and exact scan evidence; do not disclose sensitive reproductions. |
 | False positive or out-of-scope alert | Record the narrow technical rationale and reassess when code or query behavior changes. | Do not silently dismiss alerts or weaken scanning merely to improve a dashboard. |
-| Tooling failure | Diagnose workflow action, toolchain, runner, build, or permission compatibility while preserving the analysis objective. | A failed scan is not a passing security result and must not be described as such. |
+| Tooling failure | Diagnose workflow action, toolchain, runner, build, or permission compatibility while preserving the analysis objective. | A failed scan is not a passing security result and must not be described as such. Recheck the current GitHub-supported language/build-mode combination before changing the workflow. |
 | Clean completed scan | Record the exact commit, workflow URL, configuration, and date if used as release evidence. | Do not convert a clean scan into a security certification or a production-release claim. |
 
 ## Relationship to release decisions

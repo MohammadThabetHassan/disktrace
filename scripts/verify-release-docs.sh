@@ -107,6 +107,7 @@ grep -q 'RUSTSEC-2026-0192' docs/dependency-advisories.md
 grep -q 'zero known vulnerabilities' docs/dependency-advisories.md
 grep -q 'does not prove the absence of all vulnerabilities' docs/security-scanning-v1.md
 grep -q 'security-events: write' docs/security-scanning-v1.md
+grep -q 'build-free mode' docs/security-scanning-v1.md
 grep -q 'permissions:' .github/workflows/verify.yml
 grep -q 'contents: read' .github/workflows/verify.yml
 grep -q 'cargo install cargo-audit --version 0.22.2 --locked' .github/workflows/verify.yml
@@ -114,7 +115,7 @@ grep -q 'libxkbcommon-x11-0' .github/workflows/verify.yml
 grep -q 'sh scripts/verify-all.sh' .github/workflows/verify.yml
 grep -q 'security-events: write' .github/workflows/codeql.yml
 grep -q 'languages: rust' .github/workflows/codeql.yml
-grep -q 'build-mode: manual' .github/workflows/codeql.yml
+grep -q 'build-mode: none' .github/workflows/codeql.yml
 grep -q 'security-extended' .github/workflows/codeql.yml
 grep -q 'windows-2022' .github/workflows/windows-release.yml
 grep -q 'cargo clippy --workspace --all-targets -- -D warnings' .github/workflows/windows-release.yml

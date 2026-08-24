@@ -32,20 +32,9 @@ jobs:
         uses: github/codeql-action/init@v4
         with:
           languages: rust
-          build-mode: manual
+          build-mode: none
           queries: security-extended
           dependency-caching: true
-
-      - name: Install Rust 1.97.1
-        uses: dtolnay/rust-toolchain@1.97.1
-
-      - name: Install Linux build dependency
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes libxkbcommon-x11-0
-
-      - name: Build workspace for analysis
-        run: cargo build --workspace --all-targets
 
       - name: Analyze Rust source
         uses: github/codeql-action/analyze@v4
