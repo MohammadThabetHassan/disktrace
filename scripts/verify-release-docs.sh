@@ -26,6 +26,7 @@ for path in \
     docs/future-github-launch-v1.md \
     docs/release-notes-v0.1.0-draft.md \
     docs/project-status.md \
+    docs/release-scorecard-v1.md \
     docs/gui-workflow-v1.md \
     .gitattributes \
     rust-toolchain.toml \
@@ -85,6 +86,11 @@ grep -q 'sh scripts/verify-media-recovery.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-large-sparse-control.sh' scripts/verify-all.sh
 grep -q 'cargo audit' docs/release-process.md
 grep -q 'local release-evidence contract' docs/release-process.md
+grep -q 'protected `main`' docs/release-process.md
+grep -q 'explicit authorization' docs/release-process.md
+grep -q 'Release target record' docs/release-scorecard-v1.md
+grep -q 'Authorization boundary' docs/release-scorecard-v1.md
+grep -q 'strict 90+ public-release readiness score' docs/release-scorecard-v1.md
 grep -q 'RUSTSEC-2026-0192' docs/dependency-advisories.md
 grep -q 'zero known vulnerabilities' docs/dependency-advisories.md
 grep -q 'permissions:' .github/workflows/verify.yml

@@ -1,6 +1,6 @@
 # DiskTrace Project Status
 
-**Current designation:** public source project; locally verified pre-release workspace.
+**Current designation:** public source project; protected, verified pre-release workspace.
 
 DiskTrace is a local-first forensic recovery application for examining disk-image files, reviewing supported deleted-file candidates, and exporting selected candidates to a separate destination. Its design favors explicit evidence and refusal conditions over broad recovery promises. The product’s current boundaries, method contracts, and verification entry point are maintained in the repository rather than inferred from marketing language.[1] [2]
 
@@ -19,7 +19,7 @@ The native desktop workflow provides a guided path to choose a local image, scan
 | Session schema | Session manifests reject unsupported schema versions and unrecognized top-level fields. | Nested future-format changes still require explicit compatibility design and versioned tests. |
 | Privacy | No runtime cloud recovery, telemetry, account system, or source write behavior is part of the application workflow. | The operator remains responsible for handling sensitive images and recovered content safely. |
 
-## Verification evidence
+## Verification and governance evidence
 
 The repository exposes a deterministic local matrix through `sh scripts/verify-all.sh`. The matrix includes formatting, strict Clippy, rustdoc warnings-as-errors, dependency advisory policy, workspace tests, desktop UI contracts, filesystem and carving fixtures, saved-session and receipt-audit scenarios, source-range preview regressions, a controlled sparse-image control, a build, and a Linux native desktop smoke launch when the local environment supports `xvfb-run`.[2]
 
@@ -29,26 +29,27 @@ A deterministic 64 MiB sparse control records one expected PNG candidate at a fi
 
 | Validation area | Current result | What the result does not mean |
 | --- | --- | --- |
-| Linux desktop | Local bundle and native desktop smoke passed; the exact hosted Ubuntu 24.04 `Verify` workflow also passed after installing the required XKB runtime dependency. | It is not a signed production installer or a general Linux distribution claim. |
+| Linux desktop | Local bundle and native desktop smoke passed; the exact hosted Ubuntu 24.04 `Verify` workflow passed after installing the required XKB runtime dependency. | It is not a signed production installer or a general Linux distribution claim. |
 | Windows path | The exact hosted native Windows distribution workflow passed formatting, linting, tests, portable bundle verification, installer creation, checksums, and review-artifact upload. | It is not SmartScreen, code-signing, independent-user usability, or broad hardware compatibility evidence. |
 | macOS | No validation has been performed. | No macOS compatibility or distribution claim is made. |
-| Release governance | Public source and exact-SHA hosted Linux and Windows workflows passed on revision `27d8b97`. | `main` branch protection, a semantic tag, signed release artifacts, a GitHub Release, and release provenance remain absent. |
+| Release governance | `main` is protected by the exact Linux and Windows quality contexts, requires an up-to-date branch, linear history, and resolved conversations, and blocks force pushes and deletion. Hosted Linux and Windows workflows passed on revision `dc48828`. | No semantic tag, signed release artifact, GitHub Release, macOS evidence, or release provenance exists. |
+| Dependency review | Dependabot security updates are enabled. Patch/minor updates are bounded and grouped; major updates are separate review decisions. | A passing dependency PR is not automatically merged or treated as a release decision. |
 
 ## Current readiness assessment
 
-The project’s evidence-led strict assessment is **80/100 for local product and portfolio quality** and **48/100 for public-release readiness**. The local score recognizes the bounded recovery methods, forensic safety controls, native workflow, deterministic verification depth, exact hosted Linux and Windows workflow evidence, and release-artifact checks. The release score remains deliberately lower because the primary scalability path is not windowed, parser loops do not yet have cancellation/progress controls, macOS validation is absent, `main` is not protected, signing is absent, and no versioned release provenance exists.[6] [7] [8]
+The current strict assessment is **83/100 for local product and portfolio quality**, **84/100 for public repository quality**, and **56/100 for public-release readiness**. The public-repository score recognizes the bounded recovery methods, forensic safety controls, native workflow, deterministic verification depth, protected branch governance, and exact hosted Linux and Windows evidence. Release readiness remains deliberately lower because discovery is not windowed, parser loops do not yet have cancellation/progress controls, macOS validation and signing are absent, and no versioned release provenance exists.[6]
 
 | Assessment | Meaning |
 | --- | --- |
-| **Strong local pre-release evidence** | The documented local workflows and controls can be inspected and reproduced within their declared scope. |
-| **Not production-ready** | macOS evidence, branch protection, code signing/notarization, a versioned release decision, and larger representative performance controls remain outstanding. |
+| **Strong public pre-release evidence** | The documented local workflows, protected-branch controls, and exact hosted Linux/Windows checks can be inspected and reproduced within their declared scope. |
+| **Not production-ready** | macOS evidence, cross-platform signing/notarization, manual installer/accessibility acceptance, a semantic version tag, release assets, and release provenance remain outstanding. |
 | **Not universal recovery** | The project intentionally refuses broad classes of unsupported or ambiguous recovery situations instead of claiming that every deleted or formatted file can be restored. |
 
 ## Highest-value next work
 
-The next engineering increment should introduce a fixed-window discovery path for one simple signature method, including an explicit overlap contract, candidate/export byte-for-byte parity with the compatibility route, cancellation after a completed window, and progress semantics. Only then should the project describe discovery as windowed or streaming.
+The next engineering increment is a fixed-window discovery path for one simple signature method, beginning with PNG. It requires an explicit overlap contract, candidate/export byte-for-byte parity with the compatibility route, cancellation after a completed window, and progress semantics. Only then should the project describe discovery as windowed or streaming.
 
-The next release-engineering increment requires `main` branch-governance configuration, macOS validation and notarization planning, code signing, and an explicit versioned release decision after the exact target checks are green. Until those items are complete, source publication should be understood as an invitation to inspect and contribute—not as a production-release guarantee.
+The next release-engineering increment is macOS build/package validation, Windows installer acceptance, supply-chain provenance, and an explicit versioned release decision after exact target checks are green. Until those items are complete, source publication should be understood as an invitation to inspect and contribute—not as a production-release guarantee.
 
 ## How to help responsibly
 
@@ -61,6 +62,4 @@ Contributors can begin with the [contribution guide](../CONTRIBUTING.md) and sho
 [3]: safety-and-evidence.md "Safety and evidence boundary"
 [4]: source-access-architecture-v1.md "Source-access architecture v1"
 [5]: ../scripts/measure-large-sparse-scan.sh "Deterministic sparse-control measurement harness"
-[6]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32772844087 "Hosted Linux Verify workflow for revision 27d8b97"
-[7]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32772844051 "Hosted Windows distribution workflow for revision 27d8b97"
-[8]: release-process.md "Release process and current evidence boundary"
+[6]: release-process.md "Release process and current evidence boundary"
