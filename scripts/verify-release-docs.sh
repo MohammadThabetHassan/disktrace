@@ -23,6 +23,7 @@ for path in \
     docs/session-persistence-v1.md \
     docs/media-carving-v1.md \
     docs/source-access-architecture-v1.md \
+    docs/source-window-discovery-v1.md \
     docs/future-github-launch-v1.md \
     docs/release-notes-v0.1.0-draft.md \
     docs/project-status.md \
@@ -40,6 +41,7 @@ for path in \
     scripts/generate-large-sparse-fixture.sh \
     scripts/measure-large-sparse-scan.sh \
     scripts/verify-large-sparse-control.sh \
+    scripts/verify-windowed-png-discovery.sh \
     scripts/package-windows-bundle.ps1 \
     scripts/verify-windows-bundle.ps1 \
     scripts/build-windows-installer.ps1 \
@@ -84,6 +86,7 @@ grep -q 'sh scripts/verify-export-audit.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-case-brief.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-media-recovery.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-large-sparse-control.sh' scripts/verify-all.sh
+grep -q 'sh scripts/verify-windowed-png-discovery.sh' scripts/verify-all.sh
 grep -q 'cargo audit' docs/release-process.md
 grep -q 'local release-evidence contract' docs/release-process.md
 grep -q 'protected `main`' docs/release-process.md
@@ -133,6 +136,9 @@ grep -q 'verify-media-recovery.sh' docs/media-carving-v1.md
 grep -q 'source-access architecture' README.md
 grep -q 'bounded sliding window' docs/source-access-architecture-v1.md
 grep -q 'source identity verification' docs/source-access-architecture-v1.md
+grep -q 'Primary window length' docs/source-window-discovery-v1.md
+grep -q 'legacy `carve_pngs`' docs/source-window-discovery-v1.md
+grep -q 'Explicit non-claims' docs/source-window-discovery-v1.md
 grep -q 'contains no downloaded executable code' docs/design-skill-adoption-v1.md
 grep -q 'defines a single `Palette`' docs/design-skill-adoption-v1.md
 grep -q 'package-ecosystem: cargo' .github/dependabot.yml
@@ -151,6 +157,7 @@ test -x scripts/verify-media-recovery.sh
 test -x scripts/generate-large-sparse-fixture.sh
 test -x scripts/measure-large-sparse-scan.sh
 test -x scripts/verify-large-sparse-control.sh
+test -x scripts/verify-windowed-png-discovery.sh
 test -x scripts/verify-windows-config.sh
 test -x scripts/verify-windows-cross-target.sh
 test -x scripts/package-windows-cross-target.sh

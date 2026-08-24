@@ -14,7 +14,8 @@ The native desktop workflow provides a guided path to choose a local image, scan
 | --- | --- | --- |
 | Source identity | Source length, SHA-256, and BLAKE3 are recorded for scans and rechecked for saved-session recovery. | Identity checks identify source changes; they do not prove a source is an original forensic acquisition. |
 | Supported recovery | FAT12, FAT16, exFAT, NTFS resident, narrow NTFS contiguous, and structural carving for PNG, JPEG, GIF, AVI, self-contained MP4/MOV, PDF, and ZIP/Open XML have deterministic fixture coverage. | Unsupported, fragmented, overwritten, encrypted, TRIM-affected, controller-discarded, and ambiguous cases are refused or remain out of scope. |
-| Selected previews | The selected candidate is rechecked against the saved source identity and read by exact byte range instead of rebuffering the entire image for that preview. | Discovery and exports retain the compatibility full-source paths; the preview design does not claim a complete TOCTOU solution. |
+| Selected previews | The selected candidate is rechecked against the saved source identity and read by exact byte range instead of rebuffering the entire image for that preview. | Discovery and exports retain compatibility paths where they have not received a separate source-access migration; the preview design does not claim a complete TOCTOU solution. |
+| PNG discovery | PNG structural discovery uses fixed primary source windows with signature overlap, primary-window ownership, bounded header reads, and legacy-candidate parity enforcement. | The full source is still buffered for filesystem metadata and all non-PNG carving; this is not a complete streaming-scan or parser-level cancellation claim. |
 | Exports and audit | Exports require an approved separate destination and produce receipt-backed records; saved output can be checked later against recorded hashes. | A receipt records a local integrity observation, not original-file authenticity or legal admissibility. |
 | Session schema | Session manifests reject unsupported schema versions and unrecognized top-level fields. | Nested future-format changes still require explicit compatibility design and versioned tests. |
 | Privacy | No runtime cloud recovery, telemetry, account system, or source write behavior is part of the application workflow. | The operator remains responsible for handling sensitive images and recovered content safely. |
@@ -47,9 +48,9 @@ The current strict assessment is **83/100 for local product and portfolio qualit
 
 ## Highest-value next work
 
-The next engineering increment is a fixed-window discovery path for one simple signature method, beginning with PNG. It requires an explicit overlap contract, candidate/export byte-for-byte parity with the compatibility route, cancellation after a completed window, and progress semantics. Only then should the project describe discovery as windowed or streaming.
+The completed PNG increment now has a fixed-window discovery contract, primary-window ownership, boundary/refusal controls, cancellation after a completed window, and legacy candidate parity. The next source-access work is a larger controlled corpus and a separately designed migration for another method; no whole-scan streaming claim is justified yet.
 
-The next release-engineering increment is macOS build/package validation, Windows installer acceptance, supply-chain provenance, and an explicit versioned release decision after exact target checks are green. Until those items are complete, source publication should be understood as an invitation to inspect and contribute—not as a production-release guarantee.
+The next recovery-method decision is a feasibility-gated FAT32 deleted-entry increment with conservative contiguous/allocation requirements and deterministic positive/refusal fixtures. The next release-engineering increment is macOS build/package validation, Windows installer acceptance, supply-chain provenance, and an explicit versioned release decision after exact target checks are green. Until those items are complete, source publication should be understood as an invitation to inspect and contribute—not as a production-release guarantee.
 
 ## How to help responsibly
 

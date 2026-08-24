@@ -6,8 +6,9 @@ use ef_carve::{
     PdfCarvedCandidate, PngCarvedCandidate, ZipCarvedCandidate,
 };
 use ef_core::{
-    read_verified_range_with_cancellation, CandidateValidation, CoreError, ImageSource,
-    RecoveryCandidate, RecoveryMethod, RecoverySession, SessionStatus, SourceRange,
+    read_range_from_file_with_cancellation, read_verified_range_with_cancellation,
+    CandidateValidation, CoreError, ImageSource, RecoveryCandidate, RecoveryMethod,
+    RecoverySession, SessionStatus, SourceIdentity, SourceRange,
 };
 use ef_fat::{
     DeletedExfatRootFile, DeletedNtfsContiguousFile, DeletedNtfsResidentFile, DeletedRootFile,
@@ -72,6 +73,8 @@ pub enum WorkflowError {
     CandidateNotInSession(String),
     #[error("the source image no longer matches the recovery session")]
     SourceIdentityMismatch,
+    #[error("windowed PNG discovery diverged from compatibility discovery")]
+    WindowedPngParity,
 }
 
 #[derive(Debug, Clone)]
@@ -111,7 +114,7 @@ pub fn scan_image_with_cancellation(
     if cancellation.load(Ordering::Relaxed) {
         return Err(CoreError::Cancelled.into());
     }
-    let candidates = discover_candidates(&image);
+    let candidates = discover_candidates_for_scan(&image, &session.source.identity, cancellation)?;
     if cancellation.load(Ordering::Relaxed) {
         return Err(CoreError::Cancelled.into());
     }
@@ -338,6 +341,253 @@ pub fn discover_candidates(image: &[u8]) -> Vec<RecoveryCandidate> {
         .into_iter()
         .map(with_stable_candidate_id)
         .collect()
+}
+
+const PNG_SIGNATURE: [u8; 8] = [0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a];
+const PNG_IHDR: [u8; 4] = *b"IHDR";
+const PNG_IEND: [u8; 4] = *b"IEND";
+const PNG_WINDOW_PRIMARY_LENGTH: u64 = 1024 * 1024;
+const PNG_SIGNATURE_OVERLAP: u64 = PNG_SIGNATURE.len() as u64 - 1;
+const PNG_CHUNK_HEADER_LENGTH: u64 = 12;
+
+fn discover_candidates_for_scan(
+    image: &[u8],
+    source_identity: &SourceIdentity,
+    cancellation: &AtomicBool,
+) -> Result<Vec<RecoveryCandidate>, WorkflowError> {
+    let mut candidates = discover_candidates(image);
+    let windowed_png_candidates = discover_windowed_png_candidates(source_identity, cancellation)?;
+    let legacy_png_count = candidates
+        .iter()
+        .filter(|candidate| candidate.method == RecoveryMethod::SignatureCarvingPng)
+        .count();
+
+    if legacy_png_count != windowed_png_candidates.len() {
+        return Err(WorkflowError::WindowedPngParity);
+    }
+
+    let mut windowed_png_candidates = windowed_png_candidates.into_iter();
+    for candidate in &mut candidates {
+        if candidate.method == RecoveryMethod::SignatureCarvingPng {
+            let replacement = windowed_png_candidates
+                .next()
+                .ok_or(WorkflowError::WindowedPngParity)?;
+            if *candidate != replacement {
+                return Err(WorkflowError::WindowedPngParity);
+            }
+            *candidate = replacement;
+        }
+    }
+
+    if windowed_png_candidates.next().is_some() {
+        return Err(WorkflowError::WindowedPngParity);
+    }
+
+    Ok(candidates)
+}
+
+fn discover_windowed_png_candidates(
+    source_identity: &SourceIdentity,
+    cancellation: &AtomicBool,
+) -> Result<Vec<RecoveryCandidate>, WorkflowError> {
+    discover_windowed_png_candidates_after_window(source_identity, cancellation, || {})
+}
+
+fn discover_windowed_png_candidates_after_window<F>(
+    source_identity: &SourceIdentity,
+    cancellation: &AtomicBool,
+    mut after_primary_window: F,
+) -> Result<Vec<RecoveryCandidate>, WorkflowError>
+where
+    F: FnMut(),
+{
+    if cancellation.load(Ordering::Relaxed) {
+        return Err(CoreError::Cancelled.into());
+    }
+
+    let path = &source_identity.canonical_path;
+    let mut file = File::open(path).map_err(|source| WorkflowError::ReadImage {
+        path: path.clone(),
+        source,
+    })?;
+    let mut candidates = Vec::new();
+    let mut primary_start = 0_u64;
+    let mut suppression_end = 0_u64;
+
+    while primary_start < source_identity.byte_length {
+        if cancellation.load(Ordering::Relaxed) {
+            return Err(CoreError::Cancelled.into());
+        }
+        let remaining = source_identity.byte_length - primary_start;
+        let primary_length = remaining.min(PNG_WINDOW_PRIMARY_LENGTH);
+        let readable_length = primary_length
+            .checked_add(PNG_SIGNATURE_OVERLAP)
+            .map(|length| length.min(remaining))
+            .ok_or(CoreError::RangeOverflow {
+                offset: primary_start,
+                length: primary_length,
+            })?;
+        let window = read_range_from_file_with_cancellation(
+            &mut file,
+            path,
+            source_identity.byte_length,
+            SourceRange {
+                offset: primary_start,
+                length: readable_length,
+            },
+            cancellation,
+        )?;
+        let primary_length =
+            usize::try_from(primary_length).map_err(|_| CoreError::RangeAllocation {
+                length: primary_length,
+            })?;
+
+        for relative_start in 0..primary_length {
+            let signature_end = relative_start.checked_add(PNG_SIGNATURE.len()).ok_or(
+                CoreError::RangeOverflow {
+                    offset: primary_start,
+                    length: PNG_SIGNATURE.len() as u64,
+                },
+            )?;
+            if window.get(relative_start..signature_end) != Some(&PNG_SIGNATURE) {
+                continue;
+            }
+            let source_offset = primary_start.checked_add(relative_start as u64).ok_or(
+                CoreError::RangeOverflow {
+                    offset: primary_start,
+                    length: relative_start as u64,
+                },
+            )?;
+            if source_offset < suppression_end {
+                continue;
+            }
+            let Some(byte_length) =
+                parse_windowed_png_length(&mut file, source_identity, source_offset, cancellation)?
+            else {
+                continue;
+            };
+            suppression_end =
+                source_offset
+                    .checked_add(byte_length)
+                    .ok_or(CoreError::RangeOverflow {
+                        offset: source_offset,
+                        length: byte_length,
+                    })?;
+            let index = candidates.len();
+            candidates.push(with_stable_candidate_id(png_candidate(
+                format!("png-carve-{index:04}"),
+                PngCarvedCandidate {
+                    evidence_name: format!("carved-png-{index:04}.png"),
+                    source_offset,
+                    byte_length,
+                },
+            )));
+        }
+
+        primary_start =
+            primary_start
+                .checked_add(primary_length as u64)
+                .ok_or(CoreError::RangeOverflow {
+                    offset: primary_start,
+                    length: primary_length as u64,
+                })?;
+        after_primary_window();
+        if cancellation.load(Ordering::Relaxed) {
+            return Err(CoreError::Cancelled.into());
+        }
+    }
+
+    Ok(candidates)
+}
+
+fn parse_windowed_png_length(
+    file: &mut File,
+    source_identity: &SourceIdentity,
+    source_offset: u64,
+    cancellation: &AtomicBool,
+) -> Result<Option<u64>, WorkflowError> {
+    let Some(signature) = read_windowed_png_range(
+        file,
+        source_identity,
+        source_offset,
+        PNG_SIGNATURE.len() as u64,
+        cancellation,
+    )?
+    else {
+        return Ok(None);
+    };
+    if signature.as_slice() != PNG_SIGNATURE {
+        return Ok(None);
+    }
+
+    let mut chunk_offset = source_offset
+        .checked_add(PNG_SIGNATURE.len() as u64)
+        .ok_or(CoreError::RangeOverflow {
+            offset: source_offset,
+            length: PNG_SIGNATURE.len() as u64,
+        })?;
+    let mut chunk_index = 0_u64;
+
+    loop {
+        let Some(chunk_header) =
+            read_windowed_png_range(file, source_identity, chunk_offset, 8, cancellation)?
+        else {
+            return Ok(None);
+        };
+        let chunk_length = u64::from(u32::from_be_bytes(
+            chunk_header[..4]
+                .try_into()
+                .expect("fixed PNG chunk header length"),
+        ));
+        let chunk_type: [u8; 4] = chunk_header[4..8]
+            .try_into()
+            .expect("fixed PNG chunk type length");
+        let chunk_end = chunk_offset
+            .checked_add(PNG_CHUNK_HEADER_LENGTH)
+            .and_then(|offset| offset.checked_add(chunk_length))
+            .ok_or(CoreError::RangeOverflow {
+                offset: chunk_offset,
+                length: chunk_length,
+            })?;
+        if chunk_end > source_identity.byte_length {
+            return Ok(None);
+        }
+
+        if chunk_index == 0 && (chunk_type != PNG_IHDR || chunk_length != 13) {
+            return Ok(None);
+        }
+        if chunk_type == PNG_IEND {
+            return Ok((chunk_length == 0).then_some(chunk_end - source_offset));
+        }
+
+        chunk_offset = chunk_end;
+        chunk_index = chunk_index.checked_add(1).ok_or(CoreError::RangeOverflow {
+            offset: chunk_index,
+            length: 1,
+        })?;
+    }
+}
+
+fn read_windowed_png_range(
+    file: &mut File,
+    source_identity: &SourceIdentity,
+    offset: u64,
+    length: u64,
+    cancellation: &AtomicBool,
+) -> Result<Option<Vec<u8>>, WorkflowError> {
+    let end = offset
+        .checked_add(length)
+        .ok_or(CoreError::RangeOverflow { offset, length })?;
+    if end > source_identity.byte_length {
+        return Ok(None);
+    }
+    Ok(Some(read_range_from_file_with_cancellation(
+        file,
+        &source_identity.canonical_path,
+        source_identity.byte_length,
+        SourceRange { offset, length },
+        cancellation,
+    )?))
 }
 
 pub fn recover_candidate(
@@ -833,16 +1083,58 @@ fn validation_state(validation: CandidateValidation) -> ValidationState {
 #[cfg(test)]
 mod tests {
     use super::{
-        discover_candidates, read_session_candidate_range, recover_candidate,
-        recover_candidate_from_image, recover_candidate_from_image_with_cancellation, scan_image,
-        scan_image_with_cancellation, stable_candidate_id, SessionManifest, WorkflowError,
+        discover_candidates, discover_windowed_png_candidates,
+        discover_windowed_png_candidates_after_window, read_session_candidate_range,
+        recover_candidate, recover_candidate_from_image,
+        recover_candidate_from_image_with_cancellation, scan_image, scan_image_with_cancellation,
+        stable_candidate_id, SessionManifest, WorkflowError, PNG_SIGNATURE_OVERLAP,
+        PNG_WINDOW_PRIMARY_LENGTH,
     };
-    use ef_core::{CoreError, RecoveryCandidate, RecoveryMethod};
+    use ef_core::{CoreError, ImageSource, RecoveryCandidate, RecoveryMethod};
     use std::collections::HashSet;
+    use std::fs;
     use std::path::PathBuf;
     use std::sync::atomic::{AtomicBool, Ordering};
+    use uuid::Uuid;
 
     const FIXTURE: &[u8] = include_bytes!("../../../fixtures/fat12-deleted-file-v1/source.img");
+    const EXPECTED_PNG: &[u8] =
+        include_bytes!("../../../fixtures/fat12-deleted-file-v1/expected-carved.png");
+
+    fn temporary_source_path(name: &str) -> PathBuf {
+        std::env::temp_dir().join(format!("disktrace-windowed-{name}-{}", Uuid::new_v4()))
+    }
+
+    fn write_windowed_source(name: &str, bytes: &[u8]) -> (PathBuf, ImageSource) {
+        let path = temporary_source_path(name);
+        fs::write(&path, bytes).expect("write deterministic windowed PNG source");
+        let source =
+            ImageSource::inspect(&path).expect("inspect deterministic windowed PNG source");
+        (path, source)
+    }
+
+    fn png_candidates(candidates: Vec<RecoveryCandidate>) -> Vec<RecoveryCandidate> {
+        candidates
+            .into_iter()
+            .filter(|candidate| candidate.method == RecoveryMethod::SignatureCarvingPng)
+            .collect()
+    }
+
+    fn push_png_chunk(output: &mut Vec<u8>, chunk_type: &[u8; 4], payload: &[u8]) {
+        output.extend_from_slice(&(payload.len() as u32).to_be_bytes());
+        output.extend_from_slice(chunk_type);
+        output.extend_from_slice(payload);
+        output.extend_from_slice(&[0_u8; 4]);
+    }
+
+    fn valid_png_with_idat(payload: &[u8]) -> Vec<u8> {
+        let mut png = Vec::new();
+        png.extend_from_slice(b"\x89PNG\r\n\x1a\n");
+        push_png_chunk(&mut png, b"IHDR", &[0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0]);
+        push_png_chunk(&mut png, b"IDAT", payload);
+        push_png_chunk(&mut png, b"IEND", &[]);
+        png
+    }
 
     fn fixture_path(name: &str) -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -862,6 +1154,94 @@ mod tests {
         assert!(candidate.id[prefix.len()..]
             .bytes()
             .all(|byte| byte.is_ascii_hexdigit()));
+    }
+
+    #[test]
+    fn windowed_png_discovery_matches_the_legacy_fixture_candidates() {
+        let path = fixture_path("fat12-deleted-file-v1");
+        let source = ImageSource::inspect(&path).expect("inspect PNG fixture");
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_png_candidates(&source.identity, &cancellation)
+            .expect("discover PNG candidates through windows");
+        let legacy = png_candidates(discover_candidates(FIXTURE));
+
+        assert_eq!(windowed, legacy);
+    }
+
+    #[test]
+    fn windowed_png_discovery_owns_a_signature_straddling_the_primary_boundary() {
+        let start = usize::try_from(PNG_WINDOW_PRIMARY_LENGTH - PNG_SIGNATURE_OVERLAP)
+            .expect("window boundary fits usize");
+        let mut image = vec![0_u8; start + EXPECTED_PNG.len() + 32];
+        image[start..start + EXPECTED_PNG.len()].copy_from_slice(EXPECTED_PNG);
+        let (path, source) = write_windowed_source("signature-boundary", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_png_candidates(&source.identity, &cancellation)
+            .expect("discover boundary PNG through windows");
+        let legacy = png_candidates(discover_candidates(&image));
+
+        assert_eq!(windowed, legacy);
+        assert_eq!(windowed.len(), 1);
+        assert_eq!(windowed[0].source_offset, start as u64);
+        assert_eq!(windowed[0].byte_length, EXPECTED_PNG.len() as u64);
+        fs::remove_file(path).expect("remove deterministic windowed source");
+    }
+
+    #[test]
+    fn invalid_boundary_png_does_not_hide_a_later_valid_candidate() {
+        let malformed_start = usize::try_from(PNG_WINDOW_PRIMARY_LENGTH - PNG_SIGNATURE_OVERLAP)
+            .expect("window boundary fits usize");
+        let valid_start =
+            usize::try_from(PNG_WINDOW_PRIMARY_LENGTH + 96).expect("valid offset fits usize");
+        let mut image = vec![0_u8; valid_start + EXPECTED_PNG.len() + 32];
+        image[malformed_start..malformed_start + 8].copy_from_slice(b"\x89PNG\r\n\x1a\n");
+        image[valid_start..valid_start + EXPECTED_PNG.len()].copy_from_slice(EXPECTED_PNG);
+        let (path, source) = write_windowed_source("invalid-boundary", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_png_candidates(&source.identity, &cancellation)
+            .expect("discover later valid PNG through windows");
+        let legacy = png_candidates(discover_candidates(&image));
+
+        assert_eq!(windowed, legacy);
+        assert_eq!(windowed.len(), 1);
+        assert_eq!(windowed[0].source_offset, valid_start as u64);
+        fs::remove_file(path).expect("remove deterministic windowed source");
+    }
+
+    #[test]
+    fn windowed_png_discovery_suppresses_nested_signatures_like_the_legacy_carver() {
+        let outer = valid_png_with_idat(EXPECTED_PNG);
+        let (path, source) = write_windowed_source("nested-signature", &outer);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_png_candidates(&source.identity, &cancellation)
+            .expect("discover nested PNG control through windows");
+        let legacy = png_candidates(discover_candidates(&outer));
+
+        assert_eq!(windowed, legacy);
+        assert_eq!(windowed.len(), 1);
+        assert_eq!(windowed[0].byte_length, outer.len() as u64);
+        fs::remove_file(path).expect("remove deterministic windowed source");
+    }
+
+    #[test]
+    fn windowed_png_discovery_cancels_after_a_completed_primary_window() {
+        let image =
+            vec![0_u8; usize::try_from(PNG_WINDOW_PRIMARY_LENGTH + 16).expect("window fits usize")];
+        let (path, source) = write_windowed_source("cancel-after-window", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let error =
+            discover_windowed_png_candidates_after_window(&source.identity, &cancellation, || {
+                cancellation.store(true, Ordering::Relaxed)
+            })
+            .expect_err("cancellation after a completed primary window must stop discovery");
+
+        assert!(matches!(error, WorkflowError::Core(CoreError::Cancelled)));
+        fs::remove_file(path).expect("remove deterministic windowed source");
     }
 
     #[test]
