@@ -33,9 +33,9 @@ A deterministic 64 MiB sparse control records one expected PNG candidate at a fi
 | Linux desktop | Local bundle and native desktop smoke passed; the exact hosted Ubuntu 24.04 `Verify` workflow passed after installing the required XKB runtime dependency. | It is not a signed production installer or a general Linux distribution claim. |
 | Windows path | The exact hosted native Windows distribution workflow passed formatting, linting, tests, portable bundle verification, installer creation, checksums, and review-artifact upload. | It is not SmartScreen, code-signing, independent-user usability, or broad hardware compatibility evidence. |
 | macOS | No validation has been performed. | No macOS compatibility or distribution claim is made. |
-| Release governance | `main` is protected by the exact Linux and Windows quality contexts, requires an up-to-date branch, one current CODEOWNERS review for pull requests, linear history, and resolved conversations, and blocks force pushes and deletion. Exact hosted Linux and Windows workflows passed for bounded-PNG revision `a1fd280fe53ccd9b8b74c0a00ac1dbd6743eb5c9`; newer changes require their own exact-SHA evidence. | No semantic tag, signed release artifact, GitHub Release, macOS evidence, or release provenance exists. |
+| Release governance | `main` is protected by the exact Linux and Windows quality contexts, requires an up-to-date branch, one current CODEOWNERS review for pull requests, linear history, and resolved conversations, and blocks force pushes and deletion. Exact hosted Linux and Windows workflows passed for `55a6f5e0a6941d7502e285229171514011cd6134`.[9] | No semantic tag, signed release artifact, GitHub Release, macOS evidence, or release provenance exists. |
 | Dependency review | Dependabot security updates are enabled. Patch/minor updates are bounded and grouped; major updates are separate review decisions. | A passing dependency PR is not automatically merged or treated as a release decision. |
-| Code scanning | A least-privilege Rust CodeQL workflow is configured for `main`, pull requests, and a weekly schedule. Its first completed run must be tied to the exact analyzed SHA before it is used as evidence. | Configuration alone is not a clean scan, security certification, or production-release claim. |
+| Code scanning | The least-privilege Rust CodeQL workflow completed successfully for exact revision `55a6f5e0a6941d7502e285229171514011cd6134`.[10] | A successful scan is not a security certification, a proof that all vulnerabilities are absent, or a production-release claim. |
 
 ## Current readiness assessment
 
@@ -69,4 +69,5 @@ Contributors can begin with the [contribution guide](../CONTRIBUTING.md) and sho
 [6]: release-process.md "Release process and current evidence boundary"
 [7]: fat32-feasibility-v1.md "FAT32 recovery feasibility boundary"
 [8]: maintainer-runbook-v1.md "Maintainer operating contract"
-[9]: security-scanning-v1.md "Security scanning contract"
+[9]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32784575980 "Hosted Linux verification for 55a6f5e"
+[10]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32784575946 "Hosted CodeQL analysis for 55a6f5e"
