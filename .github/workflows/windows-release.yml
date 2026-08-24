@@ -52,6 +52,14 @@ jobs:
         shell: pwsh
         run: .\scripts\verify-windows-installer.ps1 -InstallerPath .\dist\DiskTrace-0.1.0-windows-x86_64-setup.exe
 
+      - name: Install pinned CycloneDX generator
+        shell: pwsh
+        run: cargo install cargo-cyclonedx --version 0.5.9 --locked
+
+      - name: Generate CycloneDX SBOM review artifact
+        shell: bash
+        run: ./scripts/generate-sbom.sh dist/sbom
+
       - name: Upload Windows artifacts for review
         uses: actions/upload-artifact@v4
         with:
@@ -61,4 +69,5 @@ jobs:
             dist/DiskTrace-0.1.0-windows-x86_64.zip.sha256
             dist/DiskTrace-0.1.0-windows-x86_64-setup.exe
             dist/DiskTrace-0.1.0-windows-x86_64-setup.exe.sha256
+            dist/sbom
           if-no-files-found: error

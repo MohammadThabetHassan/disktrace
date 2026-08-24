@@ -10,6 +10,9 @@ for path in \
     scripts/verify-windows-bundle.ps1 \
     scripts/build-windows-installer.ps1 \
     scripts/verify-windows-installer.ps1 \
+    scripts/generate-sbom.sh \
+    scripts/verify-sbom.sh \
+    docs/sbom-provenance-v1.md \
     installer/windows/evidenceforge.iss \
     .github/workflows/windows-release.yml; do
     test -s "$path"
@@ -52,6 +55,10 @@ grep -q 'choco install innosetup' .github/workflows/windows-release.yml
 grep -q 'build-windows-installer.ps1' .github/workflows/windows-release.yml
 grep -q 'verify-windows-installer.ps1' .github/workflows/windows-release.yml
 grep -q 'Verify installer install and uninstall' .github/workflows/windows-release.yml
+grep -q 'cargo install cargo-cyclonedx --version 0.5.9 --locked' .github/workflows/windows-release.yml
+grep -q 'generate-sbom.sh dist/sbom' .github/workflows/windows-release.yml
+grep -q 'dist/sbom' .github/workflows/windows-release.yml
 grep -q 'actions/upload-artifact@v4' .github/workflows/windows-release.yml
+sh scripts/verify-sbom.sh
 
 printf '%s\n' 'Windows distribution configuration verification passed'

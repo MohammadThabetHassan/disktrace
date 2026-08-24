@@ -16,6 +16,7 @@ for path in \
     docs/release-process.md \
     docs/dependency-advisories.md \
     docs/security-scanning-v1.md \
+    docs/sbom-provenance-v1.md \
     docs/macos-validation-v1.md \
     docs/design-skill-adoption-v1.md \
     docs/linux-distribution-v1.md \
@@ -47,6 +48,8 @@ for path in \
     scripts/measure-large-sparse-scan.sh \
     scripts/verify-large-sparse-control.sh \
     scripts/verify-windowed-png-discovery.sh \
+    scripts/generate-sbom.sh \
+    scripts/verify-sbom.sh \
     scripts/package-windows-bundle.ps1 \
     scripts/verify-windows-bundle.ps1 \
     scripts/build-windows-installer.ps1 \
@@ -111,6 +114,8 @@ grep -q 'zero known vulnerabilities' docs/dependency-advisories.md
 grep -q 'does not prove the absence of all vulnerabilities' docs/security-scanning-v1.md
 grep -q 'security-events: write' docs/security-scanning-v1.md
 grep -q 'build-free mode' docs/security-scanning-v1.md
+grep -q 'does not create an attestation' docs/sbom-provenance-v1.md
+grep -q 'cargo-cyclonedx 0.5.9' docs/sbom-provenance-v1.md
 grep -q 'unsigned ARM64 desktop binary' docs/macos-validation-v1.md
 grep -q 'universal macOS compatibility' docs/macos-validation-v1.md
 grep -q 'permissions:' .github/workflows/verify.yml
@@ -132,6 +137,8 @@ grep -q 'contents: read' .github/workflows/windows-release.yml
 grep -q 'package-windows-bundle.ps1' .github/workflows/windows-release.yml
 grep -q 'build-windows-installer.ps1' .github/workflows/windows-release.yml
 grep -q 'verify-windows-installer.ps1' .github/workflows/windows-release.yml
+grep -q 'cargo install cargo-cyclonedx --version 0.5.9 --locked' .github/workflows/windows-release.yml
+grep -q 'generate-sbom.sh dist/sbom' .github/workflows/windows-release.yml
 grep -q 'Windows installer acceptance verification must run on a Windows host' scripts/verify-windows-installer.ps1
 grep -q 'Native installer acceptance gate' docs/windows-distribution-v1.md
 grep -q 'launch the GUI' docs/windows-distribution-v1.md
@@ -199,6 +206,8 @@ test -x scripts/generate-large-sparse-fixture.sh
 test -x scripts/measure-large-sparse-scan.sh
 test -x scripts/verify-large-sparse-control.sh
 test -x scripts/verify-windowed-png-discovery.sh
+test -x scripts/generate-sbom.sh
+test -x scripts/verify-sbom.sh
 test -x scripts/verify-windows-config.sh
 test -x scripts/verify-windows-cross-target.sh
 test -x scripts/package-windows-cross-target.sh
