@@ -30,21 +30,21 @@ A deterministic 64 MiB sparse control records one expected PNG candidate at a fi
 
 | Validation area | Current result | What the result does not mean |
 | --- | --- | --- |
-| Linux desktop | Local bundle and native desktop smoke passed; the exact hosted Ubuntu 24.04 `Verify` workflow passed after installing the required XKB runtime dependency. | It is not a signed production installer or a general Linux distribution claim. |
-| Windows path | The exact hosted native Windows distribution workflow passed formatting, linting, tests, portable bundle verification, installer creation, checksums, and review-artifact upload. | It is not SmartScreen, code-signing, independent-user usability, or broad hardware compatibility evidence. |
-| macOS | No validation has been performed. | No macOS compatibility or distribution claim is made. |
-| Release governance | `main` is protected by the exact Linux and Windows quality contexts, requires an up-to-date branch, one current CODEOWNERS review for pull requests, linear history, and resolved conversations, and blocks force pushes and deletion. Exact hosted Linux and Windows workflows passed for `55a6f5e0a6941d7502e285229171514011cd6134`.[9] | No semantic tag, signed release artifact, GitHub Release, macOS evidence, or release provenance exists. |
+| Linux desktop | Local bundle and native desktop smoke passed; the exact hosted Ubuntu 24.04 `Verify` workflow passed after installing the required XKB runtime dependency.[9] | It is not a signed production installer or a general Linux distribution claim. |
+| Windows path | The exact hosted native Windows distribution workflow passed formatting, linting, tests, portable bundle verification, installer creation, checksums, and review-artifact upload.[12] | It is not SmartScreen, code-signing, independent-user usability, or broad hardware compatibility evidence. |
+| macOS | The exact hosted macOS 14 ARM64 workflow passed formatting, strict linting, workspace tests, release desktop-binary build, ARM64 identity check, checksum creation, and unsigned review-artifact upload.[11] | It is not Intel-macOS evidence, a `.app` bundle, installer, signing, notarization, Gatekeeper acceptance, manual usability evidence, or a general macOS distribution claim. |
+| Release governance | `main` is protected by the exact Linux and Windows quality contexts, requires an up-to-date branch, one current CODEOWNERS review for pull requests, linear history, and resolved conversations, and blocks force pushes and deletion. Exact hosted Linux, Windows, macOS 14 ARM64, and CodeQL workflows passed for `54331195476132e675f747d6e227e5c4a0bde312`.[9] [10] [11] [12] | No semantic tag, signed release artifact, GitHub Release, macOS package/manual-acceptance evidence, or release provenance exists. |
 | Dependency review | Dependabot security updates are enabled. Patch/minor updates are bounded and grouped; major updates are separate review decisions. | A passing dependency PR is not automatically merged or treated as a release decision. |
-| Code scanning | The least-privilege Rust CodeQL workflow completed successfully for exact revision `55a6f5e0a6941d7502e285229171514011cd6134`.[10] | A successful scan is not a security certification, a proof that all vulnerabilities are absent, or a production-release claim. |
+| Code scanning | The least-privilege Rust CodeQL workflow completed successfully for exact revision `54331195476132e675f747d6e227e5c4a0bde312`.[10] | A successful scan is not a security certification, a proof that all vulnerabilities are absent, or a production-release claim. |
 
 ## Current readiness assessment
 
-The current strict assessment is **83/100 for local product and portfolio quality**, **84/100 for public repository quality**, and **56/100 for public-release readiness**. The public-repository score recognizes the bounded recovery methods, forensic safety controls, native workflow, deterministic verification depth, protected branch governance, and exact hosted Linux and Windows evidence. Release readiness remains deliberately lower because discovery is not windowed, parser loops do not yet have cancellation/progress controls, macOS validation and signing are absent, and no versioned release provenance exists.[6]
+The current strict assessment is **83/100 for local product and portfolio quality**, **84/100 for public repository quality**, and **56/100 for public-release readiness**. The public-repository score recognizes the bounded recovery methods, forensic safety controls, native workflow, deterministic verification depth, protected branch governance, and exact hosted Linux, Windows, macOS 14 ARM64, and CodeQL evidence. Release readiness remains deliberately lower because discovery is not windowed, parser loops do not yet have cancellation/progress controls, macOS package/manual-acceptance and signing evidence are absent, and no versioned release provenance exists.[6]
 
 | Assessment | Meaning |
 | --- | --- |
-| **Strong public pre-release evidence** | The documented local workflows, protected-branch controls, and exact hosted Linux/Windows checks can be inspected and reproduced within their declared scope. |
-| **Not production-ready** | macOS evidence, cross-platform signing/notarization, manual installer/accessibility acceptance, a semantic version tag, release assets, and release provenance remain outstanding. |
+| **Strong public pre-release evidence** | The documented local workflows, protected-branch controls, and exact hosted Linux, Windows, macOS 14 ARM64, and CodeQL checks can be inspected within their declared scope. |
+| **Not production-ready** | macOS package/manual-acceptance evidence, cross-platform signing/notarization, manual installer/accessibility acceptance, a semantic version tag, release assets, and release provenance remain outstanding. |
 | **Not universal recovery** | The project intentionally refuses broad classes of unsupported or ambiguous recovery situations instead of claiming that every deleted or formatted file can be restored. |
 
 ## Highest-value next work
@@ -69,5 +69,7 @@ Contributors can begin with the [contribution guide](../CONTRIBUTING.md) and sho
 [6]: release-process.md "Release process and current evidence boundary"
 [7]: fat32-feasibility-v1.md "FAT32 recovery feasibility boundary"
 [8]: maintainer-runbook-v1.md "Maintainer operating contract"
-[9]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32784575980 "Hosted Linux verification for 55a6f5e"
-[10]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32784575946 "Hosted CodeQL analysis for 55a6f5e"
+[9]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32785468871 "Hosted Linux verification for 5433119"
+[10]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32785468920 "Hosted CodeQL analysis for 5433119"
+[11]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32785468863 "Hosted macOS 14 ARM64 validation for 5433119"
+[12]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32785468902 "Hosted Windows distribution for 5433119"
