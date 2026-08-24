@@ -9,6 +9,7 @@ for path in \
     scripts/package-windows-bundle.ps1 \
     scripts/verify-windows-bundle.ps1 \
     scripts/build-windows-installer.ps1 \
+    scripts/verify-windows-installer.ps1 \
     installer/windows/evidenceforge.iss \
     .github/workflows/windows-release.yml; do
     test -s "$path"
@@ -27,6 +28,12 @@ grep -q 'Start DiskTrace.cmd' scripts/verify-windows-bundle.ps1
 grep -q 'dependency-advisories.md' scripts/verify-windows-bundle.ps1
 grep -q 'Inno Setup 6 was not found' scripts/build-windows-installer.ps1
 grep -q 'ISCC.exe' scripts/build-windows-installer.ps1
+grep -q 'Windows installer acceptance verification must run on a Windows host' scripts/verify-windows-installer.ps1
+grep -q 'Installer checksum mismatch' scripts/verify-windows-installer.ps1
+grep -q 'unins000.exe' scripts/verify-windows-installer.ps1
+grep -q 'Get-InstallEntries' scripts/verify-windows-installer.ps1
+grep -q '/VERYSILENT' scripts/verify-windows-installer.ps1
+grep -q 'Installed CLI returned exit code' scripts/verify-windows-installer.ps1
 grep -q 'PrivilegesRequired=lowest' installer/windows/evidenceforge.iss
 grep -q 'ArchitecturesAllowed=x64compatible' installer/windows/evidenceforge.iss
 grep -q 'UninstallDisplayName=DiskTrace' installer/windows/evidenceforge.iss
@@ -43,6 +50,8 @@ grep -q 'package-windows-bundle.ps1' .github/workflows/windows-release.yml
 grep -q 'verify-windows-bundle.ps1' .github/workflows/windows-release.yml
 grep -q 'choco install innosetup' .github/workflows/windows-release.yml
 grep -q 'build-windows-installer.ps1' .github/workflows/windows-release.yml
+grep -q 'verify-windows-installer.ps1' .github/workflows/windows-release.yml
+grep -q 'Verify installer install and uninstall' .github/workflows/windows-release.yml
 grep -q 'actions/upload-artifact@v4' .github/workflows/windows-release.yml
 
 printf '%s\n' 'Windows distribution configuration verification passed'

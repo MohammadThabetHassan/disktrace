@@ -50,6 +50,7 @@ for path in \
     scripts/package-windows-bundle.ps1 \
     scripts/verify-windows-bundle.ps1 \
     scripts/build-windows-installer.ps1 \
+    scripts/verify-windows-installer.ps1 \
     scripts/verify-windows-config.sh \
     scripts/verify-windows-cross-target.sh \
     scripts/package-windows-cross-target.sh \
@@ -130,6 +131,10 @@ grep -q 'cargo clippy --workspace --all-targets -- -D warnings' .github/workflow
 grep -q 'contents: read' .github/workflows/windows-release.yml
 grep -q 'package-windows-bundle.ps1' .github/workflows/windows-release.yml
 grep -q 'build-windows-installer.ps1' .github/workflows/windows-release.yml
+grep -q 'verify-windows-installer.ps1' .github/workflows/windows-release.yml
+grep -q 'Windows installer acceptance verification must run on a Windows host' scripts/verify-windows-installer.ps1
+grep -q 'Native installer acceptance gate' docs/windows-distribution-v1.md
+grep -q 'launch the GUI' docs/windows-distribution-v1.md
 grep -q 'PrivilegesRequired=lowest' installer/windows/evidenceforge.iss
 grep -q 'ArchitecturesAllowed=x64compatible' installer/windows/evidenceforge.iss
 grep -q 'launch-evidenceforge.sh' scripts/package-linux-bundle.sh

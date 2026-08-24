@@ -48,6 +48,10 @@ jobs:
         shell: pwsh
         run: .\scripts\build-windows-installer.ps1
 
+      - name: Verify installer install and uninstall
+        shell: pwsh
+        run: .\scripts\verify-windows-installer.ps1 -InstallerPath .\dist\DiskTrace-0.1.0-windows-x86_64-setup.exe
+
       - name: Upload Windows artifacts for review
         uses: actions/upload-artifact@v4
         with:
