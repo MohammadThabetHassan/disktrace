@@ -244,6 +244,22 @@ pub fn recover_session_candidate_to_destination(
 }
 
 fn discover_candidates_legacy(image: &[u8]) -> Vec<RecoveryCandidate> {
+    discover_candidates_legacy_with_cancellation(image, &AtomicBool::new(false), || {})
+        .expect("a disabled cancellation flag must not interrupt legacy discovery")
+}
+
+fn discover_candidates_legacy_with_cancellation<F>(
+    image: &[u8],
+    cancellation: &AtomicBool,
+    mut after_method_stage: F,
+) -> Result<Vec<RecoveryCandidate>, WorkflowError>
+where
+    F: FnMut(),
+{
+    if cancellation.load(Ordering::Relaxed) {
+        return Err(CoreError::Cancelled.into());
+    }
+
     let mut candidates = Vec::new();
 
     if let Ok(volume) = Fat12Volume::parse(image) {
@@ -258,6 +274,7 @@ fn discover_candidates_legacy(image: &[u8]) -> Vec<RecoveryCandidate> {
             }
         }
     }
+    observe_legacy_discovery_stage(cancellation, &mut after_method_stage)?;
 
     if let Ok(volume) = Fat16Volume::parse(image) {
         for (index, file) in volume.find_deleted_root_files().iter().enumerate() {
@@ -271,6 +288,7 @@ fn discover_candidates_legacy(image: &[u8]) -> Vec<RecoveryCandidate> {
             }
         }
     }
+    observe_legacy_discovery_stage(cancellation, &mut after_method_stage)?;
 
     if let Ok(volume) = ExfatVolume::parse(image) {
         for (index, file) in volume.find_deleted_root_files().iter().enumerate() {
@@ -283,6 +301,7 @@ fn discover_candidates_legacy(image: &[u8]) -> Vec<RecoveryCandidate> {
             }
         }
     }
+    observe_legacy_discovery_stage(cancellation, &mut after_method_stage)?;
 
     if let Ok(volume) = NtfsVolume::parse(image) {
         for (index, file) in volume.find_deleted_resident_files().iter().enumerate() {
@@ -304,36 +323,58 @@ fn discover_candidates_legacy(image: &[u8]) -> Vec<RecoveryCandidate> {
             }
         }
     }
+    observe_legacy_discovery_stage(cancellation, &mut after_method_stage)?;
 
     for (index, png) in carve_pngs(image).into_iter().enumerate() {
         candidates.push(png_candidate(format!("png-carve-{index:04}"), png));
     }
+    observe_legacy_discovery_stage(cancellation, &mut after_method_stage)?;
 
     for (index, jpeg) in carve_jpegs(image).into_iter().enumerate() {
         candidates.push(jpeg_candidate(format!("jpeg-carve-{index:04}"), jpeg));
     }
+    observe_legacy_discovery_stage(cancellation, &mut after_method_stage)?;
 
     for (index, gif) in carve_gifs(image).into_iter().enumerate() {
         candidates.push(gif_candidate(format!("gif-carve-{index:04}"), gif));
     }
+    observe_legacy_discovery_stage(cancellation, &mut after_method_stage)?;
 
     for (index, avi) in carve_avis(image).into_iter().enumerate() {
         candidates.push(avi_candidate(format!("avi-carve-{index:04}"), avi));
     }
+    observe_legacy_discovery_stage(cancellation, &mut after_method_stage)?;
 
     for (index, mp4) in carve_mp4s(image).into_iter().enumerate() {
         candidates.push(mp4_candidate(format!("mp4-carve-{index:04}"), mp4));
     }
+    observe_legacy_discovery_stage(cancellation, &mut after_method_stage)?;
 
     for (index, pdf) in carve_pdfs(image).into_iter().enumerate() {
         candidates.push(pdf_candidate(format!("pdf-carve-{index:04}"), pdf));
     }
+    observe_legacy_discovery_stage(cancellation, &mut after_method_stage)?;
 
     for (index, zip) in carve_zip_archives(image).into_iter().enumerate() {
         candidates.push(zip_candidate(format!("zip-carve-{index:04}"), zip));
     }
+    observe_legacy_discovery_stage(cancellation, &mut after_method_stage)?;
 
-    candidates
+    Ok(candidates)
+}
+
+fn observe_legacy_discovery_stage<F>(
+    cancellation: &AtomicBool,
+    after_method_stage: &mut F,
+) -> Result<(), WorkflowError>
+where
+    F: FnMut(),
+{
+    after_method_stage();
+    if cancellation.load(Ordering::Relaxed) {
+        return Err(CoreError::Cancelled.into());
+    }
+    Ok(())
 }
 
 pub fn discover_candidates(image: &[u8]) -> Vec<RecoveryCandidate> {
@@ -355,7 +396,11 @@ fn discover_candidates_for_scan(
     source_identity: &SourceIdentity,
     cancellation: &AtomicBool,
 ) -> Result<Vec<RecoveryCandidate>, WorkflowError> {
-    let mut candidates = discover_candidates(image);
+    let mut candidates: Vec<RecoveryCandidate> =
+        discover_candidates_legacy_with_cancellation(image, cancellation, || {})?
+            .into_iter()
+            .map(with_stable_candidate_id)
+            .collect();
     let windowed_png_candidates = discover_windowed_png_candidates(source_identity, cancellation)?;
     let legacy_png_count = candidates
         .iter()
@@ -1083,7 +1128,8 @@ fn validation_state(validation: CandidateValidation) -> ValidationState {
 #[cfg(test)]
 mod tests {
     use super::{
-        discover_candidates, discover_windowed_png_candidates,
+        discover_candidates, discover_candidates_legacy,
+        discover_candidates_legacy_with_cancellation, discover_windowed_png_candidates,
         discover_windowed_png_candidates_after_window, read_session_candidate_range,
         recover_candidate, recover_candidate_from_image,
         recover_candidate_from_image_with_cancellation, scan_image, scan_image_with_cancellation,
@@ -1154,6 +1200,38 @@ mod tests {
         assert!(candidate.id[prefix.len()..]
             .bytes()
             .all(|byte| byte.is_ascii_hexdigit()));
+    }
+
+    #[test]
+    fn legacy_discovery_cancellation_keeps_candidate_parity_when_not_signalled() {
+        let cancellation = AtomicBool::new(false);
+        let mut completed_method_stages = 0;
+
+        let cancellable =
+            discover_candidates_legacy_with_cancellation(FIXTURE, &cancellation, || {
+                completed_method_stages += 1;
+            })
+            .expect("a disabled cancellation flag must preserve legacy discovery");
+
+        assert_eq!(cancellable, discover_candidates_legacy(FIXTURE));
+        assert_eq!(completed_method_stages, 11);
+    }
+
+    #[test]
+    fn legacy_discovery_cancels_after_a_completed_method_stage() {
+        let cancellation = AtomicBool::new(false);
+        let mut completed_method_stages = 0;
+
+        let error = discover_candidates_legacy_with_cancellation(FIXTURE, &cancellation, || {
+            completed_method_stages += 1;
+            if completed_method_stages == 1 {
+                cancellation.store(true, Ordering::Relaxed);
+            }
+        })
+        .expect_err("cancellation after the first completed method stage must stop discovery");
+
+        assert!(matches!(error, WorkflowError::Core(CoreError::Cancelled)));
+        assert_eq!(completed_method_stages, 1);
     }
 
     #[test]

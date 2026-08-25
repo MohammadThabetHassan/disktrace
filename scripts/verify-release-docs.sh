@@ -27,6 +27,7 @@ for path in \
     docs/media-carving-v1.md \
     docs/source-access-architecture-v1.md \
     docs/source-window-discovery-v1.md \
+    docs/legacy-discovery-cancellation-v1.md \
     docs/performance-control-corpus-v1.md \
     docs/fat32-feasibility-v1.md \
     docs/maintainer-runbook-v1.md \
@@ -190,6 +191,10 @@ grep -q 'source identity verification' docs/source-access-architecture-v1.md
 grep -q 'Primary window length' docs/source-window-discovery-v1.md
 grep -q 'legacy `carve_pngs`' docs/source-window-discovery-v1.md
 grep -q 'Explicit non-claims' docs/source-window-discovery-v1.md
+grep -q 'after every completed legacy discovery method stage' docs/source-access-architecture-v1.md
+grep -q 'not full parser-level cancellation' docs/source-access-architecture-v1.md
+grep -q 'parser-loop cancellation' docs/legacy-discovery-cancellation-v1.md
+grep -q 'itemized progress percentage' docs/legacy-discovery-cancellation-v1.md
 grep -q 'synthetic byte controls' docs/performance-control-corpus-v1.md
 grep -q 'not disk acquisitions' docs/performance-control-corpus-v1.md
 grep -q 'signature-dense-refusal-v1' docs/performance-control-corpus-v1.md
@@ -208,6 +213,7 @@ grep -q 'macOS 14 ARM64 workspace validation' docs/project-status.md
 grep -q 'SBOM transparency' docs/project-status.md
 grep -q 'not an attestation' docs/project-status.md
 grep -q 'controlled decision package' docs/project-status.md
+grep -q 'cooperative stage checkpoints' docs/project-status.md
 grep -q 'contains no downloaded executable code' docs/design-skill-adoption-v1.md
 grep -q 'defines a single `Palette`' docs/design-skill-adoption-v1.md
 grep -q 'package-ecosystem: cargo' .github/dependabot.yml
