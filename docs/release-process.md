@@ -59,7 +59,7 @@ Release notes must state what changed, which recovery methods were added or alte
 
 ## Controlled release decision
 
-After all release prerequisites are green on one exact target, prepare a draft decision package containing the commit SHA, local and hosted evidence, platform artifacts/checksums, release notes, advisory disposition, manual acceptance record, and known limits. Request explicit authorization before creating the annotated semantic tag, publishing a GitHub Release, uploading release assets, using signing credentials, or changing release visibility.
+During preparation, keep the proposed scope and incomplete gates in the [v0.1.0 release-candidate record](release-candidate-v0.1.0.md). After all release prerequisites are green on one exact target, prepare a draft decision package containing the commit SHA, local and hosted evidence, platform artifacts/checksums, release notes, advisory disposition, manual acceptance record, and known limits. Request explicit authorization before creating the annotated semantic tag, publishing a GitHub Release, uploading release assets, using signing credentials, or changing release visibility.
 
 A release is complete only after the tag, release page, release assets, checksums, and exact target evidence all resolve to the intended revision.
 

@@ -36,6 +36,7 @@ for path in \
     docs/desktop-acceptance-v1.md \
     docs/future-github-launch-v1.md \
     docs/release-scorecard-v1.md \
+    docs/release-candidate-v0.1.0.md \
     docs/release-decision-v1.md \
     docs/project-status.md \
     docs/release-scorecard-v1.md \
@@ -93,6 +94,7 @@ grep -q '## Distribution status' README.md
 grep -q 'linux-distribution-v1.md' README.md
 grep -q 'windows-distribution-v1.md' README.md
 grep -q 'project-status.md' README.md
+grep -q 'release-candidate-v0.1.0.md' README.md
 grep -q 'GUI workflow' README.md
 grep -q 'synthetic performance-control corpus' README.md
 grep -q 'macOS validation contract' README.md
@@ -123,6 +125,7 @@ grep -q 'sh scripts/verify-windowed-gif-discovery.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-scan-control-corpus.sh' scripts/verify-all.sh
 grep -q 'cargo audit' docs/release-process.md
 grep -q 'local release-evidence contract' docs/release-process.md
+grep -q 'release-candidate-v0.1.0.md' docs/release-process.md
 grep -q 'protected `main`' docs/release-process.md
 grep -q 'explicit authorization' docs/release-process.md
 grep -q 'Decision: no public-release action' docs/release-decision-v1.md
@@ -131,6 +134,10 @@ grep -q 'does not claim universal recovery' docs/release-decision-v1.md
 grep -q 'owner separately authorizes' docs/release-decision-v1.md
 grep -q 'Release target record' docs/release-scorecard-v1.md
 grep -q 'Authorization boundary' docs/release-scorecard-v1.md
+grep -q 'Status: preparation only' docs/release-candidate-v0.1.0.md
+grep -q 'Candidate source target' docs/release-candidate-v0.1.0.md
+grep -q 'Publication authorization' docs/release-candidate-v0.1.0.md
+grep -q 'No action is implied' docs/release-candidate-v0.1.0.md
 grep -q 'strict 90+ public-release readiness score' docs/release-scorecard-v1.md
 grep -q 'RUSTSEC-2026-0192' docs/dependency-advisories.md
 grep -q 'zero known vulnerabilities' docs/dependency-advisories.md

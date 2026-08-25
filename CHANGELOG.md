@@ -22,7 +22,7 @@ All notable changes to DiskTrace are documented here. The workspace is currently
 - Deterministic synthetic fixtures and end-to-end verifier scripts for every current recovery method.
 - Public project documentation, safety boundaries, contribution guidance, security policy, code of conduct, Apache-2.0 license, and local CI configuration.
 - A locally verified Linux x86_64 distribution bundle with staged-file and archive checksums.
-- A native Windows x86_64 portable ZIP and Inno Setup installer configuration, checksum verifier, and hosted Windows build workflow. These Windows paths are configured but have not yet received native Windows build, launch, install, uninstall, signing, or hosted-workflow evidence.
+- A native Windows x86_64 portable ZIP and Inno Setup installer configuration, checksum verifier, and hosted native Windows workflow with bundle verification, installer creation/checksums, disposable install/uninstall mechanics, SBOM review-artifact generation, and review-artifact upload. These controls do not establish signing, SmartScreen, manual accessibility, upgrade, or broad hardware evidence.
 
 ### Changed
 
@@ -50,12 +50,16 @@ All notable changes to DiskTrace are documented here. The workspace is currently
 - The pinned Rust toolchain now includes Clippy, and the local verification matrix enforces `cargo clippy --workspace --all-targets -- -D warnings`, warning-free workspace documentation generation, and `cargo audit`; Linux and Windows hosted workflows mirror the applicable checks.
 - Recovery labels now distinguish filesystem metadata evidence, current allocation state, and structurally validated carving results.
 - Saved-session recovery rechecks source identity before export and keeps changed/unavailable sessions historical-only.
+- PNG, JPEG, and GIF discovery now each have method-specific bounded 1 MiB source-window routes with primary-window ownership, bounded file-backed structural validation, cooperative completed-window cancellation, and exact legacy-candidate parity gates. JPEG retains its 128 MiB structural cap and GIF retains its 64 MiB structural cap; full-buffer compatibility discovery, recovery, and exports remain in place.
+- The desktop now explains active scans and stop requests without fabricated percentage progress, and selected candidates present a concise evidence-scope explanation before preview or export actions.
+- Protected-branch hosted Linux, Windows, macOS 14 ARM64, and Rust CodeQL workflows now provide exact-SHA verification evidence for the current pre-release source history.
+- The desktop acceptance checklist now maps each manual scenario to deterministic companion controls while explicitly preserving the boundary that automation is not a manual acceptance or accessibility result.
 
 ### Intentional limitations
 
 - No direct device acquisition, physical-drive access, image creation, encryption bypass, password recovery, cloud upload, telemetry, or AI-assisted recovery.
 - No filesystem repair, universal or generic fragmented-file reconstruction, path reconstruction, long filename recovery for FAT, recursive directory recovery, arbitrary NTFS runlists, alternate streams, or semantic file validation. GIF carving requires a complete supported block stream and trailer; AVI support excludes RF64/OpenDML extensions; MP4/MOV support requires a self-contained non-fragmented `ftyp`/`moov`/`mdat` layout and does not validate playback, codecs, or sample offsets.
-- No Authenticode-signed Windows installer, Windows-native artifact, hosted CI evidence, public issue tracker, maintainer support SLA, or tagged release yet.
+- No Authenticode-signed Windows installer, consumer-facing signed artifact, SmartScreen evidence, completed manual platform acceptance record, accessibility certification, maintainer support SLA, semantic tag, GitHub Release, or published release asset exists.
 
 ## Release process
 
