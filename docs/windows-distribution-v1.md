@@ -1,6 +1,6 @@
 # Windows distribution contract, version 1
 
-DiskTrace defines a **native Windows x86_64** distribution path made of two artifacts: a portable ZIP bundle and an optional Inno Setup installer. Both are built and verified on a Windows host. This workspace provides scripts and a future hosted Windows workflow, but the current Linux environment does not represent Windows build, launch, installer, or SmartScreen evidence.
+DiskTrace defines a **native Windows x86_64** distribution path made of two artifacts: a portable ZIP bundle and an optional Inno Setup installer. Both are built and verified on a Windows host. The hosted Windows workflow provides exact-SHA native CI evidence for bundle and installer mechanics; the current Linux environment remains only a cross-target compatibility environment and does not represent native Windows launch, manual acceptance, or SmartScreen evidence.
 
 > A Windows configuration file is not evidence of a Windows release. The ZIP and installer become release candidates only after the native Windows workflow completes on the intended source revision and its artifacts are checked on Windows.
 
@@ -10,7 +10,7 @@ DiskTrace defines a **native Windows x86_64** distribution path made of two arti
 |---|---|---|---|
 | **Portable ZIP** | `scripts/package-windows-bundle.ps1` on Windows x86_64 | A clearly named root GUI launcher, desktop and CLI `.exe` files, public documents, manifest, staged-file checksums, archive checksum. | Archive shape, SHA-256 checksums, GUI-launcher wiring, optional CLI help, manifest, and optional desktop launch on a Windows host. |
 | **Inno Setup installer** | `installer/windows/evidenceforge.iss` compiled with `ISCC.exe` on Windows. | Per-user install, Start Menu shortcut, uninstaller, desktop and CLI binaries, required documents. | Installer compilation, checksum, disposable per-user silent install/uninstall acceptance, installed-file/manifest/CLI-help checks, and uninstall-registration removal on a native Windows host. |
-| **Hosted validation** | `.github/workflows/windows-release.yml` after an authorized repository is published. | Windows-native tests, ZIP build/verify, installer build, and artifact upload for review. | Hosted workflow result on the exact commit; uploaded artifacts remain review artifacts, not an automatically published release. |
+| **Hosted validation** | `.github/workflows/windows-release.yml` on the exact candidate revision. | Windows-native tests, ZIP build/verify, installer build, disposable installer mechanics, SBOM review generation, and artifact upload for review. | Hosted workflow result on the exact commit; uploaded artifacts remain review artifacts, not an automatically published release. |
 
 The Inno Setup command-line compiler is `ISCC.exe`, and supports explicit output directory and filename options; the installer script uses this supported compiler boundary.[1] The Windows workflow uses a native GitHub-hosted runner and standard Rust build/test commands, consistent with GitHub’s Rust workflow guidance.[2]
 
@@ -48,7 +48,7 @@ To compile the installer, install Inno Setup 6 on that Windows build host, then 
   "$PWD\installer\windows\evidenceforge.iss"
 ```
 
-The ZIP builder calculates a SHA-256 manifest for staged files and an archive checksum. The installer build calculates a separate installer checksum. Store those values with an eventual release record, but do not treat a checksum as a code signature.
+The ZIP builder refuses a dirty source tree and records the exact clean source commit in its manifest. It calculates a SHA-256 manifest for staged files and an archive checksum. The installer build calculates a separate installer checksum. Store those values with an eventual release record, but do not treat a checksum as a code signature.
 
 ## Native installer acceptance gate
 

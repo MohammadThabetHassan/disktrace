@@ -23,8 +23,14 @@ for command in x86_64-w64-mingw32-gcc sha256sum zip; do
     fi
 done
 
-BUNDLE_NAME="evidenceforge-$VERSION-windows-x86_64-cross-target"
-ARCHIVE_NAME="EvidenceForge-$VERSION-windows-x86_64-cross-target.zip"
+cd "$ROOT"
+if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+    printf '%s\n' 'Windows cross-target bundle creation requires a clean committed source revision.' >&2
+    exit 1
+fi
+SOURCE_COMMIT=$(git rev-parse HEAD)
+BUNDLE_NAME="disktrace-$VERSION-windows-x86_64-cross-target"
+ARCHIVE_NAME="DiskTrace-$VERSION-windows-x86_64-cross-target.zip"
 ARCHIVE_PATH="$OUTPUT_DIRECTORY/$ARCHIVE_NAME"
 CHECKSUM_PATH="$ARCHIVE_PATH.sha256"
 STAGING_ROOT=$(mktemp -d)
@@ -35,7 +41,6 @@ cleanup() {
 trap cleanup EXIT
 
 mkdir -p "$BUNDLE_DIRECTORY/bin" "$BUNDLE_DIRECTORY/docs"
-cd "$ROOT"
 cargo build --release --target "$TARGET" -p ef-cli -p ef-desktop
 
 cp "target/$TARGET/release/evidenceforge.exe" "$BUNDLE_DIRECTORY/bin/evidenceforge.exe"
@@ -50,6 +55,8 @@ for document in \
     docs/desktop-interaction-v2.md \
     docs/gui-workflow-v1.md \
     docs/release-process.md \
+    docs/release-candidate-v0.1.0.md \
+    docs/project-status.md \
     docs/dependency-advisories.md \
     docs/windows-distribution-v1.md \
     docs/local-release-evidence-v1.md \
@@ -64,20 +71,21 @@ cat > "$BUNDLE_DIRECTORY/launch-evidenceforge.cmd" <<'EOF'
 setlocal
 start "" "%~dp0bin\evidenceforge-desktop.exe" %*
 EOF
-cp "$BUNDLE_DIRECTORY/launch-evidenceforge.cmd" "$BUNDLE_DIRECTORY/Start EvidenceForge Recovery.cmd"
+cp "$BUNDLE_DIRECTORY/launch-evidenceforge.cmd" "$BUNDLE_DIRECTORY/Start DiskTrace.cmd"
 
 cat > "$BUNDLE_DIRECTORY/release-manifest.json" <<EOF
 {
   "schema_version": 1,
-  "product": "EvidenceForge Recovery",
+  "product": "DiskTrace",
   "version": "$VERSION",
   "target": "windows-x86_64",
   "format": "zip",
   "license": "Apache-2.0",
-  "source_state": "local-uncommitted",
+  "source_commit": "$SOURCE_COMMIT",
+  "source_state": "clean-committed",
   "artifact_evidence": "linux-cross-target-wine-compatibility",
   "supported_build_host": "Linux x86_64 cross-target environment",
-  "primary_launcher": "Start EvidenceForge Recovery.cmd",
+  "primary_launcher": "Start DiskTrace.cmd",
   "included_binaries": [
     "bin/evidenceforge-desktop.exe",
     "bin/evidenceforge.exe"
@@ -103,7 +111,7 @@ EOF
     {
         find bin docs -type f -print
         printf '%s\n' launch-evidenceforge.cmd
-        printf '%s\n' 'Start EvidenceForge Recovery.cmd'
+        printf '%s\n' 'Start DiskTrace.cmd'
         printf '%s\n' release-manifest.json
     } | LC_ALL=C sort | while IFS= read -r relative_path; do
         hash=$(sha256sum "$relative_path" | awk '{print $1}')

@@ -27,12 +27,17 @@ grep -q 'Windows bundle creation must run on a Windows host' scripts/package-win
 grep -q 'evidenceforge-desktop.exe' scripts/package-windows-bundle.ps1
 grep -q 'Start DiskTrace.cmd' scripts/package-windows-bundle.ps1
 grep -q 'primary_launcher' scripts/package-windows-bundle.ps1
+grep -q 'source_commit = $SourceCommit' scripts/package-windows-bundle.ps1
+grep -q "source_state = 'clean-committed'" scripts/package-windows-bundle.ps1
 grep -q 'release-manifest.json' scripts/package-windows-bundle.ps1
 grep -q 'dependency-advisories.md' scripts/package-windows-bundle.ps1
+grep -q 'release-candidate-v0.1.0.md' scripts/package-windows-bundle.ps1
 grep -q 'Get-FileHash -Algorithm SHA256' scripts/package-windows-bundle.ps1
 grep -q 'Windows bundle verification must run on a Windows host' scripts/verify-windows-bundle.ps1
 grep -q 'SkipDesktopSmoke' scripts/verify-windows-bundle.ps1
 grep -q 'Start DiskTrace.cmd' scripts/verify-windows-bundle.ps1
+grep -q "source_state -ne 'clean-committed'" scripts/verify-windows-bundle.ps1
+grep -q 'release-candidate-v0.1.0.md' scripts/verify-windows-bundle.ps1
 grep -q 'dependency-advisories.md' scripts/verify-windows-bundle.ps1
 grep -q 'Inno Setup 6 was not found' scripts/build-windows-installer.ps1
 grep -q 'ISCC.exe' scripts/build-windows-installer.ps1
@@ -67,6 +72,11 @@ grep -q 'generate-sbom.sh dist/sbom' .github/workflows/windows-release.yml
 grep -q 'dist/sbom' .github/workflows/windows-release.yml
 grep -q 'actions/upload-artifact@v4' .github/workflows/windows-release.yml
 sh scripts/verify-sbom.sh
+sh -n scripts/package-linux-bundle.sh
+sh -n scripts/verify-linux-bundle.sh
+sh -n scripts/package-windows-cross-target.sh
+sh -n scripts/verify-windows-cross-target-bundle.sh
+sh -n scripts/generate-local-release-evidence.sh
 sh -n scripts/generate-scan-control-fixture.sh
 sh -n scripts/verify-scan-control-corpus.sh
 sh -n scripts/measure-scan-control-corpus.sh

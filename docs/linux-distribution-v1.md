@@ -9,7 +9,7 @@ DiskTrace can produce a **local Linux x86_64 desktop bundle** from this workspac
 | **Build host** | Linux x86_64 only. The packaging script refuses another operating system or architecture rather than emitting a misleading artifact. |
 | **Rust toolchain** | Workspace-pinned Rust `1.97.1` with the release profile. |
 | **Applications** | `evidenceforge-desktop` native desktop workspace and `evidenceforge` command-line interface. |
-| **Archive type** | `tar.gz`, staged under `evidenceforge-<version>-linux-x86_64/`. |
+| **Archive type** | `tar.gz`, staged under `disktrace-<version>-linux-x86_64/`. |
 | **Destination** | A caller-selected output directory, defaulting to `dist/` in the workspace. |
 | **Integrity data** | One SHA-256 manifest for staged files and one checksum for the final archive. |
 
@@ -19,25 +19,27 @@ The contract does **not** claim support for Windows, macOS, ARM Linux, universal
 
 ```text
 DiskTrace-<version>-linux-x86_64.tar.gz
-└── evidenceforge-<version>-linux-x86_64/
+└── disktrace-<version>-linux-x86_64/
     ├── bin/
     │   ├── evidenceforge-desktop
     │   └── evidenceforge
-    ├── launch-evidenceforge.sh
-    ├── install-desktop-launcher.sh
+    ├── launch-disktrace.sh
+    ├── install-disktrace-launcher.sh
     ├── docs/
     │   ├── README.md
     │   ├── LICENSE
     │   ├── safety-and-evidence.md
     │   ├── architecture.md
-    │   └── release-process.md
+    │   ├── release-process.md
+    │   ├── release-candidate-v0.1.0.md
+    │   └── project-status.md
     ├── release-manifest.json
     └── SHA256SUMS
 ```
 
-The archive root includes `launch-evidenceforge.sh`, the **primary GUI launcher**, and `install-desktop-launcher.sh`, which writes a per-user desktop entry under the XDG applications directory. The command-line binary remains available in `bin/` for optional automation and evidence workflows, but it is not the normal end-user launch path.
+The archive root includes `launch-disktrace.sh`, the **primary GUI launcher**, and `install-disktrace-launcher.sh`, which writes a per-user DiskTrace desktop entry under the XDG applications directory. The command-line binary remains available in `bin/` for optional automation and evidence workflows, but it is not the normal end-user launch path.
 
-The release manifest records the workspace version, target label, license identifier, packaging format, source state (`local-uncommitted` for a local build), primary launcher, and support boundary. It does not claim a Git revision, signature, publication date, or published release status that the local workspace cannot prove.
+The packaging command refuses a dirty or uncommitted source tree. The release manifest records the workspace version, exact source commit, clean-committed source state, target label, license identifier, packaging format, primary launcher, and support boundary. It does not claim a signature, publication date, manual acceptance, or published release status.
 
 ## Build procedure
 

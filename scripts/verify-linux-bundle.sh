@@ -2,7 +2,7 @@
 set -eu
 
 if [ "$#" -ne 1 ]; then
-    printf '%s\n' "usage: $0 <EvidenceForge-linux-bundle.tar.gz>" >&2
+    printf '%s\n' "usage: $0 <DiskTrace-linux-bundle.tar.gz>" >&2
     exit 2
 fi
 
@@ -27,7 +27,7 @@ trap 'rm -rf "$WORK"' EXIT
 )
 
 tar -xzf "$ARCHIVE" -C "$WORK"
-BUNDLE_DIR=$(find "$WORK" -mindepth 1 -maxdepth 1 -type d -name 'evidenceforge-*-linux-x86_64' -print -quit)
+BUNDLE_DIR=$(find "$WORK" -mindepth 1 -maxdepth 1 -type d -name 'disktrace-*-linux-x86_64' -print -quit)
 if [ -z "$BUNDLE_DIR" ]; then
     printf '%s\n' "archive does not contain the expected Linux bundle root: $ARCHIVE_NAME" >&2
     exit 1
@@ -36,8 +36,8 @@ fi
 for path in \
     bin/evidenceforge \
     bin/evidenceforge-desktop \
-    launch-evidenceforge.sh \
-    install-desktop-launcher.sh \
+    launch-disktrace.sh \
+    install-disktrace-launcher.sh \
     docs/README.md \
     docs/LICENSE \
     docs/safety-and-evidence.md \
@@ -47,6 +47,8 @@ for path in \
     docs/desktop-interaction-v2.md \
     docs/gui-workflow-v1.md \
     docs/release-process.md \
+    docs/release-candidate-v0.1.0.md \
+    docs/project-status.md \
     docs/dependency-advisories.md \
     docs/linux-distribution-v1.md \
     docs/local-release-evidence-v1.md \
@@ -60,21 +62,22 @@ done
 
 test -x "$BUNDLE_DIR/bin/evidenceforge"
 test -x "$BUNDLE_DIR/bin/evidenceforge-desktop"
-test -x "$BUNDLE_DIR/launch-evidenceforge.sh"
-test -x "$BUNDLE_DIR/install-desktop-launcher.sh"
+test -x "$BUNDLE_DIR/launch-disktrace.sh"
+test -x "$BUNDLE_DIR/install-disktrace-launcher.sh"
 (
     cd "$BUNDLE_DIR"
     sha256sum -c SHA256SUMS
 )
-grep -q '"product": "EvidenceForge Recovery"' "$BUNDLE_DIR/release-manifest.json"
-grep -q '"source_state": "local-uncommitted"' "$BUNDLE_DIR/release-manifest.json"
+grep -q '"product": "DiskTrace"' "$BUNDLE_DIR/release-manifest.json"
+grep -q '"source_commit": "[0-9a-f]\{40\}"' "$BUNDLE_DIR/release-manifest.json"
+grep -q '"source_state": "clean-committed"' "$BUNDLE_DIR/release-manifest.json"
 grep -q '"license": "Apache-2.0"' "$BUNDLE_DIR/release-manifest.json"
-grep -q '"primary_launcher": "launch-evidenceforge.sh"' "$BUNDLE_DIR/release-manifest.json"
+grep -q '"primary_launcher": "launch-disktrace.sh"' "$BUNDLE_DIR/release-manifest.json"
 "$BUNDLE_DIR/bin/evidenceforge" --help >/dev/null
 
 if command -v xvfb-run >/dev/null 2>&1; then
     set +e
-    timeout 5s xvfb-run -a "$BUNDLE_DIR/launch-evidenceforge.sh" \
+    timeout 5s xvfb-run -a "$BUNDLE_DIR/launch-disktrace.sh" \
         > "$WORK/desktop.stdout" \
         2> "$WORK/desktop.stderr"
     status=$?

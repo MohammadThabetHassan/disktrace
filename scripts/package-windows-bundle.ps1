@@ -25,6 +25,20 @@ if (-not $versionMatch.Success) {
 }
 
 $Version = $versionMatch.Groups[1].Value
+Push-Location $Root
+try {
+    $dirtyState = git status --porcelain
+    if ($LASTEXITCODE -ne 0 -or $dirtyState) {
+        throw 'Windows bundle creation requires a clean committed source revision.'
+    }
+    $SourceCommit = (git rev-parse HEAD).Trim()
+    if ($LASTEXITCODE -ne 0 -or $SourceCommit -notmatch '^[0-9a-f]{40}$') {
+        throw 'Unable to determine the committed source revision.'
+    }
+}
+finally {
+    Pop-Location
+}
 $Target = 'windows-x86_64'
 $BundleName = "disktrace-$Version-$Target"
 $ArchiveName = "DiskTrace-$Version-$Target.zip"
@@ -52,6 +66,7 @@ try {
         @{ Source = 'docs\safety-and-evidence.md'; Destination = 'docs\safety-and-evidence.md' },
         @{ Source = 'docs\architecture.md'; Destination = 'docs\architecture.md' },
         @{ Source = 'docs\release-process.md'; Destination = 'docs\release-process.md' },
+        @{ Source = 'docs\release-candidate-v0.1.0.md'; Destination = 'docs\release-candidate-v0.1.0.md' },
         @{ Source = 'docs\dependency-advisories.md'; Destination = 'docs\dependency-advisories.md' },
         @{ Source = 'docs\windows-distribution-v1.md'; Destination = 'docs\windows-distribution-v1.md' },
         @{ Source = 'docs\local-release-evidence-v1.md'; Destination = 'docs\local-release-evidence-v1.md' },
@@ -77,7 +92,8 @@ start "" "%~dp0bin\evidenceforge-desktop.exe" %*
         target = $Target
         format = 'zip'
         license = 'Apache-2.0'
-        source_state = 'built-locally'
+        source_commit = $SourceCommit
+        source_state = 'clean-committed'
         supported_build_host = 'Windows x86_64'
         primary_launcher = 'Start DiskTrace.cmd'
         included_binaries = @('bin/evidenceforge-desktop.exe', 'bin/evidenceforge.exe')

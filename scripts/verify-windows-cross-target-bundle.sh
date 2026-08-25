@@ -29,7 +29,7 @@ cleanup() {
 }
 trap cleanup EXIT
 unzip -q "$ARCHIVE_PATH" -d "$WORK_DIRECTORY"
-BUNDLE_DIRECTORY=$(find "$WORK_DIRECTORY" -mindepth 1 -maxdepth 1 -type d -name 'evidenceforge-*-windows-x86_64-cross-target' | head -n 1)
+BUNDLE_DIRECTORY=$(find "$WORK_DIRECTORY" -mindepth 1 -maxdepth 1 -type d -name 'disktrace-*-windows-x86_64-cross-target' | head -n 1)
 if [ -z "$BUNDLE_DIRECTORY" ]; then
     printf '%s\n' 'Windows cross-target bundle root is missing or malformed' >&2
     exit 1
@@ -47,6 +47,8 @@ for relative_path in \
     docs/desktop-interaction-v2.md \
     docs/gui-workflow-v1.md \
     docs/release-process.md \
+    docs/release-candidate-v0.1.0.md \
+    docs/project-status.md \
     docs/dependency-advisories.md \
     docs/windows-distribution-v1.md \
     docs/local-release-evidence-v1.md \
@@ -54,13 +56,16 @@ for relative_path in \
     docs/future-github-launch-v1.md \
     docs/release-notes-v0.1.0-draft.md \
     launch-evidenceforge.cmd \
-    'Start EvidenceForge Recovery.cmd' \
+    'Start DiskTrace.cmd' \
     release-manifest.json \
     SHA256SUMS; do
     test -f "$BUNDLE_DIRECTORY/$relative_path"
 done
 
-grep -q 'evidenceforge-desktop.exe' "$BUNDLE_DIRECTORY/Start EvidenceForge Recovery.cmd"
+grep -q 'evidenceforge-desktop.exe' "$BUNDLE_DIRECTORY/Start DiskTrace.cmd"
+grep -q '"product": "DiskTrace"' "$BUNDLE_DIRECTORY/release-manifest.json"
+grep -q '"source_commit": "[0-9a-f]\{40\}"' "$BUNDLE_DIRECTORY/release-manifest.json"
+grep -q '"source_state": "clean-committed"' "$BUNDLE_DIRECTORY/release-manifest.json"
 grep -q '"artifact_evidence": "linux-cross-target-wine-compatibility"' "$BUNDLE_DIRECTORY/release-manifest.json"
 grep -q '"target": "windows-x86_64"' "$BUNDLE_DIRECTORY/release-manifest.json"
 grep -q 'Cross-target compatibility artifact, not native Windows release evidence' "$BUNDLE_DIRECTORY/release-manifest.json"

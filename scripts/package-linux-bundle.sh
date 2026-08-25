@@ -22,8 +22,14 @@ if [ -z "$VERSION" ]; then
 fi
 
 TARGET=linux-x86_64
-BUNDLE_NAME="evidenceforge-${VERSION}-${TARGET}"
-ARCHIVE_NAME="EvidenceForge-${VERSION}-${TARGET}.tar.gz"
+cd "$ROOT"
+if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+    printf '%s\n' 'Linux bundle creation requires a clean committed source revision.' >&2
+    exit 1
+fi
+SOURCE_COMMIT=$(git rev-parse HEAD)
+BUNDLE_NAME="disktrace-${VERSION}-${TARGET}"
+ARCHIVE_NAME="DiskTrace-${VERSION}-${TARGET}.tar.gz"
 ARCHIVE_PATH="$OUTPUT_DIR/$ARCHIVE_NAME"
 CHECKSUM_PATH="$ARCHIVE_PATH.sha256"
 STAGING_ROOT=$(mktemp -d)
@@ -32,7 +38,6 @@ trap 'rm -rf "$STAGING_ROOT"' EXIT
 
 mkdir -p "$BUNDLE_DIR/bin" "$BUNDLE_DIR/docs"
 
-cd "$ROOT"
 cargo build --release -p ef-cli -p ef-desktop
 
 install -m 0755 "$ROOT/target/release/evidenceforge" "$BUNDLE_DIR/bin/evidenceforge"
@@ -46,6 +51,8 @@ install -m 0644 "$ROOT/docs/source-access-architecture-v1.md" "$BUNDLE_DIR/docs/
 install -m 0644 "$ROOT/docs/desktop-interaction-v2.md" "$BUNDLE_DIR/docs/desktop-interaction-v2.md"
 install -m 0644 "$ROOT/docs/gui-workflow-v1.md" "$BUNDLE_DIR/docs/gui-workflow-v1.md"
 install -m 0644 "$ROOT/docs/release-process.md" "$BUNDLE_DIR/docs/release-process.md"
+install -m 0644 "$ROOT/docs/release-candidate-v0.1.0.md" "$BUNDLE_DIR/docs/release-candidate-v0.1.0.md"
+install -m 0644 "$ROOT/docs/project-status.md" "$BUNDLE_DIR/docs/project-status.md"
 install -m 0644 "$ROOT/docs/dependency-advisories.md" "$BUNDLE_DIR/docs/dependency-advisories.md"
 install -m 0644 "$ROOT/docs/linux-distribution-v1.md" "$BUNDLE_DIR/docs/linux-distribution-v1.md"
 install -m 0644 "$ROOT/docs/local-release-evidence-v1.md" "$BUNDLE_DIR/docs/local-release-evidence-v1.md"
@@ -53,46 +60,47 @@ install -m 0644 "$ROOT/docs/case-brief-v1.md" "$BUNDLE_DIR/docs/case-brief-v1.md
 install -m 0644 "$ROOT/docs/future-github-launch-v1.md" "$BUNDLE_DIR/docs/future-github-launch-v1.md"
 install -m 0644 "$ROOT/docs/release-notes-v0.1.0-draft.md" "$BUNDLE_DIR/docs/release-notes-v0.1.0-draft.md"
 
-cat > "$BUNDLE_DIR/launch-evidenceforge.sh" <<'EOF'
+cat > "$BUNDLE_DIR/launch-disktrace.sh" <<'EOF'
 #!/bin/sh
 set -eu
 BUNDLE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 exec "$BUNDLE_DIR/bin/evidenceforge-desktop" "$@"
 EOF
-chmod 0755 "$BUNDLE_DIR/launch-evidenceforge.sh"
+chmod 0755 "$BUNDLE_DIR/launch-disktrace.sh"
 
-cat > "$BUNDLE_DIR/install-desktop-launcher.sh" <<'EOF'
+cat > "$BUNDLE_DIR/install-disktrace-launcher.sh" <<'EOF'
 #!/bin/sh
 set -eu
 BUNDLE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 APPLICATIONS_DIR=${XDG_DATA_HOME:-"$HOME/.local/share"}/applications
-DESKTOP_FILE="$APPLICATIONS_DIR/evidenceforge-recovery.desktop"
+DESKTOP_FILE="$APPLICATIONS_DIR/disktrace-recovery.desktop"
 mkdir -p "$APPLICATIONS_DIR"
 cat > "$DESKTOP_FILE" <<DESKTOP
 [Desktop Entry]
 Type=Application
-Name=EvidenceForge Recovery
+Name=DiskTrace Recovery
 Comment=Local-first forensic recovery workspace
-Exec="$BUNDLE_DIR/launch-evidenceforge.sh"
+Exec="$BUNDLE_DIR/launch-disktrace.sh"
 Terminal=false
 Categories=Utility;System;
 StartupNotify=true
 DESKTOP
 printf '%s\\n' "installed $DESKTOP_FILE"
 EOF
-chmod 0755 "$BUNDLE_DIR/install-desktop-launcher.sh"
+chmod 0755 "$BUNDLE_DIR/install-disktrace-launcher.sh"
 
 cat > "$BUNDLE_DIR/release-manifest.json" <<EOF
 {
   "schema_version": 1,
-  "product": "EvidenceForge Recovery",
+  "product": "DiskTrace",
   "version": "$VERSION",
   "target": "$TARGET",
   "format": "tar.gz",
   "license": "Apache-2.0",
-  "source_state": "local-uncommitted",
+  "source_commit": "$SOURCE_COMMIT",
+  "source_state": "clean-committed",
   "supported_build_host": "Linux x86_64",
-  "primary_launcher": "launch-evidenceforge.sh",
+  "primary_launcher": "launch-disktrace.sh",
   "included_binaries": [
     "bin/evidenceforge-desktop",
     "bin/evidenceforge"
@@ -109,7 +117,7 @@ EOF
 (
     cd "$BUNDLE_DIR"
     find bin docs -type f -print | LC_ALL=C sort | xargs sha256sum
-    sha256sum launch-evidenceforge.sh install-desktop-launcher.sh release-manifest.json
+    sha256sum launch-disktrace.sh install-disktrace-launcher.sh release-manifest.json
 ) > "$BUNDLE_DIR/SHA256SUMS"
 
 rm -f "$ARCHIVE_PATH" "$CHECKSUM_PATH"

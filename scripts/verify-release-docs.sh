@@ -176,9 +176,12 @@ grep -q 'Native installer acceptance gate' docs/windows-distribution-v1.md
 grep -q 'launch the GUI' docs/windows-distribution-v1.md
 grep -q 'PrivilegesRequired=lowest' installer/windows/evidenceforge.iss
 grep -q 'ArchitecturesAllowed=x64compatible' installer/windows/evidenceforge.iss
-grep -q 'launch-evidenceforge.sh' scripts/package-linux-bundle.sh
-grep -q 'install-desktop-launcher.sh' scripts/package-linux-bundle.sh
+grep -q 'launch-disktrace.sh' scripts/package-linux-bundle.sh
+grep -q 'install-disktrace-launcher.sh' scripts/package-linux-bundle.sh
+grep -q 'clean committed source revision' scripts/package-linux-bundle.sh
+grep -q 'source_state": "clean-committed"' scripts/package-linux-bundle.sh
 grep -q 'Start DiskTrace.cmd' scripts/package-windows-bundle.ps1
+grep -q "source_state = 'clean-committed'" scripts/package-windows-bundle.ps1
 grep -q 'Start a local recovery session' crates/ef-desktop/src/main.rs
 grep -q 'Recovery workspace' crates/ef-desktop/src/main.rs
 grep -q 'Recovery workflow' crates/ef-desktop/src/main.rs

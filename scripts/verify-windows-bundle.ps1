@@ -45,6 +45,7 @@ try {
         'docs\safety-and-evidence.md',
         'docs\architecture.md',
         'docs\release-process.md',
+        'docs\release-candidate-v0.1.0.md',
         'docs\dependency-advisories.md',
         'docs\\windows-distribution-v1.md',
         'docs\\local-release-evidence-v1.md',
@@ -73,7 +74,8 @@ try {
     if ($manifest.product -ne 'DiskTrace' -or
         $manifest.target -ne 'windows-x86_64' -or
         $manifest.license -ne 'Apache-2.0' -or
-        $manifest.source_state -ne 'built-locally' -or
+        $manifest.source_state -ne 'clean-committed' -or
+        $manifest.source_commit -notmatch '^[0-9a-f]{40}$' -or
         $manifest.primary_launcher -ne 'Start DiskTrace.cmd') {
         throw 'Release manifest does not match the Windows distribution contract.'
     }

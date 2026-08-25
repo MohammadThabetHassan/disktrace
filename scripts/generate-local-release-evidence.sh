@@ -5,7 +5,7 @@ ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 LINUX_ARCHIVE=${1:?usage: sh scripts/generate-local-release-evidence.sh <linux-archive> <windows-cross-target-archive> [output-path]}
 WINDOWS_ARCHIVE=${2:?usage: sh scripts/generate-local-release-evidence.sh <linux-archive> <windows-cross-target-archive> [output-path]}
 VERSION=$(sed -n 's/^version = "\([^"]*\)"$/\1/p' "$ROOT/Cargo.toml" | head -n 1)
-OUTPUT_PATH=${3:-"$ROOT/dist/EvidenceForge-$VERSION-local-evidence.json"}
+OUTPUT_PATH=${3:-"$ROOT/dist/DiskTrace-$VERSION-local-evidence.json"}
 
 if [ -z "$VERSION" ]; then
     printf '%s\n' 'Unable to determine workspace version from Cargo.toml' >&2
@@ -19,6 +19,11 @@ for command in sha256sum stat uname date; do
 done
 
 cd "$ROOT"
+if ! git diff --quiet || ! git diff --cached --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+    printf '%s\n' 'Local release-evidence generation requires a clean committed source revision.' >&2
+    exit 1
+fi
+SOURCE_COMMIT=$(git rev-parse HEAD)
 sh scripts/verify-linux-bundle.sh "$LINUX_ARCHIVE"
 sh scripts/verify-windows-cross-target-bundle.sh "$WINDOWS_ARCHIVE"
 
@@ -36,9 +41,10 @@ mkdir -p "$(dirname "$OUTPUT_PATH")"
 cat > "$OUTPUT_PATH" <<EOF
 {
   "schema_version": 1,
-  "product": "EvidenceForge Recovery",
+  "product": "DiskTrace",
   "version": "$VERSION",
   "record_type": "local_verification_evidence",
+  "source_commit": "$SOURCE_COMMIT",
   "generated_at_utc": "$generated_at",
   "host": {
     "operating_system": "$host_os",
