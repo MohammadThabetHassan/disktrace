@@ -33,6 +33,21 @@ A reviewer must stop the session and record a failure if the application offers 
 | DA-09 | Review visible text at the recorded display scale and a reduced window size. | Essential actions remain discoverable, text is not materially clipped, contrast and hierarchy remain practical for the exercised workflow, and the safe boundaries are visible. | Window/display conditions and any clipping, ambiguity, or contrast concern. |
 | DA-10 | Close and reopen only through the documented safe session path. | Persisted session data is handled according to the session contract, unknown or invalid session data is rejected safely, and the reopened state does not bypass source identity checks. | Session control, observed result, and any refusal message. |
 
+## Automated companion evidence
+
+The local matrix contains deterministic companion checks for most safety mechanics in this checklist. These checks reduce regression risk and help a reviewer select the relevant synthetic control, but they do **not** convert an automated result into manual acceptance, accessibility evidence, or a real-user finding.
+
+| Manual scenario | Automated companion evidence | Observation that remains manual |
+|---|---|---|
+| DA-01 and DA-03 | `sh scripts/verify-desktop-ui.sh`, the Linux headless desktop smoke stage in `sh scripts/verify-all.sh`, and deterministic background-scan tests. | Native launch appearance, local platform prompts, copy clarity, and actual interaction quality. |
+| DA-02 and DA-09 | Desktop focus/navigation/state regressions and the versioned GUI workflow contract. | Keyboard discoverability, visible focus, clipping, contrast, and practical use at the recorded display scale. |
+| DA-04 and DA-05 | Source-substitution, range-preview, and preview-worker refusal controls. | The target platform’s visible error wording, timing, and comprehension. |
+| DA-06 and DA-07 | Separate-destination, recovery-review, receipt-audit, and case-brief controls. | Native dialog clarity, confirmation comprehension, and destination presentation on the target platform. |
+| DA-08 | Scan/preview cancellation and failure-state controls. | The actual operator’s perception of cancellation and cleanup on the target platform. |
+| DA-10 | Session persistence, invalid-manifest, and identity-recheck controls. | Native reopen flow, storage location presentation, and any operating-system interaction. |
+
+> A manual reviewer should record the exact commands and fixture names used alongside this mapping. A `pass` in a companion check is not a substitute for the reviewer’s DA result.
+
 ## Acceptance record template
 
 Use one record per platform and exact application revision. A `blocked` outcome is evidence of a missing prerequisite, not a passing result. Preserve only safe metadata and redacted screenshots.
@@ -53,7 +68,7 @@ Use one record per platform and exact application revision. A `blocked` outcome 
 
 ## Current status
 
-No completed manual record is asserted by this document. The existing public evidence covers hosted Linux verification and a hosted native Windows bundle/installer workflow for their recorded revisions. It does **not** establish macOS validation, a manual Windows install/uninstall acceptance result, cross-platform signing or notarization, accessibility certification, or a production release. Add a dated record only after the checklist is performed on the exact target and its evidence is safely retained.
+No completed manual record is asserted by this document. The existing public evidence covers hosted Linux verification, hosted native Windows bundle/installer mechanics, hosted macOS 14 ARM64 validation, and an automated companion-evidence mapping for the manual checklist. It does **not** establish a manual Windows install/uninstall acceptance result, real-user Linux or macOS acceptance, cross-platform signing or notarization, accessibility certification, or a production release. Add a dated record only after the checklist is performed on the exact target and its evidence is safely retained.
 
 ## Related contracts
 

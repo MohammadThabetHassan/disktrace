@@ -221,6 +221,8 @@ grep -q 'root directory in a cluster chain' docs/fat32-feasibility-v1.md
 grep -q 'exact commit SHA' docs/maintainer-runbook-v1.md
 grep -q 'Never silently replace a published artifact' docs/maintainer-runbook-v1.md
 grep -q 'No completed manual record is asserted' docs/desktop-acceptance-v1.md
+grep -q 'Automated companion evidence' docs/desktop-acceptance-v1.md
+grep -q 'not a substitute for the reviewer' docs/desktop-acceptance-v1.md
 grep -q 'accessibility certification' docs/desktop-acceptance-v1.md
 grep -q 'real disk images' .github/ISSUE_TEMPLATE/bug-report.yml
 grep -q 'synthetic, minimized controls' .github/ISSUE_TEMPLATE/recovery-method-proposal.yml
