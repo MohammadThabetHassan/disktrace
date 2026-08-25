@@ -25,6 +25,7 @@ sh scripts/verify-ntfs-resident-recovery.sh
 sh scripts/verify-ntfs-contiguous-recovery.sh
 sh scripts/verify-windowed-png-discovery.sh
 sh scripts/verify-large-sparse-control.sh
+sh scripts/verify-scan-control-corpus.sh
 
 cargo build --workspace
 

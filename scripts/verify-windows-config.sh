@@ -12,6 +12,11 @@ for path in \
     scripts/verify-windows-installer.ps1 \
     scripts/generate-sbom.sh \
     scripts/verify-sbom.sh \
+    scripts/generate-scan-control-fixture.sh \
+    scripts/verify-scan-control-corpus.sh \
+    scripts/measure-scan-control-corpus.sh \
+    scripts/summarize-scan-control-corpus.py \
+    docs/performance-control-corpus-v1.md \
     docs/sbom-provenance-v1.md \
     installer/windows/evidenceforge.iss \
     .github/workflows/windows-release.yml; do
@@ -48,6 +53,8 @@ fi
 grep -q 'runs-on: windows-2022' .github/workflows/windows-release.yml
 grep -q 'contents: read' .github/workflows/windows-release.yml
 grep -q 'cargo test --workspace' .github/workflows/windows-release.yml
+grep -q 'Verify synthetic scan-control corpus' .github/workflows/windows-release.yml
+grep -q 'verify-scan-control-corpus.sh' .github/workflows/windows-release.yml
 grep -q 'cargo clippy --workspace --all-targets -- -D warnings' .github/workflows/windows-release.yml
 grep -q 'package-windows-bundle.ps1' .github/workflows/windows-release.yml
 grep -q 'verify-windows-bundle.ps1' .github/workflows/windows-release.yml
@@ -60,5 +67,10 @@ grep -q 'generate-sbom.sh dist/sbom' .github/workflows/windows-release.yml
 grep -q 'dist/sbom' .github/workflows/windows-release.yml
 grep -q 'actions/upload-artifact@v4' .github/workflows/windows-release.yml
 sh scripts/verify-sbom.sh
+sh -n scripts/generate-scan-control-fixture.sh
+sh -n scripts/verify-scan-control-corpus.sh
+sh -n scripts/measure-scan-control-corpus.sh
+grep -q 'synthetic byte controls' docs/performance-control-corpus-v1.md
+grep -q 'not disk acquisitions' docs/performance-control-corpus-v1.md
 
 printf '%s\n' 'Windows distribution configuration verification passed'

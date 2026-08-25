@@ -27,6 +27,7 @@ for path in \
     docs/media-carving-v1.md \
     docs/source-access-architecture-v1.md \
     docs/source-window-discovery-v1.md \
+    docs/performance-control-corpus-v1.md \
     docs/fat32-feasibility-v1.md \
     docs/maintainer-runbook-v1.md \
     docs/desktop-acceptance-v1.md \
@@ -49,6 +50,10 @@ for path in \
     scripts/measure-large-sparse-scan.sh \
     scripts/verify-large-sparse-control.sh \
     scripts/verify-windowed-png-discovery.sh \
+    scripts/generate-scan-control-fixture.sh \
+    scripts/verify-scan-control-corpus.sh \
+    scripts/measure-scan-control-corpus.sh \
+    scripts/summarize-scan-control-corpus.py \
     scripts/generate-sbom.sh \
     scripts/verify-sbom.sh \
     scripts/package-windows-bundle.ps1 \
@@ -84,6 +89,8 @@ grep -q 'linux-distribution-v1.md' README.md
 grep -q 'windows-distribution-v1.md' README.md
 grep -q 'project-status.md' README.md
 grep -q 'GUI workflow' README.md
+grep -q 'synthetic performance-control corpus' README.md
+grep -q 'macOS validation contract' README.md
 grep -q 'Optional command-line workflows' README.md
 grep -q 'audit-session' README.md
 grep -q 'case-brief' README.md
@@ -103,6 +110,7 @@ grep -q 'sh scripts/verify-case-brief.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-media-recovery.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-large-sparse-control.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-windowed-png-discovery.sh' scripts/verify-all.sh
+grep -q 'sh scripts/verify-scan-control-corpus.sh' scripts/verify-all.sh
 grep -q 'cargo audit' docs/release-process.md
 grep -q 'local release-evidence contract' docs/release-process.md
 grep -q 'protected `main`' docs/release-process.md
@@ -144,6 +152,8 @@ grep -q 'build-windows-installer.ps1' .github/workflows/windows-release.yml
 grep -q 'verify-windows-installer.ps1' .github/workflows/windows-release.yml
 grep -q 'cargo install cargo-cyclonedx --version 0.5.9 --locked' .github/workflows/windows-release.yml
 grep -q 'generate-sbom.sh dist/sbom' .github/workflows/windows-release.yml
+grep -q 'Verify synthetic scan-control corpus' .github/workflows/windows-release.yml
+grep -q 'verify-scan-control-corpus.sh' .github/workflows/windows-release.yml
 grep -q 'Windows installer acceptance verification must run on a Windows host' scripts/verify-windows-installer.ps1
 grep -q 'Native installer acceptance gate' docs/windows-distribution-v1.md
 grep -q 'launch the GUI' docs/windows-distribution-v1.md
@@ -180,6 +190,10 @@ grep -q 'source identity verification' docs/source-access-architecture-v1.md
 grep -q 'Primary window length' docs/source-window-discovery-v1.md
 grep -q 'legacy `carve_pngs`' docs/source-window-discovery-v1.md
 grep -q 'Explicit non-claims' docs/source-window-discovery-v1.md
+grep -q 'synthetic byte controls' docs/performance-control-corpus-v1.md
+grep -q 'not disk acquisitions' docs/performance-control-corpus-v1.md
+grep -q 'signature-dense-refusal-v1' docs/performance-control-corpus-v1.md
+grep -q 'hardware benchmarks' docs/performance-control-corpus-v1.md
 grep -q 'FAT32 deleted-file recovery claim' docs/fat32-feasibility-v1.md
 grep -q 'root directory in a cluster chain' docs/fat32-feasibility-v1.md
 grep -q 'exact commit SHA' docs/maintainer-runbook-v1.md
@@ -214,6 +228,10 @@ test -x scripts/generate-large-sparse-fixture.sh
 test -x scripts/measure-large-sparse-scan.sh
 test -x scripts/verify-large-sparse-control.sh
 test -x scripts/verify-windowed-png-discovery.sh
+test -x scripts/generate-scan-control-fixture.sh
+test -x scripts/verify-scan-control-corpus.sh
+test -x scripts/measure-scan-control-corpus.sh
+test -x scripts/summarize-scan-control-corpus.py
 test -x scripts/generate-sbom.sh
 test -x scripts/verify-sbom.sh
 test -x scripts/verify-windows-config.sh

@@ -34,6 +34,10 @@ jobs:
           cargo clippy --workspace --all-targets -- -D warnings
           cargo test --workspace
 
+      - name: Verify synthetic scan-control corpus
+        shell: bash
+        run: ./scripts/verify-scan-control-corpus.sh
+
       - name: Build and verify portable ZIP bundle
         shell: pwsh
         run: |

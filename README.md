@@ -94,15 +94,15 @@ Run the complete deterministic local verification matrix from the workspace root
 sh scripts/verify-all.sh
 ```
 
-The command checks formatting, warning-free Clippy output, workspace documentation generation, locked-dependency advisory policy, unit tests, deterministic filesystem and carving fixtures, direct and saved-session recovery, receipt-backed export auditing, source-range preview contracts, a controlled 64 MiB sparse PNG regression, builds, and a headless native desktop smoke launch on Linux when `xvfb-run` is available.
+The command checks formatting, warning-free Clippy output, workspace documentation generation, locked-dependency advisory policy, unit tests, deterministic filesystem and carving fixtures, direct and saved-session recovery, receipt-backed export auditing, source-range preview contracts, synthetic sparse/signature-dense/refusal/multi-candidate scan controls, builds, and a headless native desktop smoke launch on Linux when `xvfb-run` is available.
 
-Every fixture is synthetic and versioned with known expected bytes and source offsets; none represents a real user image. Current local evidence and intentional limits are summarized in the [public project status report](docs/project-status.md).
+Every fixture is synthetic and versioned with known expected bytes and source offsets; none represents a real user image. The [synthetic performance-control corpus](docs/performance-control-corpus-v1.md) is a regression aid, not a real-device benchmark. Current local evidence and intentional limits are summarized in the [public project status report](docs/project-status.md).
 
 ## Distribution status
 
-A Linux x86_64 bundle and a Windows x86_64 cross-target compatibility bundle can be built locally using the scripts in this repository. The Linux bundle has local native smoke evidence. The Windows cross-target bundle has Linux-host cross-target and Wine/Xvfb compatibility evidence only; it is **not** native Windows release validation. macOS has not been validated. No signed installer, notarized build, automatic update channel, tagged production release, or support SLA exists today.
+A Linux x86_64 bundle and a Windows x86_64 cross-target compatibility bundle can be built locally using the scripts in this repository. The Linux bundle has local native smoke evidence. The native hosted Windows workflow additionally verifies the portable bundle, a disposable silent installer install/uninstall path, and a retained SBOM review artifact. Hosted macOS 14 ARM64 validation builds and checks an unsigned review binary. Those results are bounded CI evidence only; they are not a macOS package, Intel-macOS evidence, signing/notarization, SmartScreen, manual accessibility acceptance, a tagged production release, or a support SLA.
 
-See the [Linux distribution contract](docs/linux-distribution-v1.md), [Windows distribution contract](docs/windows-distribution-v1.md), and [project status report](docs/project-status.md) before sharing any build.
+See the [Linux distribution contract](docs/linux-distribution-v1.md), [Windows distribution contract](docs/windows-distribution-v1.md), [macOS validation contract](docs/macos-validation-v1.md), and [project status report](docs/project-status.md) before sharing any build.
 
 ## Project structure
 
@@ -120,11 +120,11 @@ See the [Linux distribution contract](docs/linux-distribution-v1.md), [Windows d
 
 ## Documentation and contribution
 
-Start with the [project status report](docs/project-status.md), [safety and evidence boundaries](docs/safety-and-evidence.md), [architecture](docs/architecture.md), [GUI workflow](docs/gui-workflow-v1.md), and [source-access architecture](docs/source-access-architecture-v1.md). The [contribution guide](CONTRIBUTING.md), [security policy](SECURITY.md), [code of conduct](CODE_OF_CONDUCT.md), [release process](docs/release-process.md), [dependency advisory register](docs/dependency-advisories.md), and [changelog](CHANGELOG.md) describe how the project is maintained.
+Start with the [project status report](docs/project-status.md), [safety and evidence boundaries](docs/safety-and-evidence.md), [architecture](docs/architecture.md), [GUI workflow](docs/gui-workflow-v1.md), [source-access architecture](docs/source-access-architecture-v1.md), and [synthetic performance-control corpus](docs/performance-control-corpus-v1.md). The [contribution guide](CONTRIBUTING.md), [security policy](SECURITY.md), [code of conduct](CODE_OF_CONDUCT.md), [release process](docs/release-process.md), [controlled release decision](docs/release-decision-v1.md), [dependency advisory register](docs/dependency-advisories.md), and [changelog](CHANGELOG.md) describe how the project is maintained.
 
 ## Status
 
-DiskTrace is a **public source project and local pre-release workspace**. Its source, deterministic fixtures, documentation, and local workflows are available for inspection. It should not be described as production-ready until the remaining native-platform, signing, hosted-verification, governance, and release-evidence gaps are closed.
+DiskTrace is a **public source project and local pre-release workspace**. Its source, deterministic fixtures, documentation, and local/hosted workflows are available for inspection. It should not be described as production-ready until the remaining manual platform acceptance, package/signing/notarization, consumer-facing artifact, authorization, and release-evidence gaps are closed.
 
 ## License
 
