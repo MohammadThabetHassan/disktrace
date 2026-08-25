@@ -96,7 +96,13 @@ for pattern in \
     'cancelling_selected_preview_signals_the_worker_and_discards_its_result' \
     'unverified_source_withholds_selected_preview_bytes' \
     'selected_preview_rechecks_source_identity_before_reading_a_range' \
-    'current_preview_worker_failure_remains_visible'; do
+    'current_preview_worker_failure_remains_visible' \
+    'active_scan_presentation' \
+    'candidate_evidence_presentation' \
+    'Read-only scan active' \
+    'What this evidence establishes' \
+    'active_scan_presentation_explains_truthful_scan_and_stop_states' \
+    'candidate_evidence_presentation_distinguishes_metadata_and_carving_scope'; do
     grep -q "$pattern" crates/ef-desktop/src/main.rs
 done
 
@@ -120,6 +126,9 @@ grep -q 'Stopping scan' docs/gui-workflow-v1.md
 grep -q 'partial scan results' docs/gui-workflow-v1.md
 grep -q 'At a glance' docs/gui-workflow-v1.md
 grep -q 'collapsed candidate record' docs/gui-workflow-v1.md
+grep -q 'Read-only scan active' docs/gui-workflow-v1.md
+grep -q 'tested scan-progress contract' docs/gui-workflow-v1.md
+grep -q 'What this evidence establishes' docs/gui-workflow-v1.md
 grep -q 'PreviewFact' crates/ef-catalogue/src/lib.rs
 grep -q 'candidate_preview_structure' crates/ef-catalogue/src/lib.rs
 grep -q 'gif_preview_facts' crates/ef-catalogue/src/lib.rs
@@ -132,6 +141,8 @@ cargo test -p ef-desktop export_audit_reports_verified_and_changed_recorded_outp
 cargo test -p ef-desktop saves_a_case_brief_from_the_current_local_session
 cargo test -p ef-desktop background_scan_applies_document_candidates
 cargo test -p ef-desktop background_scan_applies_media_candidates_with_structure_summaries
+cargo test -p ef-desktop active_scan_presentation_explains_truthful_scan_and_stop_states
+cargo test -p ef-desktop candidate_evidence_presentation_distinguishes_metadata_and_carving_scope
 cargo test -p ef-desktop workflow_state_tracks_image_and_scan_progress
 cargo test -p ef-desktop cancelling_a_pending_scan_preserves_the_previous_catalogue
 cargo test -p ef-desktop cancelling_selected_preview_signals_the_worker_and_discards_its_result

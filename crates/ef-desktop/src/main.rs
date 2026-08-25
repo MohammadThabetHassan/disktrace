@@ -1200,6 +1200,9 @@ impl eframe::App for EvidenceForgeApp {
                             }),
                         );
                     });
+                    ui.add_space(6.0);
+                    let (title, detail, color) = active_scan_presentation(stopping_scan);
+                    action_guidance_panel(ui, title, detail, color);
                 } else if self.image_path.trim().is_empty() {
                     ui.small("Choose an image or start the synthetic guided demo.");
                 } else {
@@ -1663,6 +1666,18 @@ impl eframe::App for EvidenceForgeApp {
                             });
                             ui.add_space(12.0);
                             ui.group(|ui| {
+                                ui.strong("What this evidence establishes");
+                                let (basis, validation) =
+                                    candidate_evidence_presentation(&presentation.candidate);
+                                ui.label(basis);
+                                ui.small(validation);
+                                ui.add_space(4.0);
+                                ui.small(
+                                    "It does not establish the original path, completeness, authenticity, safety, legal admissibility, or recovery of every deleted file.",
+                                );
+                            });
+                            ui.add_space(8.0);
+                            ui.group(|ui| {
                                 ui.strong("Method notes");
                                 ui.label(&presentation.explanation);
                             });
@@ -2047,6 +2062,61 @@ fn workflow_state_label(app: &EvidenceForgeApp) -> (&'static str, egui::Color32)
     }
 }
 
+fn active_scan_presentation(stopping: bool) -> (&'static str, &'static str, egui::Color32) {
+    if stopping {
+        (
+            "Stop requested",
+            "DiskTrace will acknowledge the request at an implemented cooperative checkpoint. The pending scan result will not be applied, and any completed catalogue remains available.",
+            Palette::REVIEW,
+        )
+    } else {
+        (
+            "Read-only scan active",
+            "DiskTrace is performing its implemented local scan stages. A byte-percentage is intentionally not shown because it is not yet a tested scan-progress contract.",
+            Palette::FOCUS_STRONG,
+        )
+    }
+}
+
+fn candidate_evidence_presentation(candidate: &RecoveryCandidate) -> (&'static str, &'static str) {
+    let basis = match candidate.method {
+        RecoveryMethod::Fat12DeletedRootMetadata
+        | RecoveryMethod::Fat16DeletedRootMetadata
+        | RecoveryMethod::ExfatDeletedContiguousRootMetadata
+        | RecoveryMethod::NtfsDeletedResidentRecord
+        | RecoveryMethod::NtfsDeletedContiguousNonresident => {
+            "The listed source range was identified through the supported filesystem metadata and allocation checks for this method."
+        }
+        RecoveryMethod::SignatureCarvingPng
+        | RecoveryMethod::SignatureCarvingJpeg
+        | RecoveryMethod::SignatureCarvingGif
+        | RecoveryMethod::SignatureCarvingAvi
+        | RecoveryMethod::SignatureCarvingMp4
+        | RecoveryMethod::SignatureCarvingPdf
+        | RecoveryMethod::SignatureCarvingZipOffice => {
+            "The listed source range was identified through the supported structural checks for this file format."
+        }
+    };
+    let validation = match candidate.validation {
+        CandidateValidation::MetadataVerified => {
+            "The available metadata checks passed within this method's documented scope."
+        }
+        CandidateValidation::ContentValidated => {
+            "The supported content or structure checks accepted this bounded byte range."
+        }
+        CandidateValidation::RecoveredUnvalidated => {
+            "Recovery produced a bounded byte range, but its content needs independent review."
+        }
+        CandidateValidation::PartialOrErrorAffected => {
+            "The result may be incomplete or affected by a recorded recovery condition."
+        }
+        CandidateValidation::Unavailable => {
+            "This source cannot safely provide a recoverable result through the selected method."
+        }
+    };
+    (basis, validation)
+}
+
 fn status_badge(ui: &mut egui::Ui, label: &str, color: egui::Color32) {
     egui::Frame::NONE
         .fill(color.gamma_multiply(0.12))
@@ -2400,10 +2470,12 @@ fn validation_color(validation: CandidateValidation) -> egui::Color32 {
 #[cfg(test)]
 mod tests {
     use super::{
-        workflow_state_label, EvidenceForgeApp, PreviewWorker, RecordedExportIntegrity,
+        active_scan_presentation, candidate_evidence_presentation, workflow_state_label,
+        EvidenceForgeApp, Palette, PreviewWorker, RecordedExportIntegrity,
         RecordedExportVerification, SourceIntegrity,
     };
     use ef_catalogue::PreviewKind;
+    use ef_core::{CandidateValidation, RecoveryMethod};
     use ef_workflow::SessionManifest;
     use std::fs;
     use std::path::PathBuf;
@@ -3042,6 +3114,53 @@ mod tests {
                 .kind,
             PreviewKind::MetadataOnly
         );
+    }
+
+    #[test]
+    fn active_scan_presentation_explains_truthful_scan_and_stop_states() {
+        let (active_title, active_detail, active_color) = active_scan_presentation(false);
+        assert_eq!(active_title, "Read-only scan active");
+        assert!(active_detail.contains("local scan stages"));
+        assert!(active_detail.contains("not yet a tested scan-progress contract"));
+        assert_eq!(active_color, Palette::FOCUS_STRONG);
+
+        let (stopping_title, stopping_detail, stopping_color) = active_scan_presentation(true);
+        assert_eq!(stopping_title, "Stop requested");
+        assert!(stopping_detail.contains("cooperative checkpoint"));
+        assert!(stopping_detail.contains("will not be applied"));
+        assert_eq!(stopping_color, Palette::REVIEW);
+    }
+
+    #[test]
+    fn candidate_evidence_presentation_distinguishes_metadata_and_carving_scope() {
+        let mut application = EvidenceForgeApp::default();
+        application.load_demo_fixture();
+        application.start_scan();
+        wait_for_scan(&mut application);
+
+        let metadata_candidate = application
+            .candidates
+            .iter()
+            .find(|candidate| candidate.method == RecoveryMethod::Fat12DeletedRootMetadata)
+            .expect("FAT12 fixture candidate");
+        let (metadata_basis, metadata_validation) =
+            candidate_evidence_presentation(metadata_candidate);
+        assert!(metadata_basis.contains("filesystem metadata and allocation checks"));
+        assert!(metadata_validation.contains("bounded byte range"));
+
+        let carved_candidate = application
+            .candidates
+            .iter()
+            .find(|candidate| candidate.method == RecoveryMethod::SignatureCarvingPng)
+            .expect("PNG fixture candidate");
+        let (carved_basis, carved_validation) = candidate_evidence_presentation(carved_candidate);
+        assert!(carved_basis.contains("structural checks"));
+        assert!(carved_validation.contains("bounded byte range"));
+
+        let mut review_candidate = carved_candidate.clone();
+        review_candidate.validation = CandidateValidation::RecoveredUnvalidated;
+        let (_, review_validation) = candidate_evidence_presentation(&review_candidate);
+        assert!(review_validation.contains("independent review"));
     }
 
     #[test]
