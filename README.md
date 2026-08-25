@@ -76,7 +76,7 @@ cargo run -p ef-cli -- recover /path/to/image.img efc1-<candidate-id-from-scan> 
 
 A saved session stores local source paths, dual source hashes, completed candidate details, source-integrity status, and receipt-backed export history. It never stores recovered payload bytes. If a source becomes unavailable or its length, SHA-256, or BLAKE3 changes, the historical session remains readable but recovery is blocked until the changed image is scanned as a new session.
 
-Selected previews recheck the full saved source identity on one local handle and then read only the persisted candidate’s exact byte range. Exports intentionally retain a stricter full-source re-derivation and manifest-comparison path. The [source-access architecture](docs/source-access-architecture-v1.md) describes this staged design and its remaining time-of-check/time-of-use boundary.
+Selected previews recheck the full saved source identity on one local handle and then read only the persisted candidate’s exact byte range. PNG and JPEG candidate discovery additionally use method-specific fixed source windows with mandatory legacy parity; filesystem metadata, other carvers, recovery, and exports retain their full-buffer compatibility paths. Exports intentionally retain a stricter full-source re-derivation and manifest-comparison path. The [source-access architecture](docs/source-access-architecture-v1.md) and [JPEG windowed-discovery contract](docs/jpeg-window-discovery-v1.md) describe this staged design and its remaining time-of-check/time-of-use boundary.
 
 ```sh
 cargo run -p ef-cli -- save-session /path/to/image.img /path/to/session.disktrace.json
@@ -94,7 +94,7 @@ Run the complete deterministic local verification matrix from the workspace root
 sh scripts/verify-all.sh
 ```
 
-The command checks formatting, warning-free Clippy output, workspace documentation generation, locked-dependency advisory policy, unit tests, deterministic filesystem and carving fixtures, direct and saved-session recovery, receipt-backed export auditing, source-range preview contracts, synthetic sparse/signature-dense/refusal/multi-candidate scan controls, builds, and a headless native desktop smoke launch on Linux when `xvfb-run` is available.
+The command checks formatting, warning-free Clippy output, workspace documentation generation, locked-dependency advisory policy, unit tests, deterministic filesystem and carving fixtures, direct and saved-session recovery, receipt-backed export auditing, source-range preview contracts, bounded PNG/JPEG discovery parity controls, synthetic sparse/signature-dense/refusal/multi-candidate scan controls, builds, and a headless native desktop smoke launch on Linux when `xvfb-run` is available.
 
 Every fixture is synthetic and versioned with known expected bytes and source offsets; none represents a real user image. The [synthetic performance-control corpus](docs/performance-control-corpus-v1.md) is a regression aid, not a real-device benchmark. Current local evidence and intentional limits are summarized in the [public project status report](docs/project-status.md).
 

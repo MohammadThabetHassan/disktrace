@@ -75,6 +75,8 @@ pub enum WorkflowError {
     SourceIdentityMismatch,
     #[error("windowed PNG discovery diverged from compatibility discovery")]
     WindowedPngParity,
+    #[error("windowed JPEG discovery diverged from compatibility discovery")]
+    WindowedJpegParity,
 }
 
 #[derive(Debug, Clone)]
@@ -391,6 +393,11 @@ const PNG_WINDOW_PRIMARY_LENGTH: u64 = 1024 * 1024;
 const PNG_SIGNATURE_OVERLAP: u64 = PNG_SIGNATURE.len() as u64 - 1;
 const PNG_CHUNK_HEADER_LENGTH: u64 = 12;
 
+const JPEG_SOI: [u8; 2] = [0xff, 0xd8];
+const JPEG_WINDOW_PRIMARY_LENGTH: u64 = PNG_WINDOW_PRIMARY_LENGTH;
+const JPEG_SIGNATURE_OVERLAP: u64 = JPEG_SOI.len() as u64 - 1;
+const JPEG_MAX_CARVE_LENGTH: u64 = 128 * 1024 * 1024;
+
 fn discover_candidates_for_scan(
     image: &[u8],
     source_identity: &SourceIdentity,
@@ -426,6 +433,34 @@ fn discover_candidates_for_scan(
 
     if windowed_png_candidates.next().is_some() {
         return Err(WorkflowError::WindowedPngParity);
+    }
+
+    let windowed_jpeg_candidates =
+        discover_windowed_jpeg_candidates(source_identity, cancellation)?;
+    let legacy_jpeg_count = candidates
+        .iter()
+        .filter(|candidate| candidate.method == RecoveryMethod::SignatureCarvingJpeg)
+        .count();
+
+    if legacy_jpeg_count != windowed_jpeg_candidates.len() {
+        return Err(WorkflowError::WindowedJpegParity);
+    }
+
+    let mut windowed_jpeg_candidates = windowed_jpeg_candidates.into_iter();
+    for candidate in &mut candidates {
+        if candidate.method == RecoveryMethod::SignatureCarvingJpeg {
+            let replacement = windowed_jpeg_candidates
+                .next()
+                .ok_or(WorkflowError::WindowedJpegParity)?;
+            if *candidate != replacement {
+                return Err(WorkflowError::WindowedJpegParity);
+            }
+            *candidate = replacement;
+        }
+    }
+
+    if windowed_jpeg_candidates.next().is_some() {
+        return Err(WorkflowError::WindowedJpegParity);
     }
 
     Ok(candidates)
@@ -633,6 +668,349 @@ fn read_windowed_png_range(
         SourceRange { offset, length },
         cancellation,
     )?))
+}
+
+fn discover_windowed_jpeg_candidates(
+    source_identity: &SourceIdentity,
+    cancellation: &AtomicBool,
+) -> Result<Vec<RecoveryCandidate>, WorkflowError> {
+    discover_windowed_jpeg_candidates_after_window(source_identity, cancellation, || {})
+}
+
+fn discover_windowed_jpeg_candidates_after_window<F>(
+    source_identity: &SourceIdentity,
+    cancellation: &AtomicBool,
+    mut after_primary_window: F,
+) -> Result<Vec<RecoveryCandidate>, WorkflowError>
+where
+    F: FnMut(),
+{
+    if cancellation.load(Ordering::Relaxed) {
+        return Err(CoreError::Cancelled.into());
+    }
+
+    let path = &source_identity.canonical_path;
+    let mut file = File::open(path).map_err(|source| WorkflowError::ReadImage {
+        path: path.clone(),
+        source,
+    })?;
+    let mut candidates = Vec::new();
+    let mut primary_start = 0_u64;
+    let mut suppression_end = 0_u64;
+
+    while primary_start < source_identity.byte_length {
+        if cancellation.load(Ordering::Relaxed) {
+            return Err(CoreError::Cancelled.into());
+        }
+        let remaining = source_identity.byte_length - primary_start;
+        let primary_length = remaining.min(JPEG_WINDOW_PRIMARY_LENGTH);
+        let readable_length = primary_length
+            .checked_add(JPEG_SIGNATURE_OVERLAP)
+            .map(|length| length.min(remaining))
+            .ok_or(CoreError::RangeOverflow {
+                offset: primary_start,
+                length: primary_length,
+            })?;
+        let window = read_range_from_file_with_cancellation(
+            &mut file,
+            path,
+            source_identity.byte_length,
+            SourceRange {
+                offset: primary_start,
+                length: readable_length,
+            },
+            cancellation,
+        )?;
+        let primary_length =
+            usize::try_from(primary_length).map_err(|_| CoreError::RangeAllocation {
+                length: primary_length,
+            })?;
+
+        for relative_start in 0..primary_length {
+            let signature_end =
+                relative_start
+                    .checked_add(JPEG_SOI.len())
+                    .ok_or(CoreError::RangeOverflow {
+                        offset: primary_start,
+                        length: JPEG_SOI.len() as u64,
+                    })?;
+            if window.get(relative_start..signature_end) != Some(&JPEG_SOI) {
+                continue;
+            }
+            let source_offset = primary_start.checked_add(relative_start as u64).ok_or(
+                CoreError::RangeOverflow {
+                    offset: primary_start,
+                    length: relative_start as u64,
+                },
+            )?;
+            if source_offset < suppression_end {
+                continue;
+            }
+            let Some(byte_length) = parse_windowed_jpeg_length(
+                &mut file,
+                source_identity,
+                source_offset,
+                cancellation,
+            )?
+            else {
+                continue;
+            };
+            suppression_end =
+                source_offset
+                    .checked_add(byte_length)
+                    .ok_or(CoreError::RangeOverflow {
+                        offset: source_offset,
+                        length: byte_length,
+                    })?;
+            let index = candidates.len();
+            candidates.push(with_stable_candidate_id(jpeg_candidate(
+                format!("jpeg-carve-{index:04}"),
+                JpegCarvedCandidate {
+                    evidence_name: format!("carved-jpeg-{index:04}.jpg"),
+                    source_offset,
+                    byte_length,
+                },
+            )));
+        }
+
+        primary_start =
+            primary_start
+                .checked_add(primary_length as u64)
+                .ok_or(CoreError::RangeOverflow {
+                    offset: primary_start,
+                    length: primary_length as u64,
+                })?;
+        after_primary_window();
+        if cancellation.load(Ordering::Relaxed) {
+            return Err(CoreError::Cancelled.into());
+        }
+    }
+
+    Ok(candidates)
+}
+
+fn windowed_jpeg_candidate_limit(source_offset: u64, source_length: u64) -> u64 {
+    source_offset
+        .saturating_add(JPEG_MAX_CARVE_LENGTH)
+        .min(source_length)
+}
+
+fn parse_windowed_jpeg_length(
+    file: &mut File,
+    source_identity: &SourceIdentity,
+    source_offset: u64,
+    cancellation: &AtomicBool,
+) -> Result<Option<u64>, WorkflowError> {
+    let candidate_limit = windowed_jpeg_candidate_limit(source_offset, source_identity.byte_length);
+    let mut reader = WindowedJpegReader::new(
+        file,
+        source_identity,
+        source_offset,
+        candidate_limit,
+        cancellation,
+    );
+
+    if reader.read_byte()? != Some(JPEG_SOI[0]) || reader.read_byte()? != Some(JPEG_SOI[1]) {
+        return Ok(None);
+    }
+
+    let mut saw_frame = false;
+    while reader.offset() < candidate_limit {
+        if reader.read_byte()? != Some(0xff) {
+            return Ok(None);
+        }
+        let marker = loop {
+            let Some(byte) = reader.read_byte()? else {
+                return Ok(None);
+            };
+            if byte != 0xff {
+                break byte;
+            }
+        };
+
+        if marker == 0xd9 {
+            return Ok(None);
+        }
+        if marker == 0xd8 || marker == 0x01 || (0xd0..=0xd7).contains(&marker) {
+            continue;
+        }
+
+        let segment_length_offset = reader.offset();
+        let Some(segment_length) = reader.read_be_u16()? else {
+            return Ok(None);
+        };
+        let segment_length = u64::from(segment_length);
+        if segment_length < 2 {
+            return Ok(None);
+        }
+        let segment_end =
+            segment_length_offset
+                .checked_add(segment_length)
+                .ok_or(CoreError::RangeOverflow {
+                    offset: segment_length_offset,
+                    length: segment_length,
+                })?;
+        if segment_end > candidate_limit {
+            return Ok(None);
+        }
+
+        if is_windowed_jpeg_frame_marker(marker) {
+            saw_frame = true;
+        }
+        reader.advance_to(segment_end)?;
+        if marker == 0xda {
+            if !saw_frame {
+                return Ok(None);
+            }
+            return find_windowed_jpeg_end_of_image(&mut reader, source_offset);
+        }
+    }
+
+    Ok(None)
+}
+
+fn is_windowed_jpeg_frame_marker(marker: u8) -> bool {
+    matches!(
+        marker,
+        0xc0 | 0xc1 | 0xc2 | 0xc3 | 0xc5 | 0xc6 | 0xc7 | 0xc9 | 0xca | 0xcb | 0xcd | 0xce | 0xcf
+    )
+}
+
+fn find_windowed_jpeg_end_of_image(
+    reader: &mut WindowedJpegReader<'_>,
+    source_offset: u64,
+) -> Result<Option<u64>, WorkflowError> {
+    while reader.offset() < reader.limit().saturating_sub(1) {
+        let Some(first) = reader.read_byte()? else {
+            return Ok(None);
+        };
+        if first != 0xff {
+            continue;
+        }
+        let Some(second) = reader.read_byte()? else {
+            return Ok(None);
+        };
+        match second {
+            0x00 | 0xd0..=0xd7 => {}
+            0xd9 => return Ok(Some(reader.offset() - source_offset)),
+            _ => return Ok(None),
+        }
+    }
+
+    Ok(None)
+}
+
+struct WindowedJpegReader<'a> {
+    file: &'a mut File,
+    source_identity: &'a SourceIdentity,
+    cancellation: &'a AtomicBool,
+    offset: u64,
+    limit: u64,
+    buffer_start: u64,
+    buffer: Vec<u8>,
+}
+
+impl<'a> WindowedJpegReader<'a> {
+    fn new(
+        file: &'a mut File,
+        source_identity: &'a SourceIdentity,
+        offset: u64,
+        limit: u64,
+        cancellation: &'a AtomicBool,
+    ) -> Self {
+        Self {
+            file,
+            source_identity,
+            cancellation,
+            offset,
+            limit,
+            buffer_start: limit,
+            buffer: Vec::new(),
+        }
+    }
+
+    fn offset(&self) -> u64 {
+        self.offset
+    }
+
+    fn limit(&self) -> u64 {
+        self.limit
+    }
+
+    fn advance_to(&mut self, offset: u64) -> Result<(), WorkflowError> {
+        if offset > self.limit {
+            return Err(CoreError::RangeOutOfBounds {
+                offset,
+                length: 0,
+                source_length: self.limit,
+            }
+            .into());
+        }
+        self.offset = offset;
+        Ok(())
+    }
+
+    fn read_be_u16(&mut self) -> Result<Option<u16>, WorkflowError> {
+        let Some(high) = self.read_byte()? else {
+            return Ok(None);
+        };
+        let Some(low) = self.read_byte()? else {
+            return Ok(None);
+        };
+        Ok(Some(u16::from_be_bytes([high, low])))
+    }
+
+    fn read_byte(&mut self) -> Result<Option<u8>, WorkflowError> {
+        if self.offset >= self.limit {
+            return Ok(None);
+        }
+        self.ensure_buffer_contains_offset()?;
+        let relative_offset = usize::try_from(self.offset - self.buffer_start).map_err(|_| {
+            CoreError::RangeAllocation {
+                length: self.offset - self.buffer_start,
+            }
+        })?;
+        let byte = *self
+            .buffer
+            .get(relative_offset)
+            .ok_or(CoreError::RangeOutOfBounds {
+                offset: self.offset,
+                length: 1,
+                source_length: self.limit,
+            })?;
+        self.offset = self.offset.checked_add(1).ok_or(CoreError::RangeOverflow {
+            offset: self.offset,
+            length: 1,
+        })?;
+        Ok(Some(byte))
+    }
+
+    fn ensure_buffer_contains_offset(&mut self) -> Result<(), WorkflowError> {
+        let buffer_end = self
+            .buffer_start
+            .checked_add(self.buffer.len() as u64)
+            .ok_or(CoreError::RangeOverflow {
+                offset: self.buffer_start,
+                length: self.buffer.len() as u64,
+            })?;
+        if self.offset >= self.buffer_start && self.offset < buffer_end {
+            return Ok(());
+        }
+
+        let length = (self.limit - self.offset).min(JPEG_WINDOW_PRIMARY_LENGTH);
+        self.buffer = read_range_from_file_with_cancellation(
+            self.file,
+            &self.source_identity.canonical_path,
+            self.source_identity.byte_length,
+            SourceRange {
+                offset: self.offset,
+                length,
+            },
+            self.cancellation,
+        )?;
+        self.buffer_start = self.offset;
+        Ok(())
+    }
 }
 
 pub fn recover_candidate(
@@ -1129,12 +1507,14 @@ fn validation_state(validation: CandidateValidation) -> ValidationState {
 mod tests {
     use super::{
         discover_candidates, discover_candidates_legacy,
-        discover_candidates_legacy_with_cancellation, discover_windowed_png_candidates,
+        discover_candidates_legacy_with_cancellation, discover_windowed_jpeg_candidates,
+        discover_windowed_jpeg_candidates_after_window, discover_windowed_png_candidates,
         discover_windowed_png_candidates_after_window, read_session_candidate_range,
         recover_candidate, recover_candidate_from_image,
         recover_candidate_from_image_with_cancellation, scan_image, scan_image_with_cancellation,
-        stable_candidate_id, SessionManifest, WorkflowError, PNG_SIGNATURE_OVERLAP,
-        PNG_WINDOW_PRIMARY_LENGTH,
+        stable_candidate_id, windowed_jpeg_candidate_limit, SessionManifest, WorkflowError,
+        JPEG_MAX_CARVE_LENGTH, JPEG_SIGNATURE_OVERLAP, JPEG_WINDOW_PRIMARY_LENGTH,
+        PNG_SIGNATURE_OVERLAP, PNG_WINDOW_PRIMARY_LENGTH,
     };
     use ef_core::{CoreError, ImageSource, RecoveryCandidate, RecoveryMethod};
     use std::collections::HashSet;
@@ -1146,6 +1526,10 @@ mod tests {
     const FIXTURE: &[u8] = include_bytes!("../../../fixtures/fat12-deleted-file-v1/source.img");
     const EXPECTED_PNG: &[u8] =
         include_bytes!("../../../fixtures/fat12-deleted-file-v1/expected-carved.png");
+    const JPEG_FIXTURE: &[u8] =
+        include_bytes!("../../../fixtures/fat16-jpeg-multimethod-v1/source.img");
+    const EXPECTED_JPEG: &[u8] =
+        include_bytes!("../../../fixtures/fat16-jpeg-multimethod-v1/expected-carved.jpg");
 
     fn temporary_source_path(name: &str) -> PathBuf {
         std::env::temp_dir().join(format!("disktrace-windowed-{name}-{}", Uuid::new_v4()))
@@ -1163,6 +1547,13 @@ mod tests {
         candidates
             .into_iter()
             .filter(|candidate| candidate.method == RecoveryMethod::SignatureCarvingPng)
+            .collect()
+    }
+
+    fn jpeg_candidates(candidates: Vec<RecoveryCandidate>) -> Vec<RecoveryCandidate> {
+        candidates
+            .into_iter()
+            .filter(|candidate| candidate.method == RecoveryMethod::SignatureCarvingJpeg)
             .collect()
     }
 
@@ -1232,6 +1623,132 @@ mod tests {
 
         assert!(matches!(error, WorkflowError::Core(CoreError::Cancelled)));
         assert_eq!(completed_method_stages, 1);
+    }
+
+    #[test]
+    fn windowed_jpeg_candidate_limit_matches_the_legacy_cap_semantics() {
+        assert_eq!(
+            windowed_jpeg_candidate_limit(16, JPEG_MAX_CARVE_LENGTH + 64),
+            JPEG_MAX_CARVE_LENGTH + 16
+        );
+        assert_eq!(windowed_jpeg_candidate_limit(16, 32), 32);
+        assert_eq!(
+            windowed_jpeg_candidate_limit(u64::MAX - 8, u64::MAX),
+            u64::MAX
+        );
+    }
+
+    #[test]
+    fn windowed_jpeg_discovery_matches_the_legacy_fixture_candidates() {
+        let path = fixture_path("fat16-jpeg-multimethod-v1");
+        let source = ImageSource::inspect(&path).expect("inspect JPEG fixture");
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_jpeg_candidates(&source.identity, &cancellation)
+            .expect("discover JPEG candidates through windows");
+        let legacy = jpeg_candidates(discover_candidates(JPEG_FIXTURE));
+
+        assert_eq!(windowed, legacy);
+    }
+
+    #[test]
+    fn windowed_jpeg_discovery_owns_a_signature_straddling_the_primary_boundary() {
+        let start = usize::try_from(JPEG_WINDOW_PRIMARY_LENGTH - JPEG_SIGNATURE_OVERLAP)
+            .expect("window boundary fits usize");
+        let mut image = vec![0_u8; start + EXPECTED_JPEG.len() + 32];
+        image[start..start + EXPECTED_JPEG.len()].copy_from_slice(EXPECTED_JPEG);
+        let (path, source) = write_windowed_source("jpeg-signature-boundary", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_jpeg_candidates(&source.identity, &cancellation)
+            .expect("discover boundary JPEG through windows");
+        let legacy = jpeg_candidates(discover_candidates(&image));
+
+        assert_eq!(windowed, legacy);
+        assert_eq!(windowed.len(), 1);
+        assert_eq!(windowed[0].source_offset, start as u64);
+        assert_eq!(windowed[0].byte_length, EXPECTED_JPEG.len() as u64);
+        fs::remove_file(path).expect("remove deterministic windowed JPEG source");
+    }
+
+    #[test]
+    fn invalid_boundary_jpeg_does_not_hide_a_later_valid_candidate() {
+        let malformed_start = usize::try_from(JPEG_WINDOW_PRIMARY_LENGTH - JPEG_SIGNATURE_OVERLAP)
+            .expect("window boundary fits usize");
+        let valid_start =
+            usize::try_from(JPEG_WINDOW_PRIMARY_LENGTH + 96).expect("valid offset fits usize");
+        let mut image = vec![0_u8; valid_start + EXPECTED_JPEG.len() + 32];
+        image[malformed_start..malformed_start + 8]
+            .copy_from_slice(&[0xff, 0xd8, 0xff, 0xda, 0, 2, 0xff, 0xd9]);
+        image[valid_start..valid_start + EXPECTED_JPEG.len()].copy_from_slice(EXPECTED_JPEG);
+        let (path, source) = write_windowed_source("invalid-jpeg-boundary", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_jpeg_candidates(&source.identity, &cancellation)
+            .expect("discover later JPEG through windows");
+        let legacy = jpeg_candidates(discover_candidates(&image));
+
+        assert_eq!(windowed, legacy);
+        assert_eq!(windowed.len(), 1);
+        assert_eq!(windowed[0].source_offset, valid_start as u64);
+        fs::remove_file(path).expect("remove deterministic windowed JPEG source");
+    }
+
+    #[test]
+    fn windowed_jpeg_discovery_preserves_adjacent_candidate_ordering() {
+        let first_start =
+            usize::try_from(JPEG_WINDOW_PRIMARY_LENGTH - 16).expect("window boundary fits usize");
+        let second_start = first_start + EXPECTED_JPEG.len() + 24;
+        let mut image = vec![0_u8; second_start + EXPECTED_JPEG.len() + 32];
+        image[first_start..first_start + EXPECTED_JPEG.len()].copy_from_slice(EXPECTED_JPEG);
+        image[second_start..second_start + EXPECTED_JPEG.len()].copy_from_slice(EXPECTED_JPEG);
+        let (path, source) = write_windowed_source("adjacent-windowed-jpegs", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_jpeg_candidates(&source.identity, &cancellation)
+            .expect("discover adjacent JPEGs through windows");
+        let legacy = jpeg_candidates(discover_candidates(&image));
+
+        assert_eq!(windowed, legacy);
+        assert_eq!(windowed.len(), 2);
+        assert_eq!(windowed[0].source_offset, first_start as u64);
+        assert_eq!(windowed[1].source_offset, second_start as u64);
+        fs::remove_file(path).expect("remove deterministic windowed JPEG source");
+    }
+
+    #[test]
+    fn windowed_jpeg_discovery_refuses_a_truncated_candidate_at_source_end() {
+        let image = [0xff, 0xd8, 0xff, 0xda, 0, 2];
+        let (path, source) = write_windowed_source("truncated-windowed-jpeg", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_jpeg_candidates(&source.identity, &cancellation)
+            .expect("refuse truncated JPEG through windows");
+        let legacy = jpeg_candidates(discover_candidates(&image));
+
+        assert_eq!(windowed, legacy);
+        assert!(windowed.is_empty());
+        fs::remove_file(path).expect("remove deterministic windowed JPEG source");
+    }
+
+    #[test]
+    fn windowed_jpeg_discovery_cancels_after_a_completed_primary_window() {
+        let image = vec![
+            0_u8;
+            usize::try_from(JPEG_WINDOW_PRIMARY_LENGTH + 16)
+                .expect("window fits usize")
+        ];
+        let (path, source) = write_windowed_source("cancel-after-jpeg-window", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let error =
+            discover_windowed_jpeg_candidates_after_window(&source.identity, &cancellation, || {
+                cancellation.store(true, Ordering::Relaxed)
+            })
+            .expect_err("cancellation after a completed primary window must stop JPEG discovery");
+
+        assert!(matches!(error, WorkflowError::Core(CoreError::Cancelled)));
+        fs::remove_file(path).expect("remove deterministic windowed JPEG source");
     }
 
     #[test]
