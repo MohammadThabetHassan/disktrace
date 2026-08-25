@@ -31,7 +31,8 @@ for path in \
     docs/maintainer-runbook-v1.md \
     docs/desktop-acceptance-v1.md \
     docs/future-github-launch-v1.md \
-    docs/release-notes-v0.1.0-draft.md \
+    docs/release-scorecard-v1.md \
+    docs/release-decision-v1.md \
     docs/project-status.md \
     docs/release-scorecard-v1.md \
     docs/gui-workflow-v1.md \
@@ -106,6 +107,10 @@ grep -q 'cargo audit' docs/release-process.md
 grep -q 'local release-evidence contract' docs/release-process.md
 grep -q 'protected `main`' docs/release-process.md
 grep -q 'explicit authorization' docs/release-process.md
+grep -q 'Decision: no public-release action' docs/release-decision-v1.md
+grep -q 'not authorize a semantic version' docs/release-decision-v1.md
+grep -q 'does not claim universal recovery' docs/release-decision-v1.md
+grep -q 'owner separately authorizes' docs/release-decision-v1.md
 grep -q 'Release target record' docs/release-scorecard-v1.md
 grep -q 'Authorization boundary' docs/release-scorecard-v1.md
 grep -q 'strict 90+ public-release readiness score' docs/release-scorecard-v1.md
@@ -188,6 +193,7 @@ grep -q 'CodeQL Rust analysis' docs/project-status.md
 grep -q 'macOS 14 ARM64 workspace validation' docs/project-status.md
 grep -q 'SBOM transparency' docs/project-status.md
 grep -q 'not an attestation' docs/project-status.md
+grep -q 'controlled decision package' docs/project-status.md
 grep -q 'contains no downloaded executable code' docs/design-skill-adoption-v1.md
 grep -q 'defines a single `Palette`' docs/design-skill-adoption-v1.md
 grep -q 'package-ecosystem: cargo' .github/dependabot.yml

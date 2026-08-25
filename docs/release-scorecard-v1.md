@@ -9,20 +9,20 @@ This scorecard prevents DiskTrace from being described as release-grade merely b
 ## Current baseline
 
 | Dimension | Current posture | Release-grade target |
-| --- | --- | --- |
-| Product and forensic scope | Bounded recovery methods, source identity, session, receipt, and refusal contracts are implemented. | New methods or performance claims are added only with method contracts, deterministic positive/refusal controls, and public scope wording. |
-| Local verification | The full local matrix is deterministic and includes quality, fixture, audit, UI, sparse-control, build, and desktop-smoke checks. | The matrix passes on the exact target commit and any new capability adds its own enforceable parity and boundary tests. |
-| Hosted verification | Protected `main` has green Linux Verify and Windows distribution evidence. | The exact tagged target has green Linux, Windows, and any advertised macOS checks. |
-| Governance | Required current-branch Linux/Windows checks, linear history, conversation resolution, and force-push/deletion blocks are configured. | Workflow permissions, security/update policy, release ownership, and failure-triage procedure remain documented and current. |
-| Distribution | Linux and Windows package contracts exist; Windows produces reviewed CI artifacts. | Versioned artifacts, checksums, platform acceptance records, release assets, provenance where enabled, and signing status are recorded. |
-| Public release | No semantic tag or GitHub Release exists. | An authorized annotated tag and public release resolve to the verified release target and approved notes. |
+|---|---|---|
+| Product and forensic scope | Bounded recovery methods, source identity, session, receipt, separate-destination, and refusal contracts are implemented. | New methods or performance claims are added only with method contracts, deterministic positive/refusal controls, and public scope wording. |
+| Local verification | The full local matrix is deterministic and includes quality, fixture, audit, UI, sparse-control, build, and desktop-smoke checks. | The matrix passes on the exact target commit and any new capability adds enforceable parity and boundary tests. |
+| Hosted verification | Exact `d5c62e7` Linux, native Windows installer/SBOM, macOS 14 ARM64, and Rust CodeQL workflows passed.[1] [2] [3] [4] | The exact tagged target must repeat every required context; a previous green SHA is not tag-target evidence. |
+| Governance | `main` requires the four exact Linux, Windows, macOS ARM64, and CodeQL contexts; current pull requests require CODEOWNERS review; linear history, resolved conversations, and force-push/deletion blocks are active. | Workflow permissions, security/update policy, release ownership, and failure-triage procedure remain documented and current. |
+| Distribution | Linux and Windows package contracts exist; Windows passed disposable installer mechanics and generated a retained SBOM review artifact; macOS 14 ARM64 produces an unsigned review binary. | Versioned consumer artifacts, support-scoped manual acceptance records, public release assets, provenance where authorized, and signing status are recorded. |
+| Public release | No semantic tag or GitHub Release exists. | An explicitly authorized annotated tag and public release resolve to the verified release target and approved notes. |
 
 ## Release target record
 
 Before requesting a release decision, create a release record with the following fields.
 
 | Field | Required value |
-| --- | --- |
+|---|---|
 | Intended version | Semantic version selected for the actual material change set. |
 | Target commit | Full SHA on protected `main`; no uncommitted workspace changes. |
 | Authorized identity | Git author and committer identity explicitly authorized by the owner. |
@@ -35,18 +35,18 @@ Before requesting a release decision, create a release record with the following
 
 ## Required release gates
 
-| Gate | Required evidence | Status before first public release |
-| --- | --- | --- |
-| Recovery safety | Method contracts, refusal conditions, source read-only behavior, destination policy, export receipts, and scope text match code. | Required each release. |
-| Code quality | Formatter, strict Clippy, rustdoc warnings-as-errors, tests, build, and `sh scripts/verify-all.sh` pass. | Required each release. |
-| Dependency and code security | `cargo audit` plus reviewed advisory register; configured code scanning once introduced; no committed credentials or sensitive artifacts. | Advisory review exists; scanning expansion remains planned. |
-| Hosted Linux | Exact-target Linux Verify, including the native smoke gate, passes. | Existing evidence is not yet tag-target evidence. |
-| Hosted Windows | Exact-target Windows distribution, package verification, installer creation, checksums, and review artifact upload pass. | Existing evidence is not yet tag-target evidence. |
-| macOS | Native build/package/acceptance evidence exists for every advertised macOS target. | Not implemented; blocks a macOS support claim. |
-| Artifact acceptance | Platform-specific bundle and installer checks plus documented manual acceptance where automation is unavailable. | Windows installer acceptance and macOS evidence remain planned. |
-| Supply chain | Checksums, SBOM/provenance where enabled, least-privilege workflows, and signing status are recorded. | Release provenance and signing plan remain planned. |
-| Governance | Protected branch, real required contexts, security route, dependency policy, and maintainer release process are active. | Partially complete; maintainer runbook remains planned. |
-| Publication | Owner explicitly authorizes annotated tag, release publication, assets, and signing use. | Not authorized. |
+| Gate | Required evidence | Current status before first public release |
+|---|---|---|
+| Recovery safety | Method contracts, refusal conditions, source read-only behavior, destination policy, export receipts, and scope text match code. | Bounded public source evidence exists; required for every release. |
+| Code quality | Formatter, strict Clippy, rustdoc warnings-as-errors, tests, build, and `sh scripts/verify-all.sh` pass. | Passed on the source tree that became `d5c62e7`; must rerun on a release target. |
+| Dependency and code security | `cargo audit`, reviewed advisory register, configured code scanning, and no committed credentials or sensitive artifacts. | `cargo audit`/CodeQL are part of evidence; a release still requires target-specific advisory review. |
+| Hosted Linux | Exact-target Linux Verify, including the native smoke gate, passes. | Passed for `d5c62e7`; no tag-target evidence exists. |
+| Hosted Windows | Exact-target Windows distribution, package verification, installer creation/checksums, bounded installer mechanics, SBOM review artifact, and upload pass. | Passed for `d5c62e7`; no public versioned artifact exists. |
+| macOS | Native build/package/acceptance evidence exists for every advertised macOS target. | macOS 14 ARM64 build/test/review-binary evidence exists; package, Intel scope, signing/notarization, and manual acceptance do not. |
+| Artifact acceptance | Platform-specific bundle and installer checks plus documented manual acceptance where automation is unavailable. | Windows automated installer mechanics exist; support-scoped manual acceptance remains required. |
+| Supply chain | Checksums, SBOM/provenance where enabled, least-privilege workflows, and signing status are recorded. | SBOM review evidence/checksums exist; consumer-facing attestation, versioned assets, and signing are absent. |
+| Governance | Protected branch, real required contexts, security route, dependency policy, and maintainer release process are active. | Active; the direct-main owner model remains documented. |
+| Publication | Owner explicitly authorizes annotated tag, release publication, assets, and signing use. | **Not authorized.** |
 
 ## Scoring rule
 
@@ -57,3 +57,10 @@ A missing credential for signing/notarization does not justify a simulated claim
 ## Authorization boundary
 
 The owner must explicitly authorize the following actions after this scorecard is complete: semantic tag creation, GitHub Release publication, release asset upload, code-signing certificate or notarization credential use, and any public support-level change. No automated workflow may make those decisions on the owner’s behalf.
+
+## References
+
+[1]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32791480107 "Hosted Linux verification for d5c62e7"
+[2]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32791480117 "Hosted Windows distribution, installer acceptance, and SBOM review artifact for d5c62e7"
+[3]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32791480135 "Hosted macOS 14 ARM64 validation for d5c62e7"
+[4]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32791480060 "Hosted CodeQL analysis for d5c62e7"

@@ -54,7 +54,7 @@ The completed PNG increment now has a fixed-window discovery contract, primary-w
 
 The FAT32 feasibility assessment now explicitly defers a deleted-entry recovery claim. Any future FAT32 increment must first establish conservative geometry parsing, root-directory chain handling, 28-bit FAT allocation rules, contiguous-range constraints, refusal cases, and deterministic positive/refusal fixtures.[7] The completed release-engineering increments now include macOS 14 ARM64 hosted validation, Windows installer mechanics, CodeQL, and SBOM review artifacts; the next work is controlled performance expansion, additional bounded source access, macOS packaging/manual acceptance, and an explicit versioned release decision only after separately authorized target checks are green. Until those items are complete, source publication should be understood as an invitation to inspect and contribute—not as a production-release guarantee.
 
-Maintainer governance is now documented in a versioned runbook, structured public issue forms reject sensitive case material and require evidence-led reporting, and a manual desktop acceptance checklist defines the observations needed before a platform-specific acceptance record can be made. These controls improve reviewability; they do **not** constitute a completed manual acceptance, accessibility certification, signed release, or broader platform claim.[8]
+Maintainer governance is now documented in a versioned runbook, structured public issue forms reject sensitive case material and require evidence-led reporting, and a manual desktop acceptance checklist defines the observations needed before a platform-specific acceptance record can be made. These controls improve reviewability; they do **not** constitute a completed manual acceptance, accessibility certification, signed release, or broader platform claim.[8] The current controlled decision package records the verified pre-release target and explicitly blocks tag, release, asset, signing, notarization, and support-level actions pending separate owner authorization.[14]
 
 ## How to help responsibly
 
@@ -75,3 +75,4 @@ Contributors can begin with the [contribution guide](../CONTRIBUTING.md) and sho
 [11]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32790863567 "Hosted macOS 14 ARM64 validation for 00a8f1e"
 [12]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32790863757 "Hosted Windows distribution, installer acceptance, and SBOM review artifact for 00a8f1e"
 [13]: sbom-provenance-v1.md "SBOM and provenance contract v1"
+[14]: release-decision-v1.md "Controlled release decision package v1"
