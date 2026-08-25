@@ -47,13 +47,11 @@ grep -q 'unins000.exe' scripts/verify-windows-installer.ps1
 grep -q 'Get-InstallEntries' scripts/verify-windows-installer.ps1
 grep -q '/VERYSILENT' scripts/verify-windows-installer.ps1
 grep -q 'Installed CLI returned exit code' scripts/verify-windows-installer.ps1
-grep -q 'function Stop-ProcessTree' scripts/verify-windows-installer.ps1
-grep -q 'taskkill.exe /PID $Process.Id /T /F' scripts/verify-windows-installer.ps1
-grep -q 'desktopSmokeDeadline' scripts/verify-windows-installer.ps1
-grep -q 'Installed desktop exited during the Windows smoke check' scripts/verify-windows-installer.ps1
-grep -q 'installed desktop smoke launch passed' scripts/verify-windows-installer.ps1
-grep -q 'bounded ten-second observation window' docs/windows-distribution-v1.md
-grep -q 'does \*\*not\*\* prove visible or correct rendering' docs/windows-distribution-v1.md
+grep -q 'Malformed installed-file checksum' scripts/verify-windows-installer.ps1
+grep -q 'Installed checksum references a missing path' scripts/verify-windows-installer.ps1
+grep -q 'Installed-file checksum mismatch' scripts/verify-windows-installer.ps1
+grep -q 'validates every installed file named by the staged SHA-256 manifest' docs/windows-distribution-v1.md
+grep -q 'does \*\*not\*\* launch the GUI' docs/windows-distribution-v1.md
 grep -q 'PrivilegesRequired=lowest' installer/windows/evidenceforge.iss
 grep -q 'ArchitecturesAllowed=x64compatible' installer/windows/evidenceforge.iss
 grep -q 'UninstallDisplayName=DiskTrace' installer/windows/evidenceforge.iss

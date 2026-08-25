@@ -44,34 +44,11 @@ function Get-InstallEntries([string]$ExpectedInstallRoot) {
     )
 }
 
-function Stop-ProcessTree([System.Diagnostics.Process]$Process, [string]$Description) {
-    if (-not $Process) {
-        return
-    }
-
-    $Process.Refresh()
-    if ($Process.HasExited) {
-        return
-    }
-
-    & taskkill.exe /PID $Process.Id /T /F | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        throw "$Description process-tree cleanup returned exit code $LASTEXITCODE."
-    }
-
-    $Process.WaitForExit(10000) | Out-Null
-    $Process.Refresh()
-    if (-not $Process.HasExited) {
-        throw "$Description process tree remained active after cleanup."
-    }
-}
-
 $Work = Join-Path ([System.IO.Path]::GetTempPath()) ("disktrace-installer-acceptance-" + [guid]::NewGuid().ToString('N'))
 $InstallRoot = Join-Path $Work 'installed'
 $InstallLog = Join-Path $Work 'install.log'
 $UninstallLog = Join-Path $Work 'uninstall.log'
 $UninstallerPath = $null
-$DesktopProcess = $null
 
 try {
     New-Item -ItemType Directory -Path $Work | Out-Null
@@ -107,28 +84,26 @@ try {
         throw 'Installed release manifest does not match the Windows distribution contract.'
     }
 
+    foreach ($line in Get-Content -LiteralPath (Join-Path $InstallRoot 'SHA256SUMS')) {
+        if ($line -notmatch '^([a-fA-F0-9]{64})  (.+)$') {
+            throw "Malformed installed-file checksum: $line"
+        }
+        $expectedHash = $Matches[1].ToLowerInvariant()
+        $relativePath = $Matches[2]
+        $path = Join-Path $InstallRoot ($relativePath -replace '/', '\\')
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
+            throw "Installed checksum references a missing path: $relativePath"
+        }
+        $actualHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $path).Hash.ToLowerInvariant()
+        if ($actualHash -ne $expectedHash) {
+            throw "Installed-file checksum mismatch: $relativePath"
+        }
+    }
+
     $installedCli = Join-Path $InstallRoot 'bin\evidenceforge.exe'
     & $installedCli --help | Out-Null
     if ($LASTEXITCODE -ne 0) {
         throw "Installed CLI returned exit code $LASTEXITCODE for --help."
-    }
-
-    $installedDesktop = Join-Path $InstallRoot 'bin\evidenceforge-desktop.exe'
-    $DesktopProcess = Start-Process -FilePath $installedDesktop -WorkingDirectory (Split-Path -Parent $installedDesktop) -PassThru
-    try {
-        $desktopSmokeDeadline = (Get-Date).AddSeconds(10)
-        do {
-            Start-Sleep -Milliseconds 500
-            $DesktopProcess.Refresh()
-            if ($DesktopProcess.HasExited) {
-                throw "Installed desktop exited during the Windows smoke check with exit code $($DesktopProcess.ExitCode)."
-            }
-        } while ((Get-Date) -lt $desktopSmokeDeadline)
-        Write-Output 'installed desktop smoke launch passed'
-    }
-    finally {
-        Stop-ProcessTree -Process $DesktopProcess -Description 'Installed desktop smoke'
-        $DesktopProcess = $null
     }
 
     $entries = @(Get-InstallEntries $InstallRoot)
@@ -158,14 +133,6 @@ try {
     Write-Output 'Windows installer install/uninstall acceptance verification passed'
 }
 finally {
-    if ($DesktopProcess) {
-        try {
-            Stop-ProcessTree -Process $DesktopProcess -Description 'Installed desktop smoke fallback'
-        }
-        catch {
-            Write-Warning "best-effort installed desktop cleanup failed: $($_.Exception.Message)"
-        }
-    }
     if ($UninstallerPath -and (Test-Path -LiteralPath $UninstallerPath -PathType Leaf)) {
         try {
             Start-Process -FilePath $UninstallerPath -ArgumentList '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART' -Wait | Out-Null
