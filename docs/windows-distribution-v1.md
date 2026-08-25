@@ -9,7 +9,7 @@ DiskTrace defines a **native Windows x86_64** distribution path made of two arti
 | Artifact | Native build path | Contents | Verification boundary |
 |---|---|---|---|
 | **Portable ZIP** | `scripts/package-windows-bundle.ps1` on Windows x86_64 | A clearly named root GUI launcher, desktop and CLI `.exe` files, public documents, manifest, staged-file checksums, archive checksum. | Archive shape, SHA-256 checksums, GUI-launcher wiring, optional CLI help, manifest, and optional desktop launch on a Windows host. |
-| **Inno Setup installer** | `installer/windows/evidenceforge.iss` compiled with `ISCC.exe` on Windows. | Per-user install, Start Menu shortcut, uninstaller, desktop and CLI binaries, required documents. | Installer compilation, checksum, disposable per-user silent install/uninstall acceptance, installed-file/manifest/CLI-help checks, and uninstall-registration removal on a native Windows host. |
+| **Inno Setup installer** | `installer/windows/evidenceforge.iss` compiled with `ISCC.exe` on Windows. | Per-user install, Start Menu shortcut, uninstaller, desktop and CLI binaries, required documents. | Installer compilation, checksum, disposable per-user silent install/uninstall acceptance, installed-file/manifest/CLI-help checks, a bounded direct installed-desktop process smoke with process-tree cleanup, and uninstall-registration removal on a native Windows host. |
 | **Hosted validation** | `.github/workflows/windows-release.yml` on the exact candidate revision. | Windows-native tests, ZIP build/verify, installer build, disposable installer mechanics, SBOM review generation, and artifact upload for review. | Hosted workflow result on the exact commit; uploaded artifacts remain review artifacts, not an automatically published release. |
 
 The Inno Setup command-line compiler is `ISCC.exe`, and supports explicit output directory and filename options; the installer script uses this supported compiler boundary.[1] The Windows workflow uses a native GitHub-hosted runner and standard Rust build/test commands, consistent with GitHub’s Rust workflow guidance.[2]
@@ -52,11 +52,11 @@ The ZIP builder refuses a dirty source tree and records the exact clean source c
 
 ## Native installer acceptance gate
 
-`scripts/verify-windows-installer.ps1` is a native Windows-only acceptance gate invoked by the hosted Windows workflow after installer creation and before artifact upload. It verifies the installer checksum, installs once into a unique disposable per-user directory, confirms the installed binaries, selected public documents, manifest, checksum list, and uninstaller, invokes only the installed CLI’s `--help` surface, confirms one matching per-user uninstall registration, runs the uninstaller, and verifies both installation-directory and registration removal.
+`scripts/verify-windows-installer.ps1` is a native Windows-only acceptance gate invoked by the hosted Windows workflow after installer creation and before artifact upload. It verifies the installer checksum, installs once into a unique disposable per-user directory, confirms the installed binaries, selected public documents, manifest, checksum list, and uninstaller, invokes the installed CLI’s `--help` surface, uses the installed binary to launch the GUI process directly, requires it to remain alive for a bounded ten-second observation window, force-terminates its complete process tree before uninstall, confirms one matching per-user uninstall registration, runs the uninstaller, and verifies both installation-directory and registration removal.
 
 The gate uses Inno Setup’s documented `/VERYSILENT`, `/SUPPRESSMSGBOXES`, `/SP-`, `/NORESTART`, `/DIR`, and `/LOG` parameters for the installer, and its documented silent/uninstall logging and no-restart parameters for the uninstaller.[4] [5] The logs are presence checks only; Inno Setup documents them as diagnostic output rather than a stable machine-parsable format, so the verifier does not make semantics depend on log text.[4] [5]
 
-> A passing installer acceptance gate proves one clean hosted runner completed the defined package mechanics. It does **not** launch the GUI, certify real-user usability or accessibility, validate SmartScreen or code signing, test upgrades, test arbitrary existing machines, or create a public release.
+> A passing installer acceptance gate proves one clean hosted runner completed the defined package mechanics and directly launched the installed desktop GUI process without an early exit during a bounded observation window. It does **not** prove visible or correct rendering, test the Start Menu shortcut or `Start DiskTrace.cmd` launcher, certify real-user usability or accessibility, validate SmartScreen or code signing, test upgrades or arbitrary existing machines, establish crash freedom beyond that window, or create a public release.
 
 ## Linux-host cross-target compatibility smoke
 
@@ -92,7 +92,7 @@ Read [the local release-evidence contract](local-release-evidence-v1.md) before 
 
 ## Hosted workflow boundary
 
-The hosted Windows workflow builds and validates the project on `windows-2022`, packages the ZIP, compiles the installer with Inno Setup, verifies the ZIP and disposable installer install/uninstall path, calculates installer checksums, and uploads the artifacts for review. It has read-only repository permissions and no release-publishing step. Each result must be tied to its exact source revision; it is not a semantic-versioned or publicly distributed release.
+The hosted Windows workflow builds and validates the project on `windows-2022`, packages the ZIP, compiles the installer with Inno Setup, verifies the ZIP, performs a bounded direct installed-desktop process smoke within the disposable installer path before uninstall, calculates installer checksums, and uploads the artifacts for review. It has read-only repository permissions and no release-publishing step. Each result must be tied to its exact source revision; it is not a semantic-versioned or publicly distributed release.
 
 ## Publication prerequisites
 
