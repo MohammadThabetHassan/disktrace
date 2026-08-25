@@ -77,6 +77,8 @@ pub enum WorkflowError {
     WindowedPngParity,
     #[error("windowed JPEG discovery diverged from compatibility discovery")]
     WindowedJpegParity,
+    #[error("windowed GIF discovery diverged from compatibility discovery")]
+    WindowedGifParity,
 }
 
 #[derive(Debug, Clone)]
@@ -398,6 +400,13 @@ const JPEG_WINDOW_PRIMARY_LENGTH: u64 = PNG_WINDOW_PRIMARY_LENGTH;
 const JPEG_SIGNATURE_OVERLAP: u64 = JPEG_SOI.len() as u64 - 1;
 const JPEG_MAX_CARVE_LENGTH: u64 = 128 * 1024 * 1024;
 
+const GIF87A_HEADER: [u8; 6] = *b"GIF87a";
+const GIF89A_HEADER: [u8; 6] = *b"GIF89a";
+const GIF_TRAILER: u8 = 0x3b;
+const GIF_WINDOW_PRIMARY_LENGTH: u64 = PNG_WINDOW_PRIMARY_LENGTH;
+const GIF_SIGNATURE_OVERLAP: u64 = GIF87A_HEADER.len() as u64 - 1;
+const GIF_MAX_CARVE_LENGTH: u64 = 64 * 1024 * 1024;
+
 fn discover_candidates_for_scan(
     image: &[u8],
     source_identity: &SourceIdentity,
@@ -461,6 +470,33 @@ fn discover_candidates_for_scan(
 
     if windowed_jpeg_candidates.next().is_some() {
         return Err(WorkflowError::WindowedJpegParity);
+    }
+
+    let windowed_gif_candidates = discover_windowed_gif_candidates(source_identity, cancellation)?;
+    let legacy_gif_count = candidates
+        .iter()
+        .filter(|candidate| candidate.method == RecoveryMethod::SignatureCarvingGif)
+        .count();
+
+    if legacy_gif_count != windowed_gif_candidates.len() {
+        return Err(WorkflowError::WindowedGifParity);
+    }
+
+    let mut windowed_gif_candidates = windowed_gif_candidates.into_iter();
+    for candidate in &mut candidates {
+        if candidate.method == RecoveryMethod::SignatureCarvingGif {
+            let replacement = windowed_gif_candidates
+                .next()
+                .ok_or(WorkflowError::WindowedGifParity)?;
+            if *candidate != replacement {
+                return Err(WorkflowError::WindowedGifParity);
+            }
+            *candidate = replacement;
+        }
+    }
+
+    if windowed_gif_candidates.next().is_some() {
+        return Err(WorkflowError::WindowedGifParity);
     }
 
     Ok(candidates)
@@ -787,6 +823,363 @@ where
     }
 
     Ok(candidates)
+}
+
+fn discover_windowed_gif_candidates(
+    source_identity: &SourceIdentity,
+    cancellation: &AtomicBool,
+) -> Result<Vec<RecoveryCandidate>, WorkflowError> {
+    discover_windowed_gif_candidates_after_window(source_identity, cancellation, || {})
+}
+
+fn discover_windowed_gif_candidates_after_window<F>(
+    source_identity: &SourceIdentity,
+    cancellation: &AtomicBool,
+    mut after_primary_window: F,
+) -> Result<Vec<RecoveryCandidate>, WorkflowError>
+where
+    F: FnMut(),
+{
+    if cancellation.load(Ordering::Relaxed) {
+        return Err(CoreError::Cancelled.into());
+    }
+
+    let path = &source_identity.canonical_path;
+    let mut file = File::open(path).map_err(|source| WorkflowError::ReadImage {
+        path: path.clone(),
+        source,
+    })?;
+    let mut candidates = Vec::new();
+    let mut primary_start = 0_u64;
+    let mut suppression_end = 0_u64;
+
+    while primary_start < source_identity.byte_length {
+        if cancellation.load(Ordering::Relaxed) {
+            return Err(CoreError::Cancelled.into());
+        }
+        let remaining = source_identity.byte_length - primary_start;
+        let primary_length = remaining.min(GIF_WINDOW_PRIMARY_LENGTH);
+        let readable_length = primary_length
+            .checked_add(GIF_SIGNATURE_OVERLAP)
+            .map(|length| length.min(remaining))
+            .ok_or(CoreError::RangeOverflow {
+                offset: primary_start,
+                length: primary_length,
+            })?;
+        let window = read_range_from_file_with_cancellation(
+            &mut file,
+            path,
+            source_identity.byte_length,
+            SourceRange {
+                offset: primary_start,
+                length: readable_length,
+            },
+            cancellation,
+        )?;
+        let primary_length =
+            usize::try_from(primary_length).map_err(|_| CoreError::RangeAllocation {
+                length: primary_length,
+            })?;
+
+        for relative_start in 0..primary_length {
+            let signature_end = relative_start.checked_add(GIF87A_HEADER.len()).ok_or(
+                CoreError::RangeOverflow {
+                    offset: primary_start,
+                    length: GIF87A_HEADER.len() as u64,
+                },
+            )?;
+            let is_gif_header = window.get(relative_start..signature_end) == Some(&GIF87A_HEADER)
+                || window.get(relative_start..signature_end) == Some(&GIF89A_HEADER);
+            if !is_gif_header {
+                continue;
+            }
+            let source_offset = primary_start.checked_add(relative_start as u64).ok_or(
+                CoreError::RangeOverflow {
+                    offset: primary_start,
+                    length: relative_start as u64,
+                },
+            )?;
+            if source_offset < suppression_end {
+                continue;
+            }
+            let Some(byte_length) =
+                parse_windowed_gif_length(&mut file, source_identity, source_offset, cancellation)?
+            else {
+                continue;
+            };
+            suppression_end =
+                source_offset
+                    .checked_add(byte_length)
+                    .ok_or(CoreError::RangeOverflow {
+                        offset: source_offset,
+                        length: byte_length,
+                    })?;
+            let index = candidates.len();
+            candidates.push(with_stable_candidate_id(gif_candidate(
+                format!("gif-carve-{index:04}"),
+                GifCarvedCandidate {
+                    evidence_name: format!("carved-gif-{index:04}.gif"),
+                    source_offset,
+                    byte_length,
+                },
+            )));
+        }
+
+        primary_start =
+            primary_start
+                .checked_add(primary_length as u64)
+                .ok_or(CoreError::RangeOverflow {
+                    offset: primary_start,
+                    length: primary_length as u64,
+                })?;
+        after_primary_window();
+        if cancellation.load(Ordering::Relaxed) {
+            return Err(CoreError::Cancelled.into());
+        }
+    }
+
+    Ok(candidates)
+}
+
+fn windowed_gif_candidate_limit(source_offset: u64, source_length: u64) -> u64 {
+    source_offset
+        .saturating_add(GIF_MAX_CARVE_LENGTH)
+        .min(source_length)
+}
+
+fn parse_windowed_gif_length(
+    file: &mut File,
+    source_identity: &SourceIdentity,
+    source_offset: u64,
+    cancellation: &AtomicBool,
+) -> Result<Option<u64>, WorkflowError> {
+    let candidate_limit = windowed_gif_candidate_limit(source_offset, source_identity.byte_length);
+    let mut reader = WindowedGifReader::new(
+        file,
+        source_identity,
+        source_offset,
+        candidate_limit,
+        cancellation,
+    );
+
+    let mut header = [0_u8; 6];
+    for byte in &mut header {
+        let Some(value) = reader.read_byte()? else {
+            return Ok(None);
+        };
+        *byte = value;
+    }
+    if header != GIF87A_HEADER && header != GIF89A_HEADER {
+        return Ok(None);
+    }
+
+    for _ in 0..4 {
+        if reader.read_byte()?.is_none() {
+            return Ok(None);
+        }
+    }
+    let Some(packed_fields) = reader.read_byte()? else {
+        return Ok(None);
+    };
+    for _ in 0..2 {
+        if reader.read_byte()?.is_none() {
+            return Ok(None);
+        }
+    }
+    if packed_fields & 0x80 != 0
+        && !reader.skip_bytes(windowed_gif_color_table_length(packed_fields)?)?
+    {
+        return Ok(None);
+    }
+
+    let mut saw_image = false;
+    while reader.offset() < candidate_limit {
+        let Some(block_introducer) = reader.read_byte()? else {
+            return Ok(None);
+        };
+        match block_introducer {
+            GIF_TRAILER if saw_image => return Ok(Some(reader.offset() - source_offset)),
+            0x21 => {
+                if !parse_windowed_gif_extension(&mut reader)? {
+                    return Ok(None);
+                }
+            }
+            0x2c => {
+                saw_image = true;
+                if !parse_windowed_gif_image(&mut reader)? {
+                    return Ok(None);
+                }
+            }
+            _ => return Ok(None),
+        }
+    }
+
+    Ok(None)
+}
+
+fn windowed_gif_color_table_length(packed_fields: u8) -> Result<u64, WorkflowError> {
+    let entries = 1_u64
+        .checked_shl(u32::from((packed_fields & 0x07) + 1))
+        .ok_or(CoreError::RangeOverflow {
+            offset: u64::from(packed_fields),
+            length: 1,
+        })?;
+    entries.checked_mul(3).ok_or(
+        CoreError::RangeOverflow {
+            offset: entries,
+            length: 3,
+        }
+        .into(),
+    )
+}
+
+fn parse_windowed_gif_extension(reader: &mut WindowedGifReader<'_>) -> Result<bool, WorkflowError> {
+    if reader.read_byte()?.is_none() {
+        return Ok(false);
+    }
+    let Some(block_length) = reader.read_byte()? else {
+        return Ok(false);
+    };
+    if !reader.skip_bytes(u64::from(block_length))? {
+        return Ok(false);
+    }
+    parse_windowed_gif_sub_blocks(reader)
+}
+
+fn parse_windowed_gif_image(reader: &mut WindowedGifReader<'_>) -> Result<bool, WorkflowError> {
+    for _ in 0..8 {
+        if reader.read_byte()?.is_none() {
+            return Ok(false);
+        }
+    }
+    let Some(packed_fields) = reader.read_byte()? else {
+        return Ok(false);
+    };
+    if packed_fields & 0x80 != 0
+        && !reader.skip_bytes(windowed_gif_color_table_length(packed_fields)?)?
+    {
+        return Ok(false);
+    }
+    let Some(lzw_minimum_code_size) = reader.read_byte()? else {
+        return Ok(false);
+    };
+    if !(2..=8).contains(&lzw_minimum_code_size) {
+        return Ok(false);
+    }
+    parse_windowed_gif_sub_blocks(reader)
+}
+
+fn parse_windowed_gif_sub_blocks(
+    reader: &mut WindowedGifReader<'_>,
+) -> Result<bool, WorkflowError> {
+    loop {
+        let Some(length) = reader.read_byte()? else {
+            return Ok(false);
+        };
+        if length == 0 {
+            return Ok(true);
+        }
+        if !reader.skip_bytes(u64::from(length))? {
+            return Ok(false);
+        }
+    }
+}
+
+struct WindowedGifReader<'a> {
+    file: &'a mut File,
+    source_identity: &'a SourceIdentity,
+    cancellation: &'a AtomicBool,
+    offset: u64,
+    limit: u64,
+    buffer_start: u64,
+    buffer: Vec<u8>,
+}
+
+impl<'a> WindowedGifReader<'a> {
+    fn new(
+        file: &'a mut File,
+        source_identity: &'a SourceIdentity,
+        offset: u64,
+        limit: u64,
+        cancellation: &'a AtomicBool,
+    ) -> Self {
+        Self {
+            file,
+            source_identity,
+            cancellation,
+            offset,
+            limit,
+            buffer_start: limit,
+            buffer: Vec::new(),
+        }
+    }
+
+    fn offset(&self) -> u64 {
+        self.offset
+    }
+
+    fn read_byte(&mut self) -> Result<Option<u8>, WorkflowError> {
+        if self.offset >= self.limit {
+            return Ok(None);
+        }
+        self.ensure_buffer_contains_offset()?;
+        let relative_offset = usize::try_from(self.offset - self.buffer_start).map_err(|_| {
+            CoreError::RangeAllocation {
+                length: self.offset - self.buffer_start,
+            }
+        })?;
+        let byte = *self
+            .buffer
+            .get(relative_offset)
+            .ok_or(CoreError::RangeOutOfBounds {
+                offset: self.offset,
+                length: 1,
+                source_length: self.limit,
+            })?;
+        self.offset = self.offset.checked_add(1).ok_or(CoreError::RangeOverflow {
+            offset: self.offset,
+            length: 1,
+        })?;
+        Ok(Some(byte))
+    }
+
+    fn skip_bytes(&mut self, length: u64) -> Result<bool, WorkflowError> {
+        let Some(next_offset) = self.offset.checked_add(length) else {
+            return Ok(false);
+        };
+        if next_offset > self.limit {
+            return Ok(false);
+        }
+        self.offset = next_offset;
+        Ok(true)
+    }
+
+    fn ensure_buffer_contains_offset(&mut self) -> Result<(), WorkflowError> {
+        let buffer_end = self
+            .buffer_start
+            .checked_add(self.buffer.len() as u64)
+            .ok_or(CoreError::RangeOverflow {
+                offset: self.buffer_start,
+                length: self.buffer.len() as u64,
+            })?;
+        if self.offset >= self.buffer_start && self.offset < buffer_end {
+            return Ok(());
+        }
+
+        let length = (self.limit - self.offset).min(GIF_WINDOW_PRIMARY_LENGTH);
+        self.buffer = read_range_from_file_with_cancellation(
+            self.file,
+            &self.source_identity.canonical_path,
+            self.source_identity.byte_length,
+            SourceRange {
+                offset: self.offset,
+                length,
+            },
+            self.cancellation,
+        )?;
+        self.buffer_start = self.offset;
+        Ok(())
+    }
 }
 
 fn windowed_jpeg_candidate_limit(source_offset: u64, source_length: u64) -> u64 {
@@ -1507,14 +1900,16 @@ fn validation_state(validation: CandidateValidation) -> ValidationState {
 mod tests {
     use super::{
         discover_candidates, discover_candidates_legacy,
-        discover_candidates_legacy_with_cancellation, discover_windowed_jpeg_candidates,
+        discover_candidates_legacy_with_cancellation, discover_windowed_gif_candidates,
+        discover_windowed_gif_candidates_after_window, discover_windowed_jpeg_candidates,
         discover_windowed_jpeg_candidates_after_window, discover_windowed_png_candidates,
         discover_windowed_png_candidates_after_window, read_session_candidate_range,
         recover_candidate, recover_candidate_from_image,
         recover_candidate_from_image_with_cancellation, scan_image, scan_image_with_cancellation,
-        stable_candidate_id, windowed_jpeg_candidate_limit, SessionManifest, WorkflowError,
-        JPEG_MAX_CARVE_LENGTH, JPEG_SIGNATURE_OVERLAP, JPEG_WINDOW_PRIMARY_LENGTH,
-        PNG_SIGNATURE_OVERLAP, PNG_WINDOW_PRIMARY_LENGTH,
+        stable_candidate_id, windowed_gif_candidate_limit, windowed_jpeg_candidate_limit,
+        SessionManifest, WorkflowError, GIF_MAX_CARVE_LENGTH, GIF_SIGNATURE_OVERLAP,
+        GIF_WINDOW_PRIMARY_LENGTH, JPEG_MAX_CARVE_LENGTH, JPEG_SIGNATURE_OVERLAP,
+        JPEG_WINDOW_PRIMARY_LENGTH, PNG_SIGNATURE_OVERLAP, PNG_WINDOW_PRIMARY_LENGTH,
     };
     use ef_core::{CoreError, ImageSource, RecoveryCandidate, RecoveryMethod};
     use std::collections::HashSet;
@@ -1554,6 +1949,13 @@ mod tests {
         candidates
             .into_iter()
             .filter(|candidate| candidate.method == RecoveryMethod::SignatureCarvingJpeg)
+            .collect()
+    }
+
+    fn gif_candidates(candidates: Vec<RecoveryCandidate>) -> Vec<RecoveryCandidate> {
+        candidates
+            .into_iter()
+            .filter(|candidate| candidate.method == RecoveryMethod::SignatureCarvingGif)
             .collect()
     }
 
@@ -1749,6 +2151,129 @@ mod tests {
 
         assert!(matches!(error, WorkflowError::Core(CoreError::Cancelled)));
         fs::remove_file(path).expect("remove deterministic windowed JPEG source");
+    }
+
+    #[test]
+    fn windowed_gif_candidate_limit_matches_the_legacy_cap_semantics() {
+        assert_eq!(
+            windowed_gif_candidate_limit(16, GIF_MAX_CARVE_LENGTH + 64),
+            GIF_MAX_CARVE_LENGTH + 16
+        );
+        assert_eq!(windowed_gif_candidate_limit(16, 32), 32);
+        assert_eq!(
+            windowed_gif_candidate_limit(u64::MAX - 8, u64::MAX),
+            u64::MAX
+        );
+    }
+
+    #[test]
+    fn windowed_gif_discovery_matches_the_legacy_fixture_candidates() {
+        let path = fixture_path("media-carving-multimethod-v1");
+        let source = ImageSource::inspect(&path).expect("inspect GIF fixture");
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_gif_candidates(&source.identity, &cancellation)
+            .expect("discover GIF candidates through windows");
+        let legacy = gif_candidates(discover_candidates(MEDIA_FIXTURE));
+
+        assert_eq!(windowed, legacy);
+    }
+
+    #[test]
+    fn windowed_gif_discovery_owns_a_signature_straddling_the_primary_boundary() {
+        let start = usize::try_from(GIF_WINDOW_PRIMARY_LENGTH - GIF_SIGNATURE_OVERLAP)
+            .expect("window boundary fits usize");
+        let mut image = vec![0_u8; start + EXPECTED_GIF.len() + 32];
+        image[start..start + EXPECTED_GIF.len()].copy_from_slice(EXPECTED_GIF);
+        let (path, source) = write_windowed_source("gif-signature-boundary", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_gif_candidates(&source.identity, &cancellation)
+            .expect("discover boundary GIF through windows");
+        let legacy = gif_candidates(discover_candidates(&image));
+
+        assert_eq!(windowed, legacy);
+        assert_eq!(windowed.len(), 1);
+        assert_eq!(windowed[0].source_offset, start as u64);
+        assert_eq!(windowed[0].byte_length, EXPECTED_GIF.len() as u64);
+        fs::remove_file(path).expect("remove deterministic windowed GIF source");
+    }
+
+    #[test]
+    fn invalid_boundary_gif_does_not_hide_a_later_valid_candidate() {
+        let malformed_start = usize::try_from(GIF_WINDOW_PRIMARY_LENGTH - GIF_SIGNATURE_OVERLAP)
+            .expect("window boundary fits usize");
+        let valid_start =
+            usize::try_from(GIF_WINDOW_PRIMARY_LENGTH + 96).expect("valid offset fits usize");
+        let mut image = vec![0_u8; valid_start + EXPECTED_GIF.len() + 32];
+        image[malformed_start..malformed_start + 13]
+            .copy_from_slice(&[b'G', b'I', b'F', b'8', b'9', b'a', 1, 0, 1, 0, 0, 0, 0]);
+        image[valid_start..valid_start + EXPECTED_GIF.len()].copy_from_slice(EXPECTED_GIF);
+        let (path, source) = write_windowed_source("invalid-gif-boundary", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_gif_candidates(&source.identity, &cancellation)
+            .expect("discover later GIF through windows");
+        let legacy = gif_candidates(discover_candidates(&image));
+
+        assert_eq!(windowed, legacy);
+        assert_eq!(windowed.len(), 1);
+        assert_eq!(windowed[0].source_offset, valid_start as u64);
+        fs::remove_file(path).expect("remove deterministic windowed GIF source");
+    }
+
+    #[test]
+    fn windowed_gif_discovery_preserves_adjacent_candidate_ordering() {
+        let first_start =
+            usize::try_from(GIF_WINDOW_PRIMARY_LENGTH - 16).expect("window boundary fits usize");
+        let second_start = first_start + EXPECTED_GIF.len() + 24;
+        let mut image = vec![0_u8; second_start + EXPECTED_GIF.len() + 32];
+        image[first_start..first_start + EXPECTED_GIF.len()].copy_from_slice(EXPECTED_GIF);
+        image[second_start..second_start + EXPECTED_GIF.len()].copy_from_slice(EXPECTED_GIF);
+        let (path, source) = write_windowed_source("adjacent-windowed-gifs", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_gif_candidates(&source.identity, &cancellation)
+            .expect("discover adjacent GIFs through windows");
+        let legacy = gif_candidates(discover_candidates(&image));
+
+        assert_eq!(windowed, legacy);
+        assert_eq!(windowed.len(), 2);
+        assert_eq!(windowed[0].source_offset, first_start as u64);
+        assert_eq!(windowed[1].source_offset, second_start as u64);
+        fs::remove_file(path).expect("remove deterministic windowed GIF source");
+    }
+
+    #[test]
+    fn windowed_gif_discovery_refuses_a_truncated_candidate_at_source_end() {
+        let image = [b'G', b'I', b'F', b'8', b'9', b'a', 1, 0, 1, 0, 0, 0, 0];
+        let (path, source) = write_windowed_source("truncated-windowed-gif", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_gif_candidates(&source.identity, &cancellation)
+            .expect("refuse truncated GIF through windows");
+        let legacy = gif_candidates(discover_candidates(&image));
+
+        assert_eq!(windowed, legacy);
+        assert!(windowed.is_empty());
+        fs::remove_file(path).expect("remove deterministic windowed GIF source");
+    }
+
+    #[test]
+    fn windowed_gif_discovery_cancels_after_a_completed_primary_window() {
+        let image =
+            vec![0_u8; usize::try_from(GIF_WINDOW_PRIMARY_LENGTH + 16).expect("window fits usize")];
+        let (path, source) = write_windowed_source("cancel-after-gif-window", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let error =
+            discover_windowed_gif_candidates_after_window(&source.identity, &cancellation, || {
+                cancellation.store(true, Ordering::Relaxed)
+            })
+            .expect_err("cancellation after a completed primary window must stop GIF discovery");
+
+        assert!(matches!(error, WorkflowError::Core(CoreError::Cancelled)));
+        fs::remove_file(path).expect("remove deterministic windowed GIF source");
     }
 
     #[test]

@@ -28,6 +28,7 @@ for path in \
     docs/source-access-architecture-v1.md \
     docs/source-window-discovery-v1.md \
     docs/jpeg-window-discovery-v1.md \
+    docs/gif-window-discovery-v1.md \
     docs/legacy-discovery-cancellation-v1.md \
     docs/performance-control-corpus-v1.md \
     docs/fat32-feasibility-v1.md \
@@ -53,6 +54,7 @@ for path in \
     scripts/verify-large-sparse-control.sh \
     scripts/verify-windowed-png-discovery.sh \
     scripts/verify-windowed-jpeg-discovery.sh \
+    scripts/verify-windowed-gif-discovery.sh \
     scripts/generate-scan-control-fixture.sh \
     scripts/verify-scan-control-corpus.sh \
     scripts/measure-scan-control-corpus.sh \
@@ -95,7 +97,8 @@ grep -q 'GUI workflow' README.md
 grep -q 'synthetic performance-control corpus' README.md
 grep -q 'macOS validation contract' README.md
 grep -q 'JPEG windowed-discovery contract' README.md
-grep -q 'bounded PNG/JPEG discovery parity controls' README.md
+grep -q 'GIF windowed-discovery contract' README.md
+grep -q 'bounded PNG/JPEG/GIF discovery parity controls' README.md
 grep -q 'Optional command-line workflows' README.md
 grep -q 'audit-session' README.md
 grep -q 'case-brief' README.md
@@ -116,6 +119,7 @@ grep -q 'sh scripts/verify-media-recovery.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-large-sparse-control.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-windowed-png-discovery.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-windowed-jpeg-discovery.sh' scripts/verify-all.sh
+grep -q 'sh scripts/verify-windowed-gif-discovery.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-scan-control-corpus.sh' scripts/verify-all.sh
 grep -q 'cargo audit' docs/release-process.md
 grep -q 'local release-evidence contract' docs/release-process.md
@@ -194,12 +198,16 @@ grep -q 'source-access architecture' README.md
 grep -q 'bounded sliding window' docs/source-access-architecture-v1.md
 grep -q 'source identity verification' docs/source-access-architecture-v1.md
 grep -q 'same bounded-discovery stage now includes JPEG' docs/source-access-architecture-v1.md
+grep -q 'same bounded-discovery stage now includes GIF' docs/source-access-architecture-v1.md
 grep -q 'Primary window length' docs/source-window-discovery-v1.md
 grep -q 'legacy `carve_pngs`' docs/source-window-discovery-v1.md
 grep -q 'Explicit non-claims' docs/source-window-discovery-v1.md
 grep -q 'one byte after each non-final primary range' docs/jpeg-window-discovery-v1.md
 grep -q '128 MiB' docs/jpeg-window-discovery-v1.md
 grep -q 'full-streaming or whole-scan' docs/jpeg-window-discovery-v1.md
+grep -q 'five bytes after each primary window' docs/gif-window-discovery-v1.md
+grep -q '64 MiB' docs/gif-window-discovery-v1.md
+grep -q 'legacy `ef-carve::carve_gifs`' docs/gif-window-discovery-v1.md
 grep -q 'after every completed legacy discovery method stage' docs/source-access-architecture-v1.md
 grep -q 'not full parser-level cancellation' docs/source-access-architecture-v1.md
 grep -q 'parser-loop cancellation' docs/legacy-discovery-cancellation-v1.md
@@ -223,7 +231,7 @@ grep -q 'SBOM transparency' docs/project-status.md
 grep -q 'not an attestation' docs/project-status.md
 grep -q 'controlled decision package' docs/project-status.md
 grep -q 'cooperative stage checkpoints' docs/project-status.md
-grep -q 'PNG and JPEG discovery' docs/project-status.md
+grep -q 'PNG, JPEG, and GIF discovery' docs/project-status.md
 grep -q 'contains no downloaded executable code' docs/design-skill-adoption-v1.md
 grep -q 'defines a single `Palette`' docs/design-skill-adoption-v1.md
 grep -q 'package-ecosystem: cargo' .github/dependabot.yml
