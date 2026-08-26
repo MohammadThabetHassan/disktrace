@@ -34,7 +34,7 @@ The proposed first public version is **v0.1.0**, scoped as a local-first forensi
 | Local verification | `sh scripts/verify-all.sh`, artifact verifiers, checksum verification, release-document contract, and dependency review pass on the exact target. | Pending final target selection. |
 | Hosted verification | Linux, Windows, macOS 14 ARM64, and CodeQL required contexts pass on the exact target. | Pending final target selection. |
 | Artifact manifest | Versioned artifact names, byte sizes, SHA-256 checksums, SBOM/review metadata, and declared support scope are recorded. | Not started. |
-| Manual acceptance | DA-01 through DA-10 are observed and safely recorded for every advertised artifact/platform. | Not started; automated companion checks are not manual acceptance. |
+| Manual acceptance | DA-01 through DA-10 are observed and safely recorded for every advertised artifact/platform. | Not started; the [manual-acceptance kit](release-candidate-acceptance-kit-v1.md) prepares native Linux/Windows reviewers, but automated companions and the kit are not manual acceptance. |
 | Release notes | Final notes list changes, scope, safety controls, known limitations, advisory disposition, artifact hashes, and signing state. | Draft maintained; final review pending. |
 | Publication authorization | Owner identifies exact SHA, semantic version, visibility, approved assets, and signing/notarization permissions. | Not granted. |
 
@@ -59,4 +59,4 @@ The release decision may be requested only after every required record above is 
 
 ## Related documents
 
-Use this record with the [release process](release-process.md), [release scorecard](release-scorecard-v1.md), [controlled release decision](release-decision-v1.md), [draft v0.1.0 release notes](release-notes-v0.1.0-draft.md), [desktop acceptance checklist](desktop-acceptance-v1.md), [local release-evidence contract](local-release-evidence-v1.md), and [project status](project-status.md). The strictest applicable safety and authorization boundary governs.
+Use this record with the [release process](release-process.md), [release scorecard](release-scorecard-v1.md), [controlled release decision](release-decision-v1.md), [draft v0.1.0 release notes](release-notes-v0.1.0-draft.md), [desktop acceptance checklist](desktop-acceptance-v1.md), [manual-acceptance kit](release-candidate-acceptance-kit-v1.md), [local release-evidence contract](local-release-evidence-v1.md), and [project status](project-status.md). The strictest applicable safety and authorization boundary governs.

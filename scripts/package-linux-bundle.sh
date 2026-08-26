@@ -52,6 +52,7 @@ install -m 0644 "$ROOT/docs/desktop-interaction-v2.md" "$BUNDLE_DIR/docs/desktop
 install -m 0644 "$ROOT/docs/gui-workflow-v1.md" "$BUNDLE_DIR/docs/gui-workflow-v1.md"
 install -m 0644 "$ROOT/docs/release-process.md" "$BUNDLE_DIR/docs/release-process.md"
 install -m 0644 "$ROOT/docs/release-candidate-v0.1.0.md" "$BUNDLE_DIR/docs/release-candidate-v0.1.0.md"
+install -m 0644 "$ROOT/docs/release-candidate-acceptance-kit-v1.md" "$BUNDLE_DIR/docs/release-candidate-acceptance-kit-v1.md"
 install -m 0644 "$ROOT/docs/project-status.md" "$BUNDLE_DIR/docs/project-status.md"
 install -m 0644 "$ROOT/docs/dependency-advisories.md" "$BUNDLE_DIR/docs/dependency-advisories.md"
 install -m 0644 "$ROOT/docs/linux-distribution-v1.md" "$BUNDLE_DIR/docs/linux-distribution-v1.md"

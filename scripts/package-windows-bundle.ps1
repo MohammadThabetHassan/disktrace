@@ -67,6 +67,7 @@ try {
         @{ Source = 'docs\architecture.md'; Destination = 'docs\architecture.md' },
         @{ Source = 'docs\release-process.md'; Destination = 'docs\release-process.md' },
         @{ Source = 'docs\release-candidate-v0.1.0.md'; Destination = 'docs\release-candidate-v0.1.0.md' },
+        @{ Source = 'docs\release-candidate-acceptance-kit-v1.md'; Destination = 'docs\release-candidate-acceptance-kit-v1.md' },
         @{ Source = 'docs\dependency-advisories.md'; Destination = 'docs\dependency-advisories.md' },
         @{ Source = 'docs\windows-distribution-v1.md'; Destination = 'docs\windows-distribution-v1.md' },
         @{ Source = 'docs\local-release-evidence-v1.md'; Destination = 'docs\local-release-evidence-v1.md' },

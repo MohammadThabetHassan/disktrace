@@ -14,9 +14,9 @@ The project is pre-release. Security fixes are evaluated against the current def
 
 ## Reporting a vulnerability
 
-Until a public repository and private security-reporting channel exist, do **not** publish sensitive findings, exploit images, recovered personal data, credentials, or proof-of-concept samples. Contact the project maintainer through the private contact method that will be published with the first public release.
+Use GitHub’s [private vulnerability-reporting channel](https://github.com/MohammadThabetHassan/disktrace/security/advisories/new) for confidential DiskTrace reports. Do **not** post sensitive findings, exploit images, recovered personal data, credentials, or proof-of-concept samples in public issues, pull requests, discussions, or comments.
 
-After publication, the repository security advisory channel should be the preferred reporting path. If that channel is unavailable, use the maintainer contact listed in the repository profile and include `DiskTrace security report` in the subject line.
+If GitHub’s private reporting form is temporarily unavailable, do not disclose the finding publicly. Use the maintainer contact listed in the repository profile only if it is available and explicitly designated for confidential reports; include `DiskTrace security report` in the subject line and remove private bytes and personally identifying information.
 
 A useful report includes the affected revision, operating system, minimal synthetic reproduction steps, expected and observed behavior, candidate method, relevant parser or workflow boundary, and potential impact. Please remove private bytes and personally identifying information before sharing any material.
 

@@ -8,7 +8,7 @@ DiskTrace is a local-first, cross-platform desktop application for reviewing bou
 
 ## Included recovery methods
 
-The proposed initial release supports deleted FAT12 and FAT16 root-directory metadata, deleted contiguous exFAT root metadata, deleted resident and narrow contiguous non-resident NTFS records, and bounded structural carving for PNG, JPEG, GIF, standard RIFF/AVI, self-contained MP4/MOV, PDF, and ZIP/Open XML. PNG, JPEG, and GIF discovery use method-specific bounded source windows with exact legacy-candidate parity enforcement; all other discovery, recovery, and export paths retain full-buffer compatibility behavior. Each method records candidate metadata and validation state; none promises complete recovery or original-file availability.
+The proposed initial release supports deleted FAT12 and FAT16 root-directory metadata, deleted contiguous exFAT root metadata, deleted resident and narrow contiguous non-resident NTFS records, and bounded structural carving for PNG, JPEG, GIF, standard RIFF/AVI, self-contained MP4/MOV, PDF, and ZIP/Open XML. PNG, JPEG, GIF, PDF, and ZIP/Open XML discovery use method-specific bounded source windows with exact legacy-candidate parity enforcement; filesystem metadata, AVI/MP4/MOV discovery, recovery, export, and audit rederivation retain full-buffer compatibility behavior. Each method records candidate metadata and validation state; none promises complete recovery or original-file availability.
 
 ## Evidence and safety workflow
 
@@ -20,7 +20,7 @@ A locally verified Linux x86_64 bundle and a Linux-host Windows x86_64 cross-tar
 
 ## Verification evidence required before publication
 
-Before any actual v0.1.0 publication, the owner must select an exact source target and artifact scope; run the full local matrix, artifact verifiers, and dependency review on that revision; obtain green hosted Linux, native Windows, macOS 14 ARM64, and CodeQL workflows on that exact target; verify every advertised artifact on its native target platform; record final hashes, byte sizes, SBOM/advisory disposition, manual acceptance outcomes, known limits, governance, and security-reporting route; and review the final notes. Only after that evidence exists may the owner separately authorize an annotated semantic tag, release page, approved assets, and any signing or notarization action.
+Before any actual v0.1.0 publication, the owner must select an exact source target and artifact scope; run the full local matrix, artifact verifiers, and dependency review on that revision; obtain green hosted Linux, native Windows, macOS 14 ARM64, and CodeQL workflows on that exact target; verify every advertised artifact on its native target platform; perform and record DA-01 through DA-10 with the preparation-only [manual-acceptance kit](release-candidate-acceptance-kit-v1.md); record final hashes, byte sizes, SBOM/advisory disposition, known limits, governance, and the private security-reporting route; and review the final notes. Only after that evidence exists may the owner separately authorize an annotated semantic tag, release page, approved assets, and any signing or notarization action.
 
 ## Known limits
 

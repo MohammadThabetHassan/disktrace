@@ -12,7 +12,7 @@ This scorecard prevents DiskTrace from being described as release-grade merely b
 |---|---|---|
 | Product and forensic scope | Bounded recovery methods, source identity, session, receipt, separate-destination, and refusal contracts are implemented. | New methods or performance claims are added only with method contracts, deterministic positive/refusal controls, and public scope wording. |
 | Local verification | The full local matrix is deterministic and includes quality, fixture, audit, UI, sparse-control, build, and desktop-smoke checks. | The matrix passes on the exact target commit and any new capability adds enforceable parity and boundary tests. |
-| Hosted verification | Exact `d5c62e7` Linux, native Windows installer/SBOM, macOS 14 ARM64, and Rust CodeQL workflows passed.[1] [2] [3] [4] | The exact tagged target must repeat every required context; a previous green SHA is not tag-target evidence. |
+| Hosted verification | Exact `afc5bb20148dd1f8845312d28f1f86e2d43204a6` Linux, native Windows installer/SBOM, macOS 14 ARM64, and Rust CodeQL workflows passed.[1] [2] [3] [4] | The exact tagged target must repeat every required context; a previous green SHA is not tag-target evidence. |
 | Governance | `main` requires the four exact Linux, Windows, macOS ARM64, and CodeQL contexts; current pull requests require CODEOWNERS review; linear history, resolved conversations, and force-push/deletion blocks are active. | Workflow permissions, security/update policy, release ownership, and failure-triage procedure remain documented and current. |
 | Distribution | Linux and Windows package contracts exist; Windows passed disposable installer mechanics and generated a retained SBOM review artifact; macOS 14 ARM64 produces an unsigned review binary. | Versioned consumer artifacts, support-scoped manual acceptance records, public release assets, provenance where authorized, and signing status are recorded. |
 | Public release | No semantic tag or GitHub Release exists. | An explicitly authorized annotated tag and public release resolve to the verified release target and approved notes. |
@@ -38,12 +38,12 @@ Before requesting a release decision, create a release record with the following
 | Gate | Required evidence | Current status before first public release |
 |---|---|---|
 | Recovery safety | Method contracts, refusal conditions, source read-only behavior, destination policy, export receipts, and scope text match code. | Bounded public source evidence exists; required for every release. |
-| Code quality | Formatter, strict Clippy, rustdoc warnings-as-errors, tests, build, and `sh scripts/verify-all.sh` pass. | Passed on the source tree that became `d5c62e7`; must rerun on a release target. |
+| Code quality | Formatter, strict Clippy, rustdoc warnings-as-errors, tests, build, and `sh scripts/verify-all.sh` pass. | Passed on the source tree that became `afc5bb2`; must rerun on a release target. |
 | Dependency and code security | `cargo audit`, reviewed advisory register, configured code scanning, and no committed credentials or sensitive artifacts. | `cargo audit`/CodeQL are part of evidence; a release still requires target-specific advisory review. |
-| Hosted Linux | Exact-target Linux Verify, including the native smoke gate, passes. | Passed for `d5c62e7`; no tag-target evidence exists. |
-| Hosted Windows | Exact-target Windows distribution, package verification, installer creation/checksums, bounded installer mechanics, SBOM review artifact, and upload pass. | Passed for `d5c62e7`; no public versioned artifact exists. |
+| Hosted Linux | Exact-target Linux Verify, including the native smoke gate, passes. | Passed for `afc5bb2`; no tag-target evidence exists. |
+| Hosted Windows | Exact-target Windows distribution, package verification, installer creation/checksums, bounded installer mechanics, SBOM review artifact, and upload pass. | Passed for `afc5bb2`; no public versioned artifact exists. |
 | macOS | Native build/package/acceptance evidence exists for every advertised macOS target. | macOS 14 ARM64 build/test/review-binary evidence exists; package, Intel scope, signing/notarization, and manual acceptance do not. |
-| Artifact acceptance | Platform-specific bundle and installer checks plus documented manual acceptance where automation is unavailable. | Windows automated installer mechanics exist; support-scoped manual acceptance remains required. |
+| Artifact acceptance | Platform-specific bundle and installer checks plus documented manual acceptance where automation is unavailable. | Windows automated installer mechanics exist; the preparation-only [manual-acceptance kit](release-candidate-acceptance-kit-v1.md) exists, but support-scoped manual acceptance remains required. |
 | Supply chain | Checksums, SBOM/provenance where enabled, least-privilege workflows, and signing status are recorded. | SBOM review evidence/checksums exist; consumer-facing attestation, versioned assets, and signing are absent. |
 | Governance | Protected branch, real required contexts, security route, dependency policy, and maintainer release process are active. | Active; the direct-main owner model remains documented. |
 | Publication | Owner explicitly authorizes annotated tag, release publication, assets, and signing use. | **Not authorized.** |
@@ -60,7 +60,7 @@ The owner must explicitly authorize the following actions after this scorecard i
 
 ## References
 
-[1]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32791480107 "Hosted Linux verification for d5c62e7"
-[2]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32791480117 "Hosted Windows distribution, installer acceptance, and SBOM review artifact for d5c62e7"
-[3]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32791480135 "Hosted macOS 14 ARM64 validation for d5c62e7"
-[4]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32791480060 "Hosted CodeQL analysis for d5c62e7"
+[1]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32937721920 "Hosted Linux verification for afc5bb2"
+[2]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32937721931 "Hosted Windows distribution, installer mechanics, and SBOM review artifact for afc5bb2"
+[3]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32937722003 "Hosted macOS 14 ARM64 validation for afc5bb2"
+[4]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32937722018 "Hosted CodeQL analysis for afc5bb2"

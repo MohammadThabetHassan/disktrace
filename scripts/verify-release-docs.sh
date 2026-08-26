@@ -39,6 +39,7 @@ for path in \
     docs/future-github-launch-v1.md \
     docs/release-scorecard-v1.md \
     docs/release-candidate-v0.1.0.md \
+    docs/release-candidate-acceptance-kit-v1.md \
     docs/release-decision-v1.md \
     docs/project-status.md \
     docs/release-scorecard-v1.md \
@@ -97,6 +98,7 @@ grep -q 'linux-distribution-v1.md' README.md
 grep -q 'windows-distribution-v1.md' README.md
 grep -q 'project-status.md' README.md
 grep -q 'release-candidate-v0.1.0.md' README.md
+grep -q 'release-candidate-acceptance-kit-v1.md' README.md
 grep -q 'GUI workflow' README.md
 grep -q 'synthetic performance-control corpus' README.md
 grep -q 'macOS validation contract' README.md
@@ -110,7 +112,9 @@ grep -q 'audit-session' README.md
 grep -q 'case-brief' README.md
 grep -q 'project-status.md' README.md
 grep -q 'privacy-first' CONTRIBUTING.md
-grep -q 'private security-reporting channel' SECURITY.md
+grep -q 'private vulnerability-reporting channel' SECURITY.md
+grep -q 'github.com/MohammadThabetHassan/disktrace/security/advisories/new' SECURITY.md
+grep -q 'Do \*\*not\*\* post sensitive findings' SECURITY.md
 grep -q 'rustfmt' rust-toolchain.toml
 grep -q 'clippy' rust-toolchain.toml
 grep -q 'fixtures/\*\*/expected-\*.txt text eol=lf' .gitattributes
@@ -132,18 +136,26 @@ grep -q 'sh scripts/verify-scan-control-corpus.sh' scripts/verify-all.sh
 grep -q 'cargo audit' docs/release-process.md
 grep -q 'local release-evidence contract' docs/release-process.md
 grep -q 'release-candidate-v0.1.0.md' docs/release-process.md
+grep -q 'manual-acceptance kit' docs/release-process.md
 grep -q 'protected `main`' docs/release-process.md
 grep -q 'explicit authorization' docs/release-process.md
 grep -q 'Decision: no public-release action' docs/release-decision-v1.md
 grep -q 'not authorize a semantic version' docs/release-decision-v1.md
 grep -q 'does not claim universal recovery' docs/release-decision-v1.md
+grep -q 'afc5bb20148dd1f8845312d28f1f86e2d43204a6' docs/release-decision-v1.md
+grep -q 'PNG, JPEG, GIF, PDF, and ZIP/Open XML discovery' docs/release-decision-v1.md
 grep -q 'owner separately authorizes' docs/release-decision-v1.md
 grep -q 'Release target record' docs/release-scorecard-v1.md
+grep -q 'afc5bb20148dd1f8845312d28f1f86e2d43204a6' docs/release-scorecard-v1.md
 grep -q 'Authorization boundary' docs/release-scorecard-v1.md
 grep -q 'Status: preparation only' docs/release-candidate-v0.1.0.md
 grep -q 'Candidate source target' docs/release-candidate-v0.1.0.md
 grep -q 'Publication authorization' docs/release-candidate-v0.1.0.md
+grep -q 'manual-acceptance kit' docs/release-candidate-v0.1.0.md
 grep -q 'No action is implied' docs/release-candidate-v0.1.0.md
+grep -q 'Preparation-only operator aid' docs/release-candidate-acceptance-kit-v1.md
+grep -q 'Windows x86_64' docs/release-candidate-acceptance-kit-v1.md
+grep -q 'Automated companions and the kit are not manual acceptance' docs/release-candidate-acceptance-kit-v1.md
 grep -q 'strict 90+ public-release readiness score' docs/release-scorecard-v1.md
 grep -q 'RUSTSEC-2026-0192' docs/dependency-advisories.md
 grep -q 'zero known vulnerabilities' docs/dependency-advisories.md
@@ -186,8 +198,10 @@ grep -q 'launch-disktrace.sh' scripts/package-linux-bundle.sh
 grep -q 'install-disktrace-launcher.sh' scripts/package-linux-bundle.sh
 grep -q 'clean committed source revision' scripts/package-linux-bundle.sh
 grep -q 'source_state": "clean-committed"' scripts/package-linux-bundle.sh
+grep -q 'release-candidate-acceptance-kit-v1.md' scripts/package-linux-bundle.sh
 grep -q 'Start DiskTrace.cmd' scripts/package-windows-bundle.ps1
 grep -q "source_state = 'clean-committed'" scripts/package-windows-bundle.ps1
+grep -q 'release-candidate-acceptance-kit-v1.md' scripts/package-windows-bundle.ps1
 grep -q 'Start a local recovery session' crates/ef-desktop/src/main.rs
 grep -q 'Recovery workspace' crates/ef-desktop/src/main.rs
 grep -q 'Recovery workflow' crates/ef-desktop/src/main.rs
@@ -198,6 +212,8 @@ grep -q 'Save case brief' docs/gui-workflow-v1.md
 grep -q 'case-brief requires' crates/ef-cli/src/main.rs
 grep -q 'owner has authorized an initial' docs/future-github-launch-v1.md
 grep -q 'Draft for a future authorized release' docs/release-notes-v0.1.0-draft.md
+grep -q 'PNG, JPEG, GIF, PDF, and ZIP/Open XML discovery' docs/release-notes-v0.1.0-draft.md
+grep -q 'manual-acceptance kit' docs/release-notes-v0.1.0-draft.md
 grep -q 'cross-target compatibility smoke' docs/windows-distribution-v1.md
 grep -q 'Linux-host portable cross-target ZIP' docs/windows-distribution-v1.md
 grep -q 'Local release-evidence contract' docs/local-release-evidence-v1.md
@@ -258,6 +274,7 @@ grep -q 'not an attestation' docs/project-status.md
 grep -q 'controlled decision package' docs/project-status.md
 grep -q 'cooperative stage checkpoints' docs/project-status.md
 grep -q 'PNG, JPEG, GIF, PDF, and ZIP/Open XML discovery' docs/project-status.md
+grep -q 'GitHub private vulnerability reporting is enabled' docs/project-status.md
 grep -q 'contains no downloaded executable code' docs/design-skill-adoption-v1.md
 grep -q 'defines a single `Palette`' docs/design-skill-adoption-v1.md
 grep -q 'package-ecosystem: cargo' .github/dependabot.yml
