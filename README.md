@@ -1,25 +1,44 @@
-# DiskTrace
+<p align="center">
+  <img src="docs/assets/disktrace-logo.png" width="160" alt="DiskTrace disk platter and forensic trace logo">
+</p>
 
-**Forensic data recovery, without guesswork.**
+<h1 align="center">DiskTrace</h1>
 
-DiskTrace is a local-first, cross-platform desktop application for reviewing and exporting **supported** deleted or lost-file candidates from disk-image files. It is designed for people who need a guided recovery workflow and for practitioners who need explicit provenance, structural validation labels, source-integrity checks, safe export behavior, and machine-readable receipts.
+<p align="center"><strong>Read-only forensic recovery for disk images, with explicit evidence boundaries.</strong></p>
 
-> DiskTrace reads the selected source image without writing to it. It does not upload source images, recovered bytes, session manifests, telemetry, or runtime recovery data. A recovery candidate is evidence to review, not a promise that an original file is complete, authentic, safe, or legally admissible.
+<p align="center">
+  <a href="https://github.com/MohammadThabetHassan/disktrace/actions/workflows/verify.yml"><img src="https://github.com/MohammadThabetHassan/disktrace/actions/workflows/verify.yml/badge.svg?branch=main" alt="Linux verification"></a>
+  <a href="https://github.com/MohammadThabetHassan/disktrace/actions/workflows/windows-release.yml"><img src="https://github.com/MohammadThabetHassan/disktrace/actions/workflows/windows-release.yml/badge.svg?branch=main" alt="Windows distribution"></a>
+  <a href="https://github.com/MohammadThabetHassan/disktrace/actions/workflows/codeql.yml"><img src="https://github.com/MohammadThabetHassan/disktrace/actions/workflows/codeql.yml/badge.svg?branch=main" alt="CodeQL"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-1f6feb.svg" alt="Apache License 2.0"></a>
+</p>
+
+DiskTrace is a local-first native desktop application for reviewing and exporting **supported** deleted or lost-file candidates from disk-image files. It is designed for people who need a guided recovery workflow and for practitioners who need traceable provenance, structural validation labels, source-integrity checks, safe export behavior, and machine-readable receipts.
+
+> DiskTrace reads the selected source image without writing to it. It does not upload source images, recovered bytes, session manifests, telemetry, or runtime recovery data. A recovery candidate is evidence to review—not a promise that an original file is complete, authentic, safe, or legally admissible.
+
+| Recovery workflow | Evidence workflow | Privacy posture |
+| --- | --- | --- |
+| Choose a local image, scan in the background, filter candidates, inspect bounded previews, and export only to a separate destination. | See the method, source range, validation state, known limits, source identity, session state, and export receipt for each supported candidate. | No cloud recovery, account system, runtime AI, telemetry, or source writes. |
 
 ## Why DiskTrace
 
-A recovery tool should be useful without making claims it cannot prove. DiskTrace records how each candidate was found, where its bytes originate, which bounded checks passed, and where the method stops. Exports are allowed only to an approved separate destination and receive a receipt that binds source identity, candidate facts, and artifact hashes. The safety model and current scope are defined in the [safety and evidence contract](docs/safety-and-evidence.md) and [architecture guide](docs/architecture.md).
+Useful recovery software should state both **what it found** and **why it is willing to show it**. DiskTrace records how a candidate was discovered, where its bytes originate, which bounded checks passed, and where the method stops. Before export, it enforces a separate destination and creates a receipt that binds source identity, candidate facts, and output hashes.
 
-| Workflow | Outcome |
-| --- | --- |
-| **Recovery Mode** | A guided native desktop workflow to select a local image, scan in the background, filter results, review bounded previews, and export a selected result to a separate destination. |
-| **Evidence Mode** | Candidate method labels, source offsets, validation state, recovery limitations, session identity, source-integrity status, and receipt-backed export history. |
-| **Local sessions** | A versioned JSON manifest records the completed catalogue and exports. Before recovery, a reopened session verifies path, byte length, SHA-256, and BLAKE3. |
-| **Command-line workflows** | Optional inspection, scanning, filtered catalogues, destination checks, session handling, auditing, and repeatable selected-candidate recovery. |
+The result is intentionally conservative. DiskTrace prefers a smaller set of explainable candidates over optimistic signature matches, silent repair, or universal-recovery claims. Read the [safety and evidence contract](docs/safety-and-evidence.md) and [architecture guide](docs/architecture.md) before relying on recovered material.
+
+## At a glance
+
+| Capability | What DiskTrace provides | What it deliberately does not claim |
+| --- | --- | --- |
+| **Local desktop recovery** | A native `eframe`/`egui` workflow for local disk-image selection, scanning, review, export, and synthetic guided demonstration. | Live-device acquisition, source writes, cloud processing, or an arbitrary-device recovery guarantee. |
+| **Evidence-first review** | Method labels, source offsets, structural-validation state, source identity, session status, and export audit data. | Original filenames, folder paths, ownership, authenticity, legal admissibility, or semantic completeness. |
+| **Safe exports** | Separate-destination checks, source-storage and symlink refusal, receipt-backed exports, and byte-range review. | Repair, sanitisation, malware assessment, or safe-to-open assurance for recovered content. |
+| **Repeatable sessions** | A versioned local JSON manifest with SHA-256 and BLAKE3 source identity, candidate facts, and export history. | Storage of recovered payload bytes or recovery from a changed source without a new scan. |
 
 ## Supported recovery methods
 
-DiskTrace prefers narrow, explainable acceptance rules over optimistic repair. A listed candidate means that its stated structural checks passed; it does **not** prove that every original byte, filename, folder, or filesystem state survived deletion.
+DiskTrace supports narrow, documented methods rather than a generic “recover everything” mode. A listed candidate means that the stated structural checks passed; it does **not** prove that every original byte, filename, folder, or filesystem state survived deletion.
 
 | Method | Current acceptance boundary | Important limitation |
 | --- | --- | --- |
@@ -42,27 +61,27 @@ DiskTrace is a **recovery aid**, not a guarantee of evidentiary completeness or 
 
 Use a copy of the relevant storage or a verified image whenever possible. Export only to a separate destination. Treat every recovered file as potentially incomplete, stale, overwritten, hostile, or sensitive, and review it in an isolated environment before opening it with an application that interprets active content.
 
-A quick or full format can remove filesystem metadata while leaving some raw content in place. DiskTrace can search surviving metadata and supported raw structures, so it may recover some files when no later writes occurred. It cannot guarantee every original file, filename, folder, fragment, encrypted item, overwritten sector, or SSD block affected by TRIM or controller-level garbage collection. Read the [safety and evidence contract](docs/safety-and-evidence.md) before relying on recovered material.
+A quick or full format can remove filesystem metadata while leaving some raw content in place. DiskTrace can search surviving metadata and supported raw structures, so it may recover some files when no later writes occurred. It cannot guarantee every original file, filename, folder, fragment, encrypted item, overwritten sector, or SSD block affected by TRIM or controller-level garbage collection. The [safety and evidence contract](docs/safety-and-evidence.md) explains this boundary in detail.
 
-## Quick start
+## Start safely
 
-### Prerequisites
+DiskTrace targets Rust 2021 and the verification matrix is pinned to Rust `1.97.1`. The Linux desktop smoke test uses `xvfb-run`; ordinary desktop use does not require it.
 
-Install a Rust toolchain compatible with Rust 2021 edition. The local verification matrix is tested with Rust `1.97.1`. The native desktop smoke test uses `xvfb-run` on Linux; ordinary desktop use does not require it.
-
-Launch the desktop application for the guided recovery workflow:
+| Step | Desktop workflow | Evidence discipline |
+| --- | --- | --- |
+| 1. Launch | `cargo run -p ef-desktop` | Choose a local image, not a live write target. |
+| 2. Review | Scan, filter, and inspect the candidate’s method, source range, and limitation text. | A bounded preview is not content execution or media rendering. |
+| 3. Export | Select an existing, separate output directory. | DiskTrace refuses source-storage, nested, symlinked, and missing destinations. |
 
 ```sh
 cargo run -p ef-desktop
 ```
 
-The application starts with a three-step guide: choose a local image, scan and review evidence details, then recover to a separate existing folder. It also includes local-session controls and a synthetic guided demo that does not require a real image.
-
-The source is always read from a local file path. The application rejects destinations on source storage, nested destinations, symlinks, and missing directories.
+The desktop application opens with a three-step guide: choose a local image, scan and review evidence details, then recover to a separate existing folder. It also includes local-session controls and a synthetic guided demo that does not require a real image.
 
 ### Optional command-line workflows
 
-The CLI supports repeatable evidence workflows but is not required for ordinary GUI recovery:
+The CLI supports repeatable evidence workflows but is not required for ordinary GUI recovery.
 
 ```sh
 cargo run -p ef-cli -- inspect /path/to/image.img
@@ -76,7 +95,7 @@ cargo run -p ef-cli -- recover /path/to/image.img efc1-<candidate-id-from-scan> 
 
 A saved session stores local source paths, dual source hashes, completed candidate details, source-integrity status, and receipt-backed export history. It never stores recovered payload bytes. If a source becomes unavailable or its length, SHA-256, or BLAKE3 changes, the historical session remains readable but recovery is blocked until the changed image is scanned as a new session.
 
-Selected previews recheck the full saved source identity on one local handle and then read only the persisted candidate’s exact byte range. PNG, JPEG, GIF, PDF, and ZIP/Open XML candidate discovery additionally use method-specific fixed source windows with mandatory legacy parity; filesystem metadata, legacy compatibility discovery, other carvers, recovery, and exports retain their full-buffer compatibility paths. Exports intentionally retain a stricter full-source re-derivation and manifest-comparison path. The [source-access architecture](docs/source-access-architecture-v1.md), [JPEG windowed-discovery contract](docs/jpeg-window-discovery-v1.md), [GIF windowed-discovery contract](docs/gif-window-discovery-v1.md), [PDF windowed-discovery contract](docs/pdf-window-discovery-v1.md), and [ZIP/Open XML windowed-discovery contract](docs/zip-window-discovery-v1.md) describe this staged design and its remaining time-of-check/time-of-use boundary.
+Selected previews recheck the full saved source identity on one local handle and then read only the persisted candidate’s exact byte range. PNG, JPEG, GIF, PDF, and ZIP/Open XML candidate discovery additionally use method-specific fixed source windows with mandatory legacy parity; filesystem metadata, legacy compatibility discovery, other carvers, recovery, and exports retain their full-buffer compatibility paths. Exports intentionally retain a stricter full-source re-derivation and manifest-comparison path.
 
 ```sh
 cargo run -p ef-cli -- save-session /path/to/image.img /path/to/session.disktrace.json
@@ -86,6 +105,8 @@ cargo run -p ef-cli -- case-brief /path/to/session.disktrace.json /path/to/case-
 cargo run -p ef-cli -- recover-session /path/to/session.disktrace.json efc1-<candidate-id-from-session> /separate/output-directory
 ```
 
+Read the [source-access architecture](docs/source-access-architecture-v1.md), [JPEG windowed-discovery contract](docs/jpeg-window-discovery-v1.md), [GIF windowed-discovery contract](docs/gif-window-discovery-v1.md), [PDF windowed-discovery contract](docs/pdf-window-discovery-v1.md), and [ZIP/Open XML windowed-discovery contract](docs/zip-window-discovery-v1.md) for the staged design and its remaining time-of-check/time-of-use boundary.
+
 ## Verification
 
 Run the complete deterministic local verification matrix from the workspace root:
@@ -94,42 +115,47 @@ Run the complete deterministic local verification matrix from the workspace root
 sh scripts/verify-all.sh
 ```
 
-The command checks formatting, warning-free Clippy output, workspace documentation generation, locked-dependency advisory policy, unit tests, deterministic filesystem and carving fixtures, direct and saved-session recovery, receipt-backed export auditing, source-range preview contracts, bounded PNG/JPEG/GIF/PDF/ZIP/Open XML discovery parity controls, synthetic sparse/signature-dense/refusal/multi-candidate scan controls, builds, and a headless native desktop smoke launch on Linux when `xvfb-run` is available.
+The command checks formatting, warning-free Clippy output, workspace documentation generation, locked-dependency advisory policy, unit tests, deterministic filesystem and carving fixtures, direct and saved-session recovery, receipt-backed export auditing, source-range preview contracts, bounded PNG/JPEG/GIF/PDF/ZIP/Open XML discovery parity controls, AVI/MP4 malformed-input resilience controls, synthetic sparse/signature-dense/refusal/multi-candidate scan controls, builds, and a headless native desktop smoke launch on Linux when `xvfb-run` is available.
 
 Every fixture is synthetic and versioned with known expected bytes and source offsets; none represents a real user image. The [synthetic performance-control corpus](docs/performance-control-corpus-v1.md) is a regression aid, not a real-device benchmark. Current local evidence and intentional limits are summarized in the [public project status report](docs/project-status.md).
 
 ## Distribution status
 
-A Linux x86_64 bundle and a Windows x86_64 cross-target compatibility bundle can be built locally using the scripts in this repository. The Linux bundle has local native smoke evidence. The native hosted Windows workflow additionally verifies the portable bundle, a disposable silent installer install/uninstall path, and a retained SBOM review artifact. Hosted macOS 14 ARM64 validation builds and checks an unsigned review binary. Those results are bounded CI evidence only; they are not a macOS package, Intel-macOS evidence, signing/notarization, SmartScreen, manual accessibility acceptance, a tagged production release, or a support SLA.
+DiskTrace is a **public source project and local pre-release workspace**. It is not a tagged production release.
 
-See the [Linux distribution contract](docs/linux-distribution-v1.md), [Windows distribution contract](docs/windows-distribution-v1.md), [macOS validation contract](docs/macos-validation-v1.md), and [project status report](docs/project-status.md) before sharing any build.
+A Linux x86_64 bundle and a Windows x86_64 cross-target compatibility bundle can be built locally using the scripts in this repository. The Linux bundle has local native smoke evidence. The native hosted Windows workflow additionally verifies the portable bundle, a disposable silent installer install/uninstall path, and a retained SBOM review artifact. Hosted macOS 14 ARM64 validation builds and checks an unsigned review binary.
 
-## Project structure
+Those results are bounded CI evidence only. They are not a macOS package, Intel-macOS evidence, signing/notarization, SmartScreen, manual accessibility acceptance, a tagged production release, or a support SLA. Consult the [Linux distribution contract](docs/linux-distribution-v1.md), [Windows distribution contract](docs/windows-distribution-v1.md), [macOS validation contract](docs/macos-validation-v1.md), [release-candidate acceptance kit](docs/release-candidate-acceptance-kit-v1.md), and [project status report](docs/project-status.md) before sharing any build.
 
-| Path | Purpose |
+## Project architecture
+
+| Path | Responsibility |
 | --- | --- |
 | [`crates/ef-core`](crates/ef-core) | Source identity, session model, candidate types, and recovery-method vocabulary. |
 | [`crates/ef-fat`](crates/ef-fat) | Bounded FAT12, FAT16, exFAT, and NTFS metadata parsers and extraction. |
 | [`crates/ef-carve`](crates/ef-carve) | Bounded PNG, JPEG, GIF, AVI, MP4/MOV, PDF, and ZIP/Open XML structural carvers. |
 | [`crates/ef-workflow`](crates/ef-workflow) | Shared scan, recovery, session, source-integrity, receipt, and export-audit workflow. |
 | [`crates/ef-catalogue`](crates/ef-catalogue) | Deterministic candidate search, filtering, summaries, explanations, and bounded previews. |
-| [`crates/ef-cli`](crates/ef-cli) | Command-line interface. |
-| [`crates/ef-desktop`](crates/ef-desktop) | Native `eframe`/`egui` desktop workspace. |
+| [`crates/ef-cli`](crates/ef-cli) | Command-line interface for inspection, scanning, sessions, auditing, and selected-candidate recovery. |
+| [`crates/ef-desktop`](crates/ef-desktop) | Native desktop workspace. |
 | [`fixtures/`](fixtures/) | Deterministic synthetic source images and expected artifacts. |
-| [`docs/`](docs/) | Versioned recovery contracts, architecture, safety guidance, and distribution boundaries. |
+| [`docs/`](docs/) | Versioned contracts, architecture, safety guidance, distribution boundaries, and release evidence. |
 
-## Documentation and contribution
+## Documentation and project health
 
-Start with the [project status report](docs/project-status.md), [safety and evidence boundaries](docs/safety-and-evidence.md), [architecture](docs/architecture.md), [GUI workflow](docs/gui-workflow-v1.md), [source-access architecture](docs/source-access-architecture-v1.md), [GIF windowed-discovery contract](docs/gif-window-discovery-v1.md), [PDF windowed-discovery contract](docs/pdf-window-discovery-v1.md), [ZIP/Open XML windowed-discovery contract](docs/zip-window-discovery-v1.md), and [synthetic performance-control corpus](docs/performance-control-corpus-v1.md). The [contribution guide](CONTRIBUTING.md), [security policy](SECURITY.md), [code of conduct](CODE_OF_CONDUCT.md), [release process](docs/release-process.md), [v0.1.0 release-candidate record](docs/release-candidate-v0.1.0.md), [manual-acceptance kit](docs/release-candidate-acceptance-kit-v1.md), [controlled release decision](docs/release-decision-v1.md), [dependency advisory register](docs/dependency-advisories.md), and [changelog](CHANGELOG.md) describe how the project is maintained.
+| Topic | Start here |
+| --- | --- |
+| Scope, evidence, and architecture | [Project status](docs/project-status.md) · [Safety and evidence](docs/safety-and-evidence.md) · [Architecture](docs/architecture.md) · [GUI workflow](docs/gui-workflow-v1.md) |
+| Discovery and resilience contracts | [Source-access architecture](docs/source-access-architecture-v1.md) · [GIF](docs/gif-window-discovery-v1.md) · [PDF](docs/pdf-window-discovery-v1.md) · [ZIP/Open XML](docs/zip-window-discovery-v1.md) · [AVI/MP4 resilience corpus](docs/avi-mp4-resilience-corpus-v1.md) |
+| Distribution and release discipline | [Release process](docs/release-process.md) · [v0.1.0 release-candidate record](docs/release-candidate-v0.1.0.md) · [Manual-acceptance kit](docs/release-candidate-acceptance-kit-v1.md) · [Controlled release decision](docs/release-decision-v1.md) |
+| Maintenance and contribution | [Contribution guide](CONTRIBUTING.md) · [Security policy](SECURITY.md) · [Code of conduct](CODE_OF_CONDUCT.md) · [Dependency advisory register](docs/dependency-advisories.md) · [Changelog](CHANGELOG.md) |
 
-## Status
+## Status and responsible reporting
 
-DiskTrace is a **public source project and local pre-release workspace**. Its source, deterministic fixtures, documentation, and local/hosted workflows are available for inspection. It should not be described as production-ready until the remaining manual platform acceptance, package/signing/notarization, consumer-facing artifact, authorization, and release-evidence gaps are closed.
+DiskTrace should not be described as production-ready until the remaining manual platform acceptance, package/signing/notarization, consumer-facing artifact, authorization, and release-evidence gaps are closed. The current [controlled release decision](docs/release-decision-v1.md) is intentionally a no-go record, not publication authorization.
+
+Use the public issue tracker for reproducible bugs and feature discussions. Do not publish real disk images, private recovered material, credentials, cryptographic keys, personal data, or active exploitation details. Report potential vulnerabilities privately through the process in [SECURITY.md](SECURITY.md).
 
 ## License
 
 DiskTrace is licensed under the [Apache License 2.0](LICENSE).
-
-## Responsible reporting
-
-Use the public issue tracker for reproducible bugs and feature discussions. Do not publish real disk images, private recovered material, credentials, cryptographic keys, personal data, or active exploitation details. Report potential vulnerabilities privately using the process in [SECURITY.md](SECURITY.md).

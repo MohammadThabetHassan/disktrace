@@ -92,6 +92,8 @@ done
 grep -q 'Apache License' LICENSE
 grep -q 'license = "Apache-2.0"' Cargo.toml
 grep -q 'Apache License 2.0' README.md
+test -s docs/assets/disktrace-logo.png
+grep -q 'docs/assets/disktrace-logo.png' README.md
 grep -q '## Safety boundary' README.md
 grep -q 'sh scripts/verify-all.sh' README.md
 grep -q '## Distribution status' README.md
