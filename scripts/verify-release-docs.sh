@@ -30,6 +30,7 @@ for path in \
     docs/jpeg-window-discovery-v1.md \
     docs/gif-window-discovery-v1.md \
     docs/pdf-window-discovery-v1.md \
+    docs/zip-window-discovery-v1.md \
     docs/legacy-discovery-cancellation-v1.md \
     docs/performance-control-corpus-v1.md \
     docs/fat32-feasibility-v1.md \
@@ -102,7 +103,8 @@ grep -q 'macOS validation contract' README.md
 grep -q 'JPEG windowed-discovery contract' README.md
 grep -q 'GIF windowed-discovery contract' README.md
 grep -q 'PDF windowed-discovery contract' README.md
-grep -q 'bounded PNG/JPEG/GIF/PDF discovery parity controls' README.md
+grep -q 'ZIP/Open XML windowed-discovery contract' README.md
+grep -q 'bounded PNG/JPEG/GIF/PDF/ZIP/Open XML discovery parity controls' README.md
 grep -q 'Optional command-line workflows' README.md
 grep -q 'audit-session' README.md
 grep -q 'case-brief' README.md
@@ -125,6 +127,7 @@ grep -q 'sh scripts/verify-windowed-png-discovery.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-windowed-jpeg-discovery.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-windowed-gif-discovery.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-windowed-pdf-discovery.sh' scripts/verify-all.sh
+grep -q 'sh scripts/verify-windowed-zip-discovery.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-scan-control-corpus.sh' scripts/verify-all.sh
 grep -q 'cargo audit' docs/release-process.md
 grep -q 'local release-evidence contract' docs/release-process.md
@@ -213,6 +216,7 @@ grep -q 'source identity verification' docs/source-access-architecture-v1.md
 grep -q 'same bounded-discovery stage now includes JPEG' docs/source-access-architecture-v1.md
 grep -q 'same bounded-discovery stage now includes GIF' docs/source-access-architecture-v1.md
 grep -q 'same bounded-discovery stage now includes PDF' docs/source-access-architecture-v1.md
+grep -q 'same bounded-discovery stage now includes ZIP/Open XML' docs/source-access-architecture-v1.md
 grep -q 'Primary window length' docs/source-window-discovery-v1.md
 grep -q 'legacy `carve_pngs`' docs/source-window-discovery-v1.md
 grep -q 'Explicit non-claims' docs/source-window-discovery-v1.md
@@ -225,6 +229,9 @@ grep -q 'legacy `ef-carve::carve_gifs`' docs/gif-window-discovery-v1.md
 grep -q 'four bytes after each primary window' docs/pdf-window-discovery-v1.md
 grep -q '64 MiB' docs/pdf-window-discovery-v1.md
 grep -q 'legacy `ef-carve::carve_pdfs`' docs/pdf-window-discovery-v1.md
+grep -q 'three bytes after each primary window' docs/zip-window-discovery-v1.md
+grep -q '64 MiB' docs/zip-window-discovery-v1.md
+grep -q 'legacy `ef-carve::carve_zip_archives`' docs/zip-window-discovery-v1.md
 grep -q 'after every completed legacy discovery method stage' docs/source-access-architecture-v1.md
 grep -q 'not full parser-level cancellation' docs/source-access-architecture-v1.md
 grep -q 'parser-loop cancellation' docs/legacy-discovery-cancellation-v1.md
@@ -250,7 +257,7 @@ grep -q 'SBOM transparency' docs/project-status.md
 grep -q 'not an attestation' docs/project-status.md
 grep -q 'controlled decision package' docs/project-status.md
 grep -q 'cooperative stage checkpoints' docs/project-status.md
-grep -q 'PNG, JPEG, GIF, and PDF discovery' docs/project-status.md
+grep -q 'PNG, JPEG, GIF, PDF, and ZIP/Open XML discovery' docs/project-status.md
 grep -q 'contains no downloaded executable code' docs/design-skill-adoption-v1.md
 grep -q 'defines a single `Palette`' docs/design-skill-adoption-v1.md
 grep -q 'package-ecosystem: cargo' .github/dependabot.yml
@@ -273,6 +280,7 @@ test -x scripts/verify-large-sparse-control.sh
 test -x scripts/verify-windowed-png-discovery.sh
 test -x scripts/verify-windowed-jpeg-discovery.sh
 test -x scripts/verify-windowed-pdf-discovery.sh
+test -x scripts/verify-windowed-zip-discovery.sh
 test -x scripts/generate-scan-control-fixture.sh
 test -x scripts/verify-scan-control-corpus.sh
 test -x scripts/measure-scan-control-corpus.sh
