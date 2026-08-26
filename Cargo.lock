@@ -807,7 +807,7 @@ name = "ef-carve"
 version = "0.1.0"
 dependencies = [
  "serde",
- "thiserror 1.0.69",
+ "thiserror 2.0.20",
 ]
 
 [[package]]
@@ -840,7 +840,7 @@ dependencies = [
  "hex",
  "serde",
  "sha2",
- "thiserror 1.0.69",
+ "thiserror 2.0.20",
  "uuid",
 ]
 
@@ -861,7 +861,7 @@ name = "ef-fat"
 version = "0.1.0"
 dependencies = [
  "serde",
- "thiserror 1.0.69",
+ "thiserror 2.0.20",
 ]
 
 [[package]]
@@ -869,7 +869,7 @@ name = "ef-policy"
 version = "0.1.0"
 dependencies = [
  "ef-core",
- "thiserror 1.0.69",
+ "thiserror 2.0.20",
  "uuid",
 ]
 
@@ -882,7 +882,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "thiserror 1.0.69",
+ "thiserror 2.0.20",
  "uuid",
 ]
 
@@ -898,7 +898,7 @@ dependencies = [
  "ef-report",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.20",
  "uuid",
 ]
 
