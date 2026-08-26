@@ -40,11 +40,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
-mkdir -p "$BUNDLE_DIRECTORY/bin" "$BUNDLE_DIRECTORY/docs"
+mkdir -p "$BUNDLE_DIRECTORY/bin" "$BUNDLE_DIRECTORY/docs/assets"
 cargo build --release --target "$TARGET" -p ef-cli -p ef-desktop
 
 cp "target/$TARGET/release/evidenceforge.exe" "$BUNDLE_DIRECTORY/bin/evidenceforge.exe"
 cp "target/$TARGET/release/evidenceforge-desktop.exe" "$BUNDLE_DIRECTORY/bin/evidenceforge-desktop.exe"
+cp "docs/assets/disktrace-logo.png" "$BUNDLE_DIRECTORY/docs/assets/disktrace-logo.png"
 for document in \
     README.md \
     LICENSE \

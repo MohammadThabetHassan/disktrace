@@ -209,6 +209,7 @@ grep -q 'Start DiskTrace.cmd' scripts/package-windows-bundle.ps1
 grep -q "source_state = 'clean-committed'" scripts/package-windows-bundle.ps1
 grep -q 'release-candidate-acceptance-kit-v1.md' scripts/package-windows-bundle.ps1
 grep -q 'docs\\assets\\disktrace-logo.png' scripts/package-windows-bundle.ps1
+grep -q 'docs/assets/disktrace-logo.png' scripts/package-windows-cross-target.sh
 grep -q 'Start a local recovery session' crates/ef-desktop/src/main.rs
 grep -q 'Recovery workspace' crates/ef-desktop/src/main.rs
 grep -q 'Recovery workflow' crates/ef-desktop/src/main.rs
