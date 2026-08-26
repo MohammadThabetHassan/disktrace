@@ -79,6 +79,8 @@ pub enum WorkflowError {
     WindowedJpegParity,
     #[error("windowed GIF discovery diverged from compatibility discovery")]
     WindowedGifParity,
+    #[error("windowed PDF discovery diverged from compatibility discovery")]
+    WindowedPdfParity,
 }
 
 #[derive(Debug, Clone)]
@@ -407,6 +409,14 @@ const GIF_WINDOW_PRIMARY_LENGTH: u64 = PNG_WINDOW_PRIMARY_LENGTH;
 const GIF_SIGNATURE_OVERLAP: u64 = GIF87A_HEADER.len() as u64 - 1;
 const GIF_MAX_CARVE_LENGTH: u64 = 64 * 1024 * 1024;
 
+const PDF_HEADER: [u8; 5] = *b"%PDF-";
+const PDF_START_XREF: [u8; 9] = *b"startxref";
+const PDF_XREF: [u8; 4] = *b"xref";
+const PDF_EOF: [u8; 5] = *b"%%EOF";
+const PDF_WINDOW_PRIMARY_LENGTH: u64 = PNG_WINDOW_PRIMARY_LENGTH;
+const PDF_SIGNATURE_OVERLAP: u64 = PDF_HEADER.len() as u64 - 1;
+const PDF_MAX_CARVE_LENGTH: u64 = 64 * 1024 * 1024;
+
 fn discover_candidates_for_scan(
     image: &[u8],
     source_identity: &SourceIdentity,
@@ -497,6 +507,33 @@ fn discover_candidates_for_scan(
 
     if windowed_gif_candidates.next().is_some() {
         return Err(WorkflowError::WindowedGifParity);
+    }
+
+    let windowed_pdf_candidates = discover_windowed_pdf_candidates(source_identity, cancellation)?;
+    let legacy_pdf_count = candidates
+        .iter()
+        .filter(|candidate| candidate.method == RecoveryMethod::SignatureCarvingPdf)
+        .count();
+
+    if legacy_pdf_count != windowed_pdf_candidates.len() {
+        return Err(WorkflowError::WindowedPdfParity);
+    }
+
+    let mut windowed_pdf_candidates = windowed_pdf_candidates.into_iter();
+    for candidate in &mut candidates {
+        if candidate.method == RecoveryMethod::SignatureCarvingPdf {
+            let replacement = windowed_pdf_candidates
+                .next()
+                .ok_or(WorkflowError::WindowedPdfParity)?;
+            if *candidate != replacement {
+                return Err(WorkflowError::WindowedPdfParity);
+            }
+            *candidate = replacement;
+        }
+    }
+
+    if windowed_pdf_candidates.next().is_some() {
+        return Err(WorkflowError::WindowedPdfParity);
     }
 
     Ok(candidates)
@@ -1167,6 +1204,406 @@ impl<'a> WindowedGifReader<'a> {
         }
 
         let length = (self.limit - self.offset).min(GIF_WINDOW_PRIMARY_LENGTH);
+        self.buffer = read_range_from_file_with_cancellation(
+            self.file,
+            &self.source_identity.canonical_path,
+            self.source_identity.byte_length,
+            SourceRange {
+                offset: self.offset,
+                length,
+            },
+            self.cancellation,
+        )?;
+        self.buffer_start = self.offset;
+        Ok(())
+    }
+}
+
+fn discover_windowed_pdf_candidates(
+    source_identity: &SourceIdentity,
+    cancellation: &AtomicBool,
+) -> Result<Vec<RecoveryCandidate>, WorkflowError> {
+    discover_windowed_pdf_candidates_after_window(source_identity, cancellation, || {})
+}
+
+fn discover_windowed_pdf_candidates_after_window<F>(
+    source_identity: &SourceIdentity,
+    cancellation: &AtomicBool,
+    mut after_primary_window: F,
+) -> Result<Vec<RecoveryCandidate>, WorkflowError>
+where
+    F: FnMut(),
+{
+    if cancellation.load(Ordering::Relaxed) {
+        return Err(CoreError::Cancelled.into());
+    }
+
+    let path = &source_identity.canonical_path;
+    let mut file = File::open(path).map_err(|source| WorkflowError::ReadImage {
+        path: path.clone(),
+        source,
+    })?;
+    let mut candidates = Vec::new();
+    let mut primary_start = 0_u64;
+    let mut suppression_end = 0_u64;
+
+    while primary_start < source_identity.byte_length {
+        if cancellation.load(Ordering::Relaxed) {
+            return Err(CoreError::Cancelled.into());
+        }
+        let remaining = source_identity.byte_length - primary_start;
+        let primary_length = remaining.min(PDF_WINDOW_PRIMARY_LENGTH);
+        let readable_length = primary_length
+            .checked_add(PDF_SIGNATURE_OVERLAP)
+            .map(|length| length.min(remaining))
+            .ok_or(CoreError::RangeOverflow {
+                offset: primary_start,
+                length: primary_length,
+            })?;
+        let window = read_range_from_file_with_cancellation(
+            &mut file,
+            path,
+            source_identity.byte_length,
+            SourceRange {
+                offset: primary_start,
+                length: readable_length,
+            },
+            cancellation,
+        )?;
+        let primary_length =
+            usize::try_from(primary_length).map_err(|_| CoreError::RangeAllocation {
+                length: primary_length,
+            })?;
+
+        for relative_start in 0..primary_length {
+            let signature_end =
+                relative_start
+                    .checked_add(PDF_HEADER.len())
+                    .ok_or(CoreError::RangeOverflow {
+                        offset: primary_start,
+                        length: PDF_HEADER.len() as u64,
+                    })?;
+            if window.get(relative_start..signature_end) != Some(&PDF_HEADER) {
+                continue;
+            }
+            let source_offset = primary_start.checked_add(relative_start as u64).ok_or(
+                CoreError::RangeOverflow {
+                    offset: primary_start,
+                    length: relative_start as u64,
+                },
+            )?;
+            if source_offset < suppression_end {
+                continue;
+            }
+            let Some(byte_length) =
+                parse_windowed_pdf_length(&mut file, source_identity, source_offset, cancellation)?
+            else {
+                continue;
+            };
+            suppression_end =
+                source_offset
+                    .checked_add(byte_length)
+                    .ok_or(CoreError::RangeOverflow {
+                        offset: source_offset,
+                        length: byte_length,
+                    })?;
+            let index = candidates.len();
+            candidates.push(with_stable_candidate_id(pdf_candidate(
+                format!("pdf-carve-{index:04}"),
+                PdfCarvedCandidate {
+                    evidence_name: format!("carved-pdf-{index:04}.pdf"),
+                    source_offset,
+                    byte_length,
+                },
+            )));
+        }
+
+        primary_start =
+            primary_start
+                .checked_add(primary_length as u64)
+                .ok_or(CoreError::RangeOverflow {
+                    offset: primary_start,
+                    length: primary_length as u64,
+                })?;
+        after_primary_window();
+        if cancellation.load(Ordering::Relaxed) {
+            return Err(CoreError::Cancelled.into());
+        }
+    }
+
+    Ok(candidates)
+}
+
+fn windowed_pdf_candidate_limit(source_offset: u64, source_length: u64) -> u64 {
+    source_offset
+        .saturating_add(PDF_MAX_CARVE_LENGTH)
+        .min(source_length)
+}
+
+fn parse_windowed_pdf_length(
+    file: &mut File,
+    source_identity: &SourceIdentity,
+    source_offset: u64,
+    cancellation: &AtomicBool,
+) -> Result<Option<u64>, WorkflowError> {
+    let candidate_limit = windowed_pdf_candidate_limit(source_offset, source_identity.byte_length);
+    let mut reader = WindowedPdfReader::new(
+        file,
+        source_identity,
+        source_offset,
+        candidate_limit,
+        cancellation,
+    );
+
+    for expected in PDF_HEADER {
+        if reader.read_byte()? != Some(expected) {
+            return Ok(None);
+        }
+    }
+    let Some(major_version) = reader.read_byte()? else {
+        return Ok(None);
+    };
+    let Some(period) = reader.read_byte()? else {
+        return Ok(None);
+    };
+    let Some(minor_version) = reader.read_byte()? else {
+        return Ok(None);
+    };
+    if !major_version.is_ascii_digit() || period != b'.' || !minor_version.is_ascii_digit() {
+        return Ok(None);
+    }
+
+    let mut recent_bytes = [0_u8; PDF_START_XREF.len()];
+    let mut recent_length = 0_usize;
+    let mut last_startxref_offset = None;
+
+    while let Some(byte) = reader.read_byte()? {
+        if recent_length < recent_bytes.len() {
+            recent_bytes[recent_length] = byte;
+            recent_length += 1;
+        } else {
+            recent_bytes.copy_within(1.., 0);
+            let last_index = recent_bytes.len() - 1;
+            recent_bytes[last_index] = byte;
+        }
+
+        if recent_length >= PDF_START_XREF.len()
+            && recent_bytes[recent_length - PDF_START_XREF.len()..recent_length] == PDF_START_XREF
+        {
+            last_startxref_offset = Some(reader.offset() - PDF_START_XREF.len() as u64);
+        }
+
+        if recent_length < PDF_EOF.len()
+            || recent_bytes[recent_length - PDF_EOF.len()..recent_length] != PDF_EOF
+        {
+            continue;
+        }
+
+        let eof_offset = reader.offset() - PDF_EOF.len() as u64;
+        let resume_offset = reader.offset();
+        if let Some(startxref_offset) = last_startxref_offset {
+            if let Some(xref_offset) = parse_windowed_pdf_startxref_offset(
+                &mut reader,
+                source_offset,
+                startxref_offset,
+                eof_offset,
+            )? {
+                let xref_absolute_offset =
+                    source_offset
+                        .checked_add(xref_offset)
+                        .ok_or(CoreError::RangeOverflow {
+                            offset: source_offset,
+                            length: xref_offset,
+                        })?;
+                if reader.matches_at(xref_absolute_offset, &PDF_XREF)? {
+                    return Ok(Some(resume_offset - source_offset));
+                }
+            }
+        }
+        reader.advance_to(resume_offset)?;
+    }
+
+    Ok(None)
+}
+
+fn parse_windowed_pdf_startxref_offset(
+    reader: &mut WindowedPdfReader<'_>,
+    source_offset: u64,
+    startxref_offset: u64,
+    eof_offset: u64,
+) -> Result<Option<u64>, WorkflowError> {
+    let first_value_offset = startxref_offset
+        .checked_add(PDF_START_XREF.len() as u64)
+        .ok_or(CoreError::RangeOverflow {
+            offset: startxref_offset,
+            length: PDF_START_XREF.len() as u64,
+        })?;
+    reader.advance_to(first_value_offset)?;
+
+    while reader.offset() < eof_offset {
+        let Some(byte) = reader.read_byte()? else {
+            return Ok(None);
+        };
+        if !is_windowed_pdf_whitespace(byte) {
+            reader.advance_to(reader.offset() - 1)?;
+            break;
+        }
+    }
+
+    let digits_start = reader.offset();
+    let mut xref_offset = 0_u64;
+    while reader.offset() < eof_offset {
+        let Some(byte) = reader.read_byte()? else {
+            return Ok(None);
+        };
+        if !byte.is_ascii_digit() {
+            reader.advance_to(reader.offset() - 1)?;
+            break;
+        }
+        xref_offset = xref_offset
+            .checked_mul(10)
+            .and_then(|value| value.checked_add(u64::from(byte - b'0')))
+            .ok_or(CoreError::RangeOverflow {
+                offset: xref_offset,
+                length: 10,
+            })?;
+    }
+    if reader.offset() == digits_start {
+        return Ok(None);
+    }
+
+    let startxref_relative_offset =
+        startxref_offset
+            .checked_sub(source_offset)
+            .ok_or(CoreError::RangeOutOfBounds {
+                offset: startxref_offset,
+                length: 0,
+                source_length: source_offset,
+            })?;
+    if xref_offset >= startxref_relative_offset {
+        return Ok(None);
+    }
+
+    while reader.offset() < eof_offset {
+        let Some(byte) = reader.read_byte()? else {
+            return Ok(None);
+        };
+        if !is_windowed_pdf_whitespace(byte) {
+            return Ok(None);
+        }
+    }
+
+    Ok(Some(xref_offset))
+}
+
+fn is_windowed_pdf_whitespace(byte: u8) -> bool {
+    matches!(byte, 0x00 | b'\t' | b'\n' | 0x0c | b'\r' | b' ')
+}
+
+struct WindowedPdfReader<'a> {
+    file: &'a mut File,
+    source_identity: &'a SourceIdentity,
+    cancellation: &'a AtomicBool,
+    offset: u64,
+    limit: u64,
+    buffer_start: u64,
+    buffer: Vec<u8>,
+}
+
+impl<'a> WindowedPdfReader<'a> {
+    fn new(
+        file: &'a mut File,
+        source_identity: &'a SourceIdentity,
+        offset: u64,
+        limit: u64,
+        cancellation: &'a AtomicBool,
+    ) -> Self {
+        Self {
+            file,
+            source_identity,
+            cancellation,
+            offset,
+            limit,
+            buffer_start: limit,
+            buffer: Vec::new(),
+        }
+    }
+
+    fn offset(&self) -> u64 {
+        self.offset
+    }
+
+    fn advance_to(&mut self, offset: u64) -> Result<(), WorkflowError> {
+        if offset > self.limit {
+            return Err(CoreError::RangeOutOfBounds {
+                offset,
+                length: 0,
+                source_length: self.limit,
+            }
+            .into());
+        }
+        self.offset = offset;
+        Ok(())
+    }
+
+    fn matches_at(&mut self, offset: u64, expected: &[u8]) -> Result<bool, WorkflowError> {
+        let expected_end =
+            offset
+                .checked_add(expected.len() as u64)
+                .ok_or(CoreError::RangeOverflow {
+                    offset,
+                    length: expected.len() as u64,
+                })?;
+        if expected_end > self.limit {
+            return Ok(false);
+        }
+        self.advance_to(offset)?;
+        for expected_byte in expected {
+            if self.read_byte()? != Some(*expected_byte) {
+                return Ok(false);
+            }
+        }
+        Ok(true)
+    }
+
+    fn read_byte(&mut self) -> Result<Option<u8>, WorkflowError> {
+        if self.offset >= self.limit {
+            return Ok(None);
+        }
+        self.ensure_buffer_contains_offset()?;
+        let relative_offset = usize::try_from(self.offset - self.buffer_start).map_err(|_| {
+            CoreError::RangeAllocation {
+                length: self.offset - self.buffer_start,
+            }
+        })?;
+        let byte = *self
+            .buffer
+            .get(relative_offset)
+            .ok_or(CoreError::RangeOutOfBounds {
+                offset: self.offset,
+                length: 1,
+                source_length: self.limit,
+            })?;
+        self.offset = self.offset.checked_add(1).ok_or(CoreError::RangeOverflow {
+            offset: self.offset,
+            length: 1,
+        })?;
+        Ok(Some(byte))
+    }
+
+    fn ensure_buffer_contains_offset(&mut self) -> Result<(), WorkflowError> {
+        let buffer_end = self
+            .buffer_start
+            .checked_add(self.buffer.len() as u64)
+            .ok_or(CoreError::RangeOverflow {
+                offset: self.buffer_start,
+                length: self.buffer.len() as u64,
+            })?;
+        if self.offset >= self.buffer_start && self.offset < buffer_end {
+            return Ok(());
+        }
+
+        let length = (self.limit - self.offset).min(PDF_WINDOW_PRIMARY_LENGTH);
         self.buffer = read_range_from_file_with_cancellation(
             self.file,
             &self.source_identity.canonical_path,
@@ -1902,14 +2339,17 @@ mod tests {
         discover_candidates, discover_candidates_legacy,
         discover_candidates_legacy_with_cancellation, discover_windowed_gif_candidates,
         discover_windowed_gif_candidates_after_window, discover_windowed_jpeg_candidates,
-        discover_windowed_jpeg_candidates_after_window, discover_windowed_png_candidates,
+        discover_windowed_jpeg_candidates_after_window, discover_windowed_pdf_candidates,
+        discover_windowed_pdf_candidates_after_window, discover_windowed_png_candidates,
         discover_windowed_png_candidates_after_window, read_session_candidate_range,
         recover_candidate, recover_candidate_from_image,
         recover_candidate_from_image_with_cancellation, scan_image, scan_image_with_cancellation,
         stable_candidate_id, windowed_gif_candidate_limit, windowed_jpeg_candidate_limit,
-        SessionManifest, WorkflowError, GIF_MAX_CARVE_LENGTH, GIF_SIGNATURE_OVERLAP,
-        GIF_WINDOW_PRIMARY_LENGTH, JPEG_MAX_CARVE_LENGTH, JPEG_SIGNATURE_OVERLAP,
-        JPEG_WINDOW_PRIMARY_LENGTH, PNG_SIGNATURE_OVERLAP, PNG_WINDOW_PRIMARY_LENGTH,
+        windowed_pdf_candidate_limit, SessionManifest, WorkflowError, GIF_MAX_CARVE_LENGTH,
+        GIF_SIGNATURE_OVERLAP, GIF_WINDOW_PRIMARY_LENGTH, JPEG_MAX_CARVE_LENGTH,
+        JPEG_SIGNATURE_OVERLAP, JPEG_WINDOW_PRIMARY_LENGTH, PDF_MAX_CARVE_LENGTH,
+        PDF_SIGNATURE_OVERLAP, PDF_WINDOW_PRIMARY_LENGTH, PNG_SIGNATURE_OVERLAP,
+        PNG_WINDOW_PRIMARY_LENGTH,
     };
     use ef_core::{CoreError, ImageSource, RecoveryCandidate, RecoveryMethod};
     use std::collections::HashSet;
@@ -1959,6 +2399,13 @@ mod tests {
             .collect()
     }
 
+    fn pdf_candidates(candidates: Vec<RecoveryCandidate>) -> Vec<RecoveryCandidate> {
+        candidates
+            .into_iter()
+            .filter(|candidate| candidate.method == RecoveryMethod::SignatureCarvingPdf)
+            .collect()
+    }
+
     fn push_png_chunk(output: &mut Vec<u8>, chunk_type: &[u8; 4], payload: &[u8]) {
         output.extend_from_slice(&(payload.len() as u32).to_be_bytes());
         output.extend_from_slice(chunk_type);
@@ -1973,6 +2420,10 @@ mod tests {
         push_png_chunk(&mut png, b"IDAT", payload);
         push_png_chunk(&mut png, b"IEND", &[]);
         png
+    }
+
+    fn valid_pdf() -> Vec<u8> {
+        b"%PDF-1.0\nxref\nstartxref\n9\n%%EOF".to_vec()
     }
 
     fn fixture_path(name: &str) -> PathBuf {
@@ -2151,6 +2602,141 @@ mod tests {
 
         assert!(matches!(error, WorkflowError::Core(CoreError::Cancelled)));
         fs::remove_file(path).expect("remove deterministic windowed JPEG source");
+    }
+
+    #[test]
+    fn windowed_pdf_candidate_limit_matches_the_legacy_cap_semantics() {
+        assert_eq!(
+            windowed_pdf_candidate_limit(16, PDF_MAX_CARVE_LENGTH + 64),
+            PDF_MAX_CARVE_LENGTH + 16
+        );
+        assert_eq!(windowed_pdf_candidate_limit(16, 32), 32);
+        assert_eq!(
+            windowed_pdf_candidate_limit(u64::MAX - 8, u64::MAX),
+            u64::MAX
+        );
+    }
+
+    #[test]
+    fn windowed_pdf_discovery_matches_the_legacy_fixture_candidates() {
+        let path = fixture_path("document-carving-multimethod-v1");
+        let source = ImageSource::inspect(&path).expect("inspect PDF fixture");
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_pdf_candidates(&source.identity, &cancellation)
+            .expect("discover PDF candidates through windows");
+        let legacy = pdf_candidates(discover_candidates(DOCUMENT_FIXTURE));
+
+        assert_eq!(windowed, legacy);
+    }
+
+    #[test]
+    fn scan_accepts_pdf_candidates_only_after_windowed_legacy_parity() {
+        let path = fixture_path("document-carving-multimethod-v1");
+        let scanned = scan_image(&path).expect("scan document fixture through the parity gate");
+        let legacy = pdf_candidates(discover_candidates(DOCUMENT_FIXTURE));
+
+        assert_eq!(pdf_candidates(scanned.candidates), legacy);
+    }
+
+    #[test]
+    fn windowed_pdf_discovery_owns_a_signature_straddling_the_primary_boundary() {
+        let start = usize::try_from(PDF_WINDOW_PRIMARY_LENGTH - PDF_SIGNATURE_OVERLAP)
+            .expect("window boundary fits usize");
+        let pdf = valid_pdf();
+        let mut image = vec![0_u8; start + pdf.len() + 32];
+        image[start..start + pdf.len()].copy_from_slice(&pdf);
+        let (path, source) = write_windowed_source("pdf-signature-boundary", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_pdf_candidates(&source.identity, &cancellation)
+            .expect("discover boundary PDF through windows");
+        let legacy = pdf_candidates(discover_candidates(&image));
+
+        assert_eq!(windowed, legacy);
+        assert_eq!(windowed.len(), 1);
+        assert_eq!(windowed[0].source_offset, start as u64);
+        assert_eq!(windowed[0].byte_length, pdf.len() as u64);
+        fs::remove_file(path).expect("remove deterministic windowed PDF source");
+    }
+
+    #[test]
+    fn invalid_boundary_pdf_does_not_hide_a_later_valid_candidate() {
+        let malformed_start = usize::try_from(PDF_WINDOW_PRIMARY_LENGTH - PDF_SIGNATURE_OVERLAP)
+            .expect("window boundary fits usize");
+        let valid_start =
+            usize::try_from(PDF_WINDOW_PRIMARY_LENGTH + 96).expect("valid offset fits usize");
+        let pdf = valid_pdf();
+        let malformed = b"%PDF-1.0\njunk\nstartxref\n999\n%%EOF";
+        let mut image = vec![0_u8; valid_start + pdf.len() + 32];
+        image[malformed_start..malformed_start + malformed.len()].copy_from_slice(malformed);
+        image[valid_start..valid_start + pdf.len()].copy_from_slice(&pdf);
+        let (path, source) = write_windowed_source("invalid-pdf-boundary", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_pdf_candidates(&source.identity, &cancellation)
+            .expect("discover later PDF through windows");
+        let legacy = pdf_candidates(discover_candidates(&image));
+
+        assert_eq!(windowed, legacy);
+        assert_eq!(windowed.len(), 1);
+        assert_eq!(windowed[0].source_offset, valid_start as u64);
+        fs::remove_file(path).expect("remove deterministic windowed PDF source");
+    }
+
+    #[test]
+    fn windowed_pdf_discovery_preserves_adjacent_candidate_ordering() {
+        let first_start =
+            usize::try_from(PDF_WINDOW_PRIMARY_LENGTH - 16).expect("window boundary fits usize");
+        let pdf = valid_pdf();
+        let second_start = first_start + pdf.len() + 24;
+        let mut image = vec![0_u8; second_start + pdf.len() + 32];
+        image[first_start..first_start + pdf.len()].copy_from_slice(&pdf);
+        image[second_start..second_start + pdf.len()].copy_from_slice(&pdf);
+        let (path, source) = write_windowed_source("adjacent-windowed-pdfs", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_pdf_candidates(&source.identity, &cancellation)
+            .expect("discover adjacent PDFs through windows");
+        let legacy = pdf_candidates(discover_candidates(&image));
+
+        assert_eq!(windowed, legacy);
+        assert_eq!(windowed.len(), 2);
+        assert_eq!(windowed[0].source_offset, first_start as u64);
+        assert_eq!(windowed[1].source_offset, second_start as u64);
+        fs::remove_file(path).expect("remove deterministic windowed PDF source");
+    }
+
+    #[test]
+    fn windowed_pdf_discovery_refuses_a_truncated_candidate_at_source_end() {
+        let image = b"%PDF-1.0\nxref\nstartxref\n9\n";
+        let (path, source) = write_windowed_source("truncated-windowed-pdf", image);
+        let cancellation = AtomicBool::new(false);
+
+        let windowed = discover_windowed_pdf_candidates(&source.identity, &cancellation)
+            .expect("refuse truncated PDF through windows");
+        let legacy = pdf_candidates(discover_candidates(image));
+
+        assert_eq!(windowed, legacy);
+        assert!(windowed.is_empty());
+        fs::remove_file(path).expect("remove deterministic windowed PDF source");
+    }
+
+    #[test]
+    fn windowed_pdf_discovery_cancels_after_a_completed_primary_window() {
+        let image =
+            vec![0_u8; usize::try_from(PDF_WINDOW_PRIMARY_LENGTH + 16).expect("window fits usize")];
+        let (path, source) = write_windowed_source("cancel-after-pdf-window", &image);
+        let cancellation = AtomicBool::new(false);
+
+        let error =
+            discover_windowed_pdf_candidates_after_window(&source.identity, &cancellation, || {
+                cancellation.store(true, Ordering::Relaxed)
+            })
+            .expect_err("cancellation after a completed primary window must stop PDF discovery");
+
+        assert!(matches!(error, WorkflowError::Core(CoreError::Cancelled)));
+        fs::remove_file(path).expect("remove deterministic windowed PDF source");
     }
 
     #[test]

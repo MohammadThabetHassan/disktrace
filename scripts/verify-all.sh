@@ -26,6 +26,7 @@ sh scripts/verify-ntfs-contiguous-recovery.sh
 sh scripts/verify-windowed-png-discovery.sh
 sh scripts/verify-windowed-jpeg-discovery.sh
 sh scripts/verify-windowed-gif-discovery.sh
+sh scripts/verify-windowed-pdf-discovery.sh
 sh scripts/verify-large-sparse-control.sh
 sh scripts/verify-scan-control-corpus.sh
 
