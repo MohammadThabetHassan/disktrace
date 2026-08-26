@@ -32,7 +32,7 @@ Evidence Mode can display only bounded local facts. GIF previews show version, l
 
 ## Deterministic verification
 
-`fixtures/media-carving-multimethod-v1/` contains a synthetic raw image with one GIF at offset 1024, one standard AVI at offset 8192, and one self-contained MP4 at offset 16384. The generator writes expected bytes and a source-hash manifest. `scripts/verify-media-recovery.sh` regenerates this fixture and verifies scan discovery, CLI filtering, structure summaries, source-storage destination rejection, receipt-backed byte-for-byte exports, and malformed AVI/fragmented-MP4 refusal controls. The master local matrix invokes this verifier.
+`fixtures/media-carving-multimethod-v1/` contains a synthetic raw image with one GIF at offset 1024, one standard AVI at offset 8192, and one self-contained MP4 at offset 16384. The generator writes expected bytes and a source-hash manifest. `scripts/verify-media-recovery.sh` regenerates this fixture and verifies scan discovery, CLI filtering, structure summaries, source-storage destination rejection, receipt-backed byte-for-byte exports, and malformed AVI/fragmented-MP4 refusal controls. The separate [AVI and MP4/MOV resilience corpus](avi-mp4-resilience-corpus-v1.md) additionally proves minimized malformed declarations complete without a panic, cannot suppress later valid candidates, and preserve adjacent supported-candidate ordering. The master local matrix invokes both verifiers; neither is a fuzzer, exhaustive hostile-input guarantee, source-window migration, or media-playback claim.
 
 ## References
 

@@ -871,6 +871,8 @@ fn find_subslice(haystack: &[u8], needle: &[u8]) -> Option<usize> {
 
 #[cfg(test)]
 mod tests {
+    use std::panic::{catch_unwind, AssertUnwindSafe};
+
     use super::{
         carve_avis, carve_gifs, carve_jpegs, carve_mp4s, carve_pdfs, carve_pngs,
         carve_zip_archives, extract_avi, extract_gif, extract_jpeg, extract_mp4, extract_pdf,
@@ -1182,6 +1184,116 @@ mod tests {
             .expect("find media-data box");
         no_media[media_box..media_box + 4].copy_from_slice(b"free");
         assert!(carve_mp4s(&no_media).is_empty());
+    }
+
+    #[test]
+    fn avi_resilience_corpus_refuses_malformed_declarations_without_a_panic() {
+        let mut oversized_riff = RIFF_HEADER.to_vec();
+        oversized_riff.extend_from_slice(&u32::MAX.to_le_bytes());
+        oversized_riff.extend_from_slice(&AVI_FORM_TYPE);
+
+        let mut truncated_avi = valid_avi();
+        truncated_avi.pop();
+        let controls = vec![
+            Vec::new(),
+            RIFF_HEADER.to_vec(),
+            oversized_riff,
+            truncated_avi,
+        ];
+
+        for control in controls {
+            let result = catch_unwind(AssertUnwindSafe(|| carve_avis(&control)));
+            let candidates = result.expect("AVI refusal control must not panic");
+            assert!(
+                candidates.is_empty(),
+                "malformed AVI control must be refused"
+            );
+        }
+    }
+
+    #[test]
+    fn mp4_resilience_corpus_refuses_malformed_declarations_without_a_panic() {
+        let mut extended_size_box = 1_u32.to_be_bytes().to_vec();
+        extended_size_box.extend_from_slice(&MP4_FILE_TYPE_BOX);
+        let mut zero_size_box = 0_u32.to_be_bytes().to_vec();
+        zero_size_box.extend_from_slice(&MP4_FILE_TYPE_BOX);
+        let mut oversized_box = u32::MAX.to_be_bytes().to_vec();
+        oversized_box.extend_from_slice(&MP4_FILE_TYPE_BOX);
+        oversized_box.extend_from_slice(b"isom");
+        let mut truncated_mp4 = valid_mp4();
+        truncated_mp4.pop();
+        let controls = vec![
+            Vec::new(),
+            MP4_FILE_TYPE_BOX.to_vec(),
+            extended_size_box,
+            zero_size_box,
+            oversized_box,
+            truncated_mp4,
+        ];
+
+        for control in controls {
+            let result = catch_unwind(AssertUnwindSafe(|| carve_mp4s(&control)));
+            let candidates = result.expect("MP4/MOV refusal control must not panic");
+            assert!(
+                candidates.is_empty(),
+                "malformed MP4/MOV control must be refused"
+            );
+        }
+    }
+
+    #[test]
+    fn malformed_media_prefixes_do_not_suppress_later_valid_candidates() {
+        let mut malformed_avi = RIFF_HEADER.to_vec();
+        malformed_avi.extend_from_slice(&u32::MAX.to_le_bytes());
+        malformed_avi.extend_from_slice(&AVI_FORM_TYPE);
+        let avi = valid_avi();
+        let avi_start = malformed_avi.len() + 9;
+        let mut avi_image = malformed_avi;
+        avi_image.extend_from_slice(&[0_u8; 9]);
+        avi_image.extend_from_slice(&avi);
+        let avi_candidates = carve_avis(&avi_image);
+        assert_eq!(avi_candidates.len(), 1);
+        assert_eq!(avi_candidates[0].source_offset, avi_start as u64);
+        assert_eq!(avi_candidates[0].evidence_name, "carved-avi-0000.avi");
+
+        let mut malformed_mp4 = 1_u32.to_be_bytes().to_vec();
+        malformed_mp4.extend_from_slice(&MP4_FILE_TYPE_BOX);
+        let mp4 = valid_mp4();
+        let mp4_start = malformed_mp4.len() + 11;
+        let mut mp4_image = malformed_mp4;
+        mp4_image.extend_from_slice(&[0_u8; 11]);
+        mp4_image.extend_from_slice(&mp4);
+        let mp4_candidates = carve_mp4s(&mp4_image);
+        assert_eq!(mp4_candidates.len(), 1);
+        assert_eq!(mp4_candidates[0].source_offset, mp4_start as u64);
+        assert_eq!(mp4_candidates[0].evidence_name, "carved-mp4-0000.mp4");
+    }
+
+    #[test]
+    fn adjacent_media_candidates_preserve_source_order_and_evidence_names() {
+        let avi = valid_avi();
+        let mut avi_image = vec![0_u8; 13];
+        avi_image.extend_from_slice(&avi);
+        let second_avi_start = avi_image.len();
+        avi_image.extend_from_slice(&avi);
+        let avi_candidates = carve_avis(&avi_image);
+        assert_eq!(avi_candidates.len(), 2);
+        assert_eq!(avi_candidates[0].source_offset, 13);
+        assert_eq!(avi_candidates[1].source_offset, second_avi_start as u64);
+        assert_eq!(avi_candidates[0].evidence_name, "carved-avi-0000.avi");
+        assert_eq!(avi_candidates[1].evidence_name, "carved-avi-0001.avi");
+
+        let mp4 = valid_mp4();
+        let mut mp4_image = vec![0_u8; 17];
+        mp4_image.extend_from_slice(&mp4);
+        let second_mp4_start = mp4_image.len();
+        mp4_image.extend_from_slice(&mp4);
+        let mp4_candidates = carve_mp4s(&mp4_image);
+        assert_eq!(mp4_candidates.len(), 2);
+        assert_eq!(mp4_candidates[0].source_offset, 17);
+        assert_eq!(mp4_candidates[1].source_offset, second_mp4_start as u64);
+        assert_eq!(mp4_candidates[0].evidence_name, "carved-mp4-0000.mp4");
+        assert_eq!(mp4_candidates[1].evidence_name, "carved-mp4-0001.mp4");
     }
 
     #[test]

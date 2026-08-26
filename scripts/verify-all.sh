@@ -20,6 +20,7 @@ sh scripts/verify-export-audit.sh
 sh scripts/verify-case-brief.sh
 sh scripts/verify-document-carving.sh
 sh scripts/verify-media-recovery.sh
+sh scripts/verify-media-resilience-corpus.sh
 sh scripts/verify-exfat-recovery.sh
 sh scripts/verify-ntfs-resident-recovery.sh
 sh scripts/verify-ntfs-contiguous-recovery.sh

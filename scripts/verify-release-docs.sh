@@ -25,6 +25,7 @@ for path in \
     docs/case-brief-v1.md \
     docs/session-persistence-v1.md \
     docs/media-carving-v1.md \
+    docs/avi-mp4-resilience-corpus-v1.md \
     docs/source-access-architecture-v1.md \
     docs/source-window-discovery-v1.md \
     docs/jpeg-window-discovery-v1.md \
@@ -126,6 +127,7 @@ grep -q 'sh scripts/verify-desktop-ui.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-export-audit.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-case-brief.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-media-recovery.sh' scripts/verify-all.sh
+grep -q 'sh scripts/verify-media-resilience-corpus.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-large-sparse-control.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-windowed-png-discovery.sh' scripts/verify-all.sh
 grep -q 'sh scripts/verify-windowed-jpeg-discovery.sh' scripts/verify-all.sh
@@ -226,6 +228,9 @@ grep -q 'Supported recovery methods' README.md
 grep -q 'rejects unrecognized' docs/session-persistence-v1.md
 grep -q 'self-contained MP4/MOV' docs/media-carving-v1.md
 grep -q 'verify-media-recovery.sh' docs/media-carving-v1.md
+grep -q 'AVI and MP4/MOV resilience corpus' docs/media-carving-v1.md
+grep -q 'not a new recovery method' docs/avi-mp4-resilience-corpus-v1.md
+grep -q 'without a panic' docs/avi-mp4-resilience-corpus-v1.md
 grep -q 'source-access architecture' README.md
 grep -q 'bounded sliding window' docs/source-access-architecture-v1.md
 grep -q 'source identity verification' docs/source-access-architecture-v1.md
@@ -291,6 +296,7 @@ test -x scripts/verify-desktop-ui.sh
 test -x scripts/verify-export-audit.sh
 test -x scripts/verify-case-brief.sh
 test -x scripts/verify-media-recovery.sh
+test -x scripts/verify-media-resilience-corpus.sh
 test -x scripts/generate-large-sparse-fixture.sh
 test -x scripts/measure-large-sparse-scan.sh
 test -x scripts/verify-large-sparse-control.sh
