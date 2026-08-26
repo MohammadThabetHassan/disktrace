@@ -144,11 +144,11 @@ grep -q 'explicit authorization' docs/release-process.md
 grep -q 'Decision: no public-release action' docs/release-decision-v1.md
 grep -q 'not authorize a semantic version' docs/release-decision-v1.md
 grep -q 'does not claim universal recovery' docs/release-decision-v1.md
-grep -q 'afc5bb20148dd1f8845312d28f1f86e2d43204a6' docs/release-decision-v1.md
+grep -q '8a3eb6ca143103a69ba8a1d9773140256d6d1cc6' docs/release-decision-v1.md
 grep -q 'PNG, JPEG, GIF, PDF, and ZIP/Open XML discovery' docs/release-decision-v1.md
 grep -q 'owner separately authorizes' docs/release-decision-v1.md
 grep -q 'Release target record' docs/release-scorecard-v1.md
-grep -q 'afc5bb20148dd1f8845312d28f1f86e2d43204a6' docs/release-scorecard-v1.md
+grep -q '8a3eb6ca143103a69ba8a1d9773140256d6d1cc6' docs/release-scorecard-v1.md
 grep -q 'Authorization boundary' docs/release-scorecard-v1.md
 grep -q 'Status: preparation only' docs/release-candidate-v0.1.0.md
 grep -q 'Candidate source target' docs/release-candidate-v0.1.0.md
@@ -161,6 +161,7 @@ grep -q 'Automated companions and the kit are not manual acceptance' docs/releas
 grep -q 'strict 90+ public-release readiness score' docs/release-scorecard-v1.md
 grep -q 'RUSTSEC-2026-0192' docs/dependency-advisories.md
 grep -q 'zero known vulnerabilities' docs/dependency-advisories.md
+grep -q '2026-08-26' docs/dependency-advisories.md
 grep -q 'does not prove the absence of all vulnerabilities' docs/security-scanning-v1.md
 grep -q 'security-events: write' docs/security-scanning-v1.md
 grep -q 'build-free mode' docs/security-scanning-v1.md

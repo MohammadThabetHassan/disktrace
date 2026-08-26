@@ -2,14 +2,14 @@
 
 ## Decision summary
 
-**Decision: no public-release action.** This record identifies `afc5bb20148dd1f8845312d28f1f86e2d43204a6` as a verified pre-release source target for maintainer review. It does not authorize a semantic version, annotated tag, GitHub Release, release asset upload, signing, notarization, support-level change, or production-release statement.
+**Decision: no public-release action.** This record identifies `8a3eb6ca143103a69ba8a1d9773140256d6d1cc6` as a verified pre-release source target for maintainer review. It does not authorize a semantic version, annotated tag, GitHub Release, release asset upload, signing, notarization, support-level change, or production-release statement.
 
 > A green CI source revision and a review artifact are evidence for a bounded engineering decision. They are not a public release, a signed distribution, or proof of universal recovery capability.
 
 | Field | Recorded value |
 |---|---|
 | Repository | `MohammadThabetHassan/disktrace` (public) |
-| Source target | `afc5bb20148dd1f8845312d28f1f86e2d43204a6` on protected `main` |
+| Source target | `8a3eb6ca143103a69ba8a1d9773140256d6d1cc6` on protected `main` |
 | Commit identity | Author and committer: `MohammadThabetHassan <20220002188@students.cud.ac.ae>` |
 | Local gate | `sh scripts/verify-all.sh` passed on the source tree that became this target. |
 | Hosted required contexts | Linux verification, Windows distribution, macOS 14 ARM64 validation, and Rust CodeQL all passed on this exact SHA.[1] [2] [3] [4] |
@@ -20,7 +20,7 @@
 
 | Evidence area | Result | Scope and limit |
 |---|---|---|
-| Local quality matrix | Passed. The matrix covers formatting, strict linting, rustdoc, dependency audit, workspace tests, deterministic recovery/refusal fixtures, static documentation contracts, build, and the bounded Linux desktop smoke when supported. | It is local validation, not a substitute for user acceptance or a signed release. |
+| Local quality matrix | Passed. The matrix covers formatting, strict linting, rustdoc, dependency audit, workspace tests, deterministic recovery/refusal fixtures, AVI/MP4 resilience controls, static documentation contracts, build, and the bounded Linux desktop smoke when supported. | It is local validation, not a substitute for user acceptance or a signed release. |
 | Hosted Linux | `Rust workspace and recovery fixtures` passed on the exact target.[1] | It is not a signed Linux installer or broad distribution evidence. |
 | Hosted Windows | `Windows x86_64 bundle and installer` passed, including ZIP verification, Inno Setup build/checksums, disposable silent installer install/uninstall mechanics, and pinned CycloneDX SBOM review-artifact generation.[2] | It does not validate SmartScreen, code signing, upgrades, real-user GUI behavior, accessibility, or all Windows hardware. |
 | Hosted macOS | `macOS 14 ARM64 workspace validation` passed, including build, tests, ARM64 check, checksum, and unsigned review-artifact upload.[3] | It is not Intel macOS, a `.app` package, a signed/notarized application, Gatekeeper evidence, or manual acceptance. |
@@ -45,7 +45,7 @@ The current source-access evidence is also limited: PNG, JPEG, GIF, PDF, and ZIP
 | macOS packaging and acceptance | **Blocked for macOS distribution.** ARM64 hosted validation exists, but no `.app`/installer, manual acceptance, signing, notarization, or Intel evidence exists. | Narrow the advertised platform list or complete package, manual, signing, and notarization evidence under separately authorized Apple credentials. |
 | Supply-chain provenance | **Partially evidenced.** Review SBOM and checksums exist; no consumer-facing immutable provenance or attestation exists. | Decide whether a release artifact needs attestation, define verification and lifecycle policy, and authorize the additional least-privilege permissions only for that release workflow. |
 | Manual accessibility acceptance | **Not completed.** A checklist and preparation-only kit exist, not an observed certification or platform record. | Perform and record the declared keyboard, failure, preview, export, audit, and platform observations for the exact release candidate on every advertised platform. |
-| Dependency changes | **Deferred.** Dependabot PRs #10 (patch/minor group) and #11 (`thiserror` major) are not merged by this decision package. | Reinspect against current `main`; only apply an explicitly approved, compatibility-validated update under the authorized commit identity. |
+| Dependency changes | **Partially completed.** The reviewed `blake3`, `home`, and `uuid` patch/minor update was applied under the authorized identity after a complete local matrix; Dependabot PR #10 is closed as superseded. PR #11 (`thiserror` major) remains deferred. | Reinspect the major update against current `main`; only apply it under a dedicated compatibility review, complete verification, and the authorized commit identity. |
 | Recovery scope | **Bounded.** FAT32 deleted-file recovery remains deferred; no unsupported recovery method is represented as available. | Add methods only with parser contracts, positive/refusal fixtures, deterministic verification, and scope documentation. |
 
 ## Release procedure if separately authorized
@@ -56,10 +56,10 @@ The owner’s authorization must be new and specific. It must not be inferred fr
 
 ## References
 
-[1]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32937721920 "Hosted Linux verification for afc5bb2"
-[2]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32937721931 "Hosted Windows distribution, installer mechanics, and SBOM review artifact for afc5bb2"
-[3]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32937722003 "Hosted macOS 14 ARM64 validation for afc5bb2"
-[4]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32937722018 "Hosted CodeQL analysis for afc5bb2"
+[1]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32994511950 "Hosted Linux verification for 8a3eb6c"
+[2]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32994511876 "Hosted Windows distribution, installer mechanics, and SBOM review artifact for 8a3eb6c"
+[3]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32994511699 "Hosted macOS 14 ARM64 validation for 8a3eb6c"
+[4]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32994512107 "Hosted CodeQL analysis for 8a3eb6c"
 [5]: sbom-provenance-v1.md "DiskTrace SBOM and provenance contract v1"
 [6]: release-process.md "DiskTrace release process"
 [7]: release-scorecard-v1.md "DiskTrace Release Scorecard v1"

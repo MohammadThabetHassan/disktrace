@@ -10,7 +10,7 @@ DiskTrace treats a known dependency vulnerability as a release blocker. This reg
 
 The RustSec advisory states that `ttf-parser` is unmaintained and lists `skrifa` as an alternative, but does not report a vulnerability or provide a patched version.[1] DiskTrace does not call this dependency directly; it is brought in by the selected eframe 0.33.3 GUI stack. Replacing it independently would require an upstream GUI-framework change and would not be a safe local lockfile substitution.
 
-The local preflight on 2026-08-18 found **zero known vulnerabilities** and this one allowed maintenance warning. The project uses an explicit OpenGL eframe configuration rather than the unused WGPU renderer, which removes a separate unmaintained `paste` dependency that was present only through that renderer’s macOS backend.
+The local preflight on 2026-08-26 for verified pre-release source `8a3eb6ca143103a69ba8a1d9773140256d6d1cc6` found **zero known vulnerabilities** and this one allowed maintenance warning. The project uses an explicit OpenGL eframe configuration rather than the unused WGPU renderer, which removes a separate unmaintained `paste` dependency that was present only through that renderer’s macOS backend.
 
 ## Release handling
 
