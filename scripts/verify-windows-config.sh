@@ -55,6 +55,9 @@ grep -q 'does \*\*not\*\* launch the GUI' docs/windows-distribution-v1.md
 grep -q 'PrivilegesRequired=lowest' installer/windows/evidenceforge.iss
 grep -q 'ArchitecturesAllowed=x64compatible' installer/windows/evidenceforge.iss
 grep -q 'UninstallDisplayName=DiskTrace' installer/windows/evidenceforge.iss
+grep -q 'Start DiskTrace.cmd"; DestDir: "{app}"' installer/windows/evidenceforge.iss
+grep -Fq 'Filename: "{app}\Start DiskTrace.cmd"' installer/windows/evidenceforge.iss
+grep -q "'Start DiskTrace.cmd'" scripts/verify-windows-installer.ps1
 if grep -q 'example.invalid' installer/windows/evidenceforge.iss; then
     printf '%s\n' 'installer configuration contains a placeholder public URL' >&2
     exit 1

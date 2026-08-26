@@ -32,12 +32,13 @@ VersionInfoDescription=Local-first forensic recovery workspace
 Source: "{#SourceDir}\bin\*"; DestDir: "{app}\bin"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#SourceDir}\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#SourceDir}\launch-evidenceforge.cmd"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceDir}\Start DiskTrace.cmd"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceDir}\release-manifest.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceDir}\SHA256SUMS"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\DiskTrace Recovery"; Filename: "{app}\launch-evidenceforge.cmd"; WorkingDir: "{app}"
-Name: "{autodesktop}\DiskTrace Recovery"; Filename: "{app}\launch-evidenceforge.cmd"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{autoprograms}\DiskTrace Recovery"; Filename: "{app}\Start DiskTrace.cmd"; WorkingDir: "{app}"
+Name: "{autodesktop}\DiskTrace Recovery"; Filename: "{app}\Start DiskTrace.cmd"; WorkingDir: "{app}"; Tasks: desktopicon
 Name: "{autoprograms}\DiskTrace Recovery\Command line"; Filename: "{app}\bin\evidenceforge.exe"; WorkingDir: "{app}"
 Name: "{autoprograms}\DiskTrace Recovery\Safety and evidence boundaries"; Filename: "{app}\docs\safety-and-evidence.md"; WorkingDir: "{app}"
 
@@ -45,7 +46,7 @@ Name: "{autoprograms}\DiskTrace Recovery\Safety and evidence boundaries"; Filena
 Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
 
 [Run]
-Filename: "{app}\launch-evidenceforge.cmd"; Description: "Launch DiskTrace Recovery"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\Start DiskTrace.cmd"; Description: "Launch DiskTrace Recovery"; Flags: nowait postinstall skipifsilent
 
 [Code]
 function InitializeSetup(): Boolean;

@@ -68,6 +68,7 @@ try {
         'docs\README.md',
         'docs\safety-and-evidence.md',
         'launch-evidenceforge.cmd',
+        'Start DiskTrace.cmd',
         'release-manifest.json',
         'SHA256SUMS',
         'unins000.exe'
