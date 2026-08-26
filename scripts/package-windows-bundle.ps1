@@ -48,7 +48,7 @@ $StagingRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("disktrace-bundle-" 
 $BundleDirectory = Join-Path $StagingRoot $BundleName
 
 try {
-    New-Item -ItemType Directory -Force -Path $OutputDirectory, (Join-Path $BundleDirectory 'bin'), (Join-Path $BundleDirectory 'docs') | Out-Null
+    New-Item -ItemType Directory -Force -Path $OutputDirectory, (Join-Path $BundleDirectory 'bin'), (Join-Path $BundleDirectory 'docs'), (Join-Path $BundleDirectory 'docs\assets') | Out-Null
 
     Push-Location $Root
     try {
@@ -62,6 +62,7 @@ try {
     Copy-Item (Join-Path $Root 'target\release\evidenceforge-desktop.exe') (Join-Path $BundleDirectory 'bin\evidenceforge-desktop.exe')
     @(
         @{ Source = 'README.md'; Destination = 'docs\README.md' },
+        @{ Source = 'docs\assets\disktrace-logo.png'; Destination = 'docs\assets\disktrace-logo.png' },
         @{ Source = 'LICENSE'; Destination = 'docs\LICENSE' },
         @{ Source = 'docs\safety-and-evidence.md'; Destination = 'docs\safety-and-evidence.md' },
         @{ Source = 'docs\architecture.md'; Destination = 'docs\architecture.md' },

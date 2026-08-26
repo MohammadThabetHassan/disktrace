@@ -36,13 +36,14 @@ STAGING_ROOT=$(mktemp -d)
 BUNDLE_DIR="$STAGING_ROOT/$BUNDLE_NAME"
 trap 'rm -rf "$STAGING_ROOT"' EXIT
 
-mkdir -p "$BUNDLE_DIR/bin" "$BUNDLE_DIR/docs"
+mkdir -p "$BUNDLE_DIR/bin" "$BUNDLE_DIR/docs/assets"
 
 cargo build --release -p ef-cli -p ef-desktop
 
 install -m 0755 "$ROOT/target/release/evidenceforge" "$BUNDLE_DIR/bin/evidenceforge"
 install -m 0755 "$ROOT/target/release/evidenceforge-desktop" "$BUNDLE_DIR/bin/evidenceforge-desktop"
 install -m 0644 "$ROOT/README.md" "$BUNDLE_DIR/docs/README.md"
+install -m 0644 "$ROOT/docs/assets/disktrace-logo.png" "$BUNDLE_DIR/docs/assets/disktrace-logo.png"
 install -m 0644 "$ROOT/LICENSE" "$BUNDLE_DIR/docs/LICENSE"
 install -m 0644 "$ROOT/docs/safety-and-evidence.md" "$BUNDLE_DIR/docs/safety-and-evidence.md"
 install -m 0644 "$ROOT/docs/architecture.md" "$BUNDLE_DIR/docs/architecture.md"
