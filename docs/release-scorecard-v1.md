@@ -12,7 +12,7 @@ This scorecard prevents DiskTrace from being described as release-grade merely b
 |---|---|---|
 | Product and forensic scope | Bounded recovery methods, source identity, session, receipt, separate-destination, and refusal contracts are implemented; AVI/MP4 resilience controls cover minimized malformed declarations, non-suppression, and ordering. | New methods or performance claims are added only with method contracts, deterministic positive/refusal controls, and public scope wording. |
 | Local verification | The full local matrix is deterministic and includes quality, fixture, audit, UI, sparse-control, build, and desktop-smoke checks. | The matrix passes on the exact target commit and any new capability adds enforceable parity and boundary tests. |
-| Hosted verification | Exact `8a3eb6ca143103a69ba8a1d9773140256d6d1cc6` Linux, native Windows installer/SBOM, macOS 14 ARM64, and Rust CodeQL workflows passed.[1] [2] [3] [4] | The exact tagged target must repeat every required context; a previous green SHA is not tag-target evidence. |
+| Hosted verification | Exact `f70f2f517a56ffe8ed4fadc654e47eb9a421b3cb` Linux, native Windows installer/SBOM, macOS 14 ARM64, and Rust CodeQL workflows passed.[1] [2] [3] [4] | The exact tagged target must repeat every required context; a previous green SHA is not tag-target evidence. |
 | Governance | `main` requires the four exact Linux, Windows, macOS ARM64, and CodeQL contexts; current pull requests require CODEOWNERS review; linear history, resolved conversations, and force-push/deletion blocks are active. | Workflow permissions, security/update policy, release ownership, and failure-triage procedure remain documented and current. |
 | Distribution | Linux and Windows package contracts exist; Windows passed disposable installer mechanics and generated a retained SBOM review artifact; macOS 14 ARM64 produces an unsigned review binary. | Versioned consumer artifacts, support-scoped manual acceptance records, public release assets, provenance where authorized, and signing status are recorded. |
 | Public release | No semantic tag or GitHub Release exists. | An explicitly authorized annotated tag and public release resolve to the verified release target and approved notes. |
@@ -38,10 +38,10 @@ Before requesting a release decision, create a release record with the following
 | Gate | Required evidence | Current status before first public release |
 |---|---|---|
 | Recovery safety | Method contracts, refusal conditions, source read-only behavior, destination policy, export receipts, and scope text match code. | Bounded public source evidence exists; required for every release. |
-| Code quality | Formatter, strict Clippy, rustdoc warnings-as-errors, tests, build, and `sh scripts/verify-all.sh` pass. | Passed on the source tree that became `8a3eb6c`; must rerun on a release target. |
+| Code quality | Formatter, strict Clippy, rustdoc warnings-as-errors, tests, build, and `sh scripts/verify-all.sh` pass. | Passed on the source tree that became `f70f2f5`; must rerun on a release target. |
 | Dependency and code security | `cargo audit`, reviewed advisory register, configured code scanning, and no committed credentials or sensitive artifacts. | `cargo audit`/CodeQL are part of evidence; a release still requires target-specific advisory review. |
-| Hosted Linux | Exact-target Linux Verify, including the native smoke gate, passes. | Passed for `8a3eb6c`; no tag-target evidence exists. |
-| Hosted Windows | Exact-target Windows distribution, package verification, installer creation/checksums, bounded installer mechanics, SBOM review artifact, and upload pass. | Passed for `8a3eb6c`; no public versioned artifact exists. |
+| Hosted Linux | Exact-target Linux Verify, including the native smoke gate, passes. | Passed for `f70f2f5`; no tag-target evidence exists. |
+| Hosted Windows | Exact-target Windows distribution, package verification, installer creation/checksums, bounded installer mechanics, SBOM review artifact, and upload pass. | Passed for `f70f2f5`; no public versioned artifact exists. |
 | macOS | Native build/package/acceptance evidence exists for every advertised macOS target. | macOS 14 ARM64 build/test/review-binary evidence exists; package, Intel scope, signing/notarization, and manual acceptance do not. |
 | Artifact acceptance | Platform-specific bundle and installer checks plus documented manual acceptance where automation is unavailable. | Windows automated installer mechanics exist; the preparation-only [manual-acceptance kit](release-candidate-acceptance-kit-v1.md) exists, but support-scoped manual acceptance remains required. |
 | Supply chain | Checksums, SBOM/provenance where enabled, least-privilege workflows, and signing status are recorded. | SBOM review evidence/checksums exist; consumer-facing attestation, versioned assets, and signing are absent. |
@@ -60,7 +60,7 @@ The owner must explicitly authorize the following actions after this scorecard i
 
 ## References
 
-[1]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32994511950 "Hosted Linux verification for 8a3eb6c"
-[2]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32994511876 "Hosted Windows distribution, installer mechanics, and SBOM review artifact for 8a3eb6c"
-[3]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32994511699 "Hosted macOS 14 ARM64 validation for 8a3eb6c"
-[4]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32994512107 "Hosted CodeQL analysis for 8a3eb6c"
+[1]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/33007849882 "Hosted Linux verification for f70f2f5"
+[2]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/33007849876 "Hosted Windows distribution, installer mechanics, and SBOM review artifact for f70f2f5"
+[3]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/33007849902 "Hosted macOS 14 ARM64 validation for f70f2f5"
+[4]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/33007849872 "Hosted CodeQL analysis for f70f2f5"

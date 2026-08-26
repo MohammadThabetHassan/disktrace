@@ -146,11 +146,11 @@ grep -q 'explicit authorization' docs/release-process.md
 grep -q 'Decision: no public-release action' docs/release-decision-v1.md
 grep -q 'not authorize a semantic version' docs/release-decision-v1.md
 grep -q 'does not claim universal recovery' docs/release-decision-v1.md
-grep -q '8a3eb6ca143103a69ba8a1d9773140256d6d1cc6' docs/release-decision-v1.md
+grep -q 'f70f2f517a56ffe8ed4fadc654e47eb9a421b3cb' docs/release-decision-v1.md
 grep -q 'PNG, JPEG, GIF, PDF, and ZIP/Open XML discovery' docs/release-decision-v1.md
 grep -q 'owner separately authorizes' docs/release-decision-v1.md
 grep -q 'Release target record' docs/release-scorecard-v1.md
-grep -q '8a3eb6ca143103a69ba8a1d9773140256d6d1cc6' docs/release-scorecard-v1.md
+grep -q 'f70f2f517a56ffe8ed4fadc654e47eb9a421b3cb' docs/release-scorecard-v1.md
 grep -q 'Authorization boundary' docs/release-scorecard-v1.md
 grep -q 'Status: preparation only' docs/release-candidate-v0.1.0.md
 grep -q 'Candidate source target' docs/release-candidate-v0.1.0.md

@@ -14,7 +14,7 @@ The proposed first public version is **v0.1.0**, scoped as a local-first forensi
 | Authorized source identity | `MohammadThabetHassan <20220002188@students.cud.ac.ae>` for all project commits. |
 | Release visibility | Not yet authorized. |
 | Signing and notarization | Not authorized; no signing or notarization action is planned. |
-| Dependabot pull requests | #10 and #11 remain unmerged and are not part of this candidate unless separately approved and fully reverified. |
+| Dependency updates | The reviewed patch/minor update is integrated in `67198ca`; the reviewed `thiserror` major update is integrated in `bb87a7f`; Dependabot PRs #10 and #11 are superseded and no dependency update remains pending for this candidate. Every final release target still requires a fresh dependency review and full verification. |
 
 ## Proposed public scope
 
