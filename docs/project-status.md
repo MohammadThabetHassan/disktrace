@@ -32,12 +32,12 @@ A deterministic synthetic scan-control corpus now defines sparse, signature-dens
 
 | Validation area | Current result | What the result does not mean |
 | --- | --- | --- |
-| Linux desktop | Local bundle and native desktop smoke passed; the exact hosted Ubuntu 24.04 `Verify` workflow passed the bounded PNG/JPEG/GIF discovery, legacy-stage cancellation, and recovery matrix.[9] | It is not a signed production installer or a general Linux distribution claim. |
+| Linux desktop | Local bundle and native desktop smoke passed; the exact hosted Ubuntu 24.04 `Verify` workflow passed the bounded PNG/JPEG/GIF/PDF/ZIP/Open XML discovery, legacy-stage cancellation, and recovery matrix for `4356cea7a9080279f5b139ee90f970bf9ce6fe5f`.[9] | It is not a signed production installer or a general Linux distribution claim. |
 | Windows path | The exact hosted native Windows distribution workflow passed formatting, linting, tests, the synthetic scan-control corpus, portable bundle verification, installer creation/checksums, a disposable silent installer install/uninstall acceptance gate, pinned CycloneDX SBOM generation, and review-artifact upload.[12] | It is not SmartScreen, code-signing, independent-user usability, GUI/accessibility acceptance, upgrade coverage, or broad hardware compatibility evidence. |
 | macOS | The exact hosted macOS 14 ARM64 workflow passed formatting, strict linting, workspace tests, release desktop-binary build, ARM64 identity check, checksum creation, and unsigned review-artifact upload.[11] | It is not Intel-macOS evidence, a `.app` bundle, installer, signing, notarization, Gatekeeper acceptance, manual usability evidence, or a general macOS distribution claim. |
-| Release governance | `main` requires the exact `Rust workspace and recovery fixtures`, `Windows x86_64 bundle and installer`, `CodeQL Rust analysis`, and `macOS 14 ARM64 workspace validation` contexts; it also requires an up-to-date branch, one current CODEOWNERS review for pull requests, linear history, and resolved conversations, and blocks force pushes and deletion. Exact hosted Linux, Windows, macOS 14 ARM64, and CodeQL workflows passed for `338ba85a553bdbf9f0c0f4e1965bb1e6731c387a`.[9] [10] [11] [12] | No semantic tag, signed release artifact, GitHub Release, macOS package/manual-acceptance evidence, or release provenance exists. |
+| Release governance | `main` requires the exact `Rust workspace and recovery fixtures`, `Windows x86_64 bundle and installer`, `CodeQL Rust analysis`, and `macOS 14 ARM64 workspace validation` contexts; it also requires an up-to-date branch, one current CODEOWNERS review for pull requests, linear history, and resolved conversations, and blocks force pushes and deletion. Exact hosted Linux, Windows, macOS 14 ARM64, and CodeQL workflows passed for `4356cea7a9080279f5b139ee90f970bf9ce6fe5f`.[9] [10] [11] [12] | No semantic tag, signed release artifact, GitHub Release, macOS package/manual-acceptance evidence, or release provenance exists. |
 | Dependency review | Dependabot security updates are enabled. Patch/minor updates are bounded and grouped; major updates are separate review decisions. | A passing dependency PR is not automatically merged or treated as a release decision. |
-| Code scanning | The least-privilege Rust CodeQL workflow completed successfully for exact revision `338ba85a553bdbf9f0c0f4e1965bb1e6731c387a`.[10] | A successful scan is not a security certification, a proof that all vulnerabilities are absent, or a production-release claim. |
+| Code scanning | The least-privilege Rust CodeQL workflow completed successfully for exact revision `4356cea7a9080279f5b139ee90f970bf9ce6fe5f`.[10] | A successful scan is not a security certification, a proof that all vulnerabilities are absent, or a production-release claim. |
 | SBOM transparency | The exact hosted Windows workflow generated nine CycloneDX 1.5 dependency documents for all Cargo targets, SHA-256 checksums, and commit/generator metadata using pinned `cargo-cyclonedx 0.5.9`.[12] [13] | The retained CI review artifact is not an attestation, signed provenance statement, vulnerability-free claim, GitHub Release asset, or supported download. |
 
 ## Current readiness assessment
@@ -72,10 +72,10 @@ Contributors can begin with the [contribution guide](../CONTRIBUTING.md) and sho
 [6]: release-process.md "Release process and current evidence boundary"
 [7]: fat32-feasibility-v1.md "FAT32 recovery feasibility boundary"
 [8]: maintainer-runbook-v1.md "Maintainer operating contract"
-[9]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32848213251 "Hosted Linux verification for 338ba85"
-[10]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32848213307 "Hosted CodeQL analysis for 338ba85"
-[11]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32848213276 "Hosted macOS 14 ARM64 validation for 338ba85"
-[12]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32848213275 "Hosted Windows distribution, installer acceptance, synthetic corpus, and SBOM review artifact for 338ba85"
+[9]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32936873637 "Hosted Linux verification for 4356cea"
+[10]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32936873645 "Hosted CodeQL analysis for 4356cea"
+[11]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32936873616 "Hosted macOS 14 ARM64 validation for 4356cea"
+[12]: https://github.com/MohammadThabetHassan/disktrace/actions/runs/32936873604 "Hosted Windows distribution, installer mechanics, synthetic corpus, and SBOM review artifact for 4356cea"
 [13]: sbom-provenance-v1.md "SBOM and provenance contract v1"
 [14]: release-decision-v1.md "Controlled release decision package v1"
 [15]: performance-control-corpus-v1.md "Synthetic scan-control corpus v1"
