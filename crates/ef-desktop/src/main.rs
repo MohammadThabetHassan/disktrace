@@ -1194,7 +1194,7 @@ impl eframe::App for EvidenceForgeApp {
                                 "Scanning locally — the source stays read-only"
                             })
                             .color(if stopping_scan {
-                                Palette::REVIEW
+                                Palette::WARNING_STRONG
                             } else {
                                 Palette::FOCUS_STRONG
                             }),
@@ -1230,7 +1230,7 @@ impl eframe::App for EvidenceForgeApp {
                             .fill(if has_completed_scan {
                                 Palette::SURFACE_RAISED
                             } else {
-                                Palette::VERIFIED_STRONG
+                                Palette::SUCCESS_STRONG
                             }),
                         )
                         .clicked()
@@ -1462,7 +1462,7 @@ impl eframe::App for EvidenceForgeApp {
                                 ui,
                                 "No results match the current filters",
                                 "Reset the filters in the workflow rail to show all candidates from this completed scan.",
-                                Palette::REVIEW,
+                                Palette::WARNING,
                             );
                         } else {
                             let mut clicked_candidate_id = None;
@@ -1651,7 +1651,7 @@ impl eframe::App for EvidenceForgeApp {
                                     PreviewKind::MetadataOnly if preview_error.is_some() => {
                                         ui.label(
                                             egui::RichText::new("Bounded local preview unavailable")
-                                                .color(Palette::DANGER),
+                                                .color(Palette::ERROR_STRONG),
                                         );
                                         ui.small(preview_error.as_deref().unwrap_or_default());
                                     }
@@ -1706,7 +1706,7 @@ impl eframe::App for EvidenceForgeApp {
                                     ui,
                                     "Recovery remains blocked",
                                     "The source must match the saved identity before an export can be created. Review the source status above and scan the changed image as a new session if needed.",
-                                    Palette::REVIEW,
+                                    Palette::WARNING,
                                 );
                             } else if !destination_ready {
                                 action_guidance_panel(
@@ -1738,7 +1738,7 @@ impl eframe::App for EvidenceForgeApp {
                                             .strong()
                                             .color(Palette::INK),
                                     )
-                                    .fill(Palette::VERIFIED_STRONG),
+.fill(Palette::SUCCESS_STRONG),
                                 )
                                 .clicked()
                             {
@@ -1832,7 +1832,7 @@ fn recovery_review_window(context: &egui::Context, app: &mut EvidenceForgeApp) {
                         ui.monospace(presentation.candidate.byte_length.to_string());
                         ui.end_row();
                         ui.label("Source status");
-                        ui.colored_label(Palette::VERIFIED, "Verified for this session");
+                        ui.colored_label(Palette::SUCCESS, "Verified for this session");
                         ui.end_row();
                         ui.label("Destination");
                         ui.label(&app.destination_path);
@@ -1844,7 +1844,7 @@ fn recovery_review_window(context: &egui::Context, app: &mut EvidenceForgeApp) {
                 ui,
                 "One final safety check will run",
                 "EvidenceForge validates the destination against the source before writing. If the destination is unsafe or unavailable, no recovery file is created.",
-                Palette::REVIEW,
+                Palette::WARNING,
             );
             ui.add_space(12.0);
             ui.horizontal(|ui| {
@@ -1859,7 +1859,7 @@ fn recovery_review_window(context: &egui::Context, app: &mut EvidenceForgeApp) {
                                 .strong()
                                 .color(Palette::INK),
                         )
-                        .fill(Palette::VERIFIED_STRONG),
+                        .fill(Palette::SUCCESS_STRONG),
                     )
                     .clicked()
                 {
@@ -1918,36 +1918,46 @@ fn shortcut_reference_window(context: &egui::Context, open: &mut bool) {
 struct Palette;
 
 impl Palette {
-    const INK: egui::Color32 = egui::Color32::from_rgb(0x09, 0x12, 0x1C);
-    const CANVAS: egui::Color32 = egui::Color32::from_rgb(0x0D, 0x17, 0x22);
-    const CHROME: egui::Color32 = egui::Color32::from_rgb(0x11, 0x1D, 0x29);
-    const SURFACE: egui::Color32 = egui::Color32::from_rgb(0x15, 0x24, 0x32);
-    const SURFACE_RAISED: egui::Color32 = egui::Color32::from_rgb(0x1B, 0x2D, 0x3E);
-    const SURFACE_MUTED: egui::Color32 = egui::Color32::from_rgb(0x12, 0x20, 0x2C);
-    const LINE: egui::Color32 = egui::Color32::from_rgb(0x35, 0x4B, 0x60);
-    const LINE_STRONG: egui::Color32 = egui::Color32::from_rgb(0x4A, 0x6C, 0x82);
-    const TEXT: egui::Color32 = egui::Color32::from_rgb(0xEA, 0xEF, 0xF2);
-    const TEXT_SOFT: egui::Color32 = egui::Color32::from_rgb(0xD4, 0xE0, 0xE8);
-    const TEXT_MUTED: egui::Color32 = egui::Color32::from_rgb(0xA5, 0xB5, 0xC2);
-    const FOCUS: egui::Color32 = egui::Color32::from_rgb(0x58, 0xC0, 0xD6);
-    const FOCUS_STRONG: egui::Color32 = egui::Color32::from_rgb(0x79, 0xD7, 0xE7);
-    const INFO: egui::Color32 = egui::Color32::from_rgb(0x67, 0xB2, 0xD0);
-    const VERIFIED: egui::Color32 = egui::Color32::from_rgb(0x5C, 0xB5, 0x87);
-    const VERIFIED_STRONG: egui::Color32 = egui::Color32::from_rgb(0x71, 0xC9, 0x96);
-    const REVIEW: egui::Color32 = egui::Color32::from_rgb(0xDA, 0xA6, 0x4F);
-    const DANGER: egui::Color32 = egui::Color32::from_rgb(0xD5, 0x68, 0x63);
-    const METHOD_FAT12: egui::Color32 = egui::Color32::from_rgb(0x7E, 0xB7, 0xD4);
-    const METHOD_FAT16: egui::Color32 = egui::Color32::from_rgb(0x58, 0xBD, 0xA4);
-    const METHOD_EXFAT: egui::Color32 = egui::Color32::from_rgb(0x6F, 0xAE, 0x76);
-    const METHOD_NTFS: egui::Color32 = egui::Color32::from_rgb(0x71, 0xA3, 0xC8);
-    const METHOD_NTFS_CONTIGUOUS: egui::Color32 = egui::Color32::from_rgb(0x4A, 0x80, 0xA6);
-    const METHOD_PNG: egui::Color32 = egui::Color32::from_rgb(0x9F, 0x81, 0xC3);
-    const METHOD_JPEG: egui::Color32 = egui::Color32::from_rgb(0xD2, 0x97, 0x5A);
-    const METHOD_GIF: egui::Color32 = egui::Color32::from_rgb(0xD7, 0xB5, 0x5A);
-    const METHOD_AVI: egui::Color32 = egui::Color32::from_rgb(0x77, 0xB3, 0xAA);
-    const METHOD_MP4: egui::Color32 = egui::Color32::from_rgb(0x75, 0x96, 0xD1);
-    const METHOD_PDF: egui::Color32 = egui::Color32::from_rgb(0xC7, 0x66, 0x68);
-    const METHOD_ZIP_OFFICE: egui::Color32 = egui::Color32::from_rgb(0x58, 0xA5, 0xBA);
+    const INK: egui::Color32 = egui::Color32::from_rgb(0x06, 0x0E, 0x16);
+    const CANVAS: egui::Color32 = egui::Color32::from_rgb(0x0A, 0x14, 0x1E);
+    const CHROME: egui::Color32 = egui::Color32::from_rgb(0x0E, 0x1A, 0x26);
+    const SURFACE: egui::Color32 = egui::Color32::from_rgb(0x12, 0x22, 0x30);
+    const SURFACE_RAISED: egui::Color32 = egui::Color32::from_rgb(0x18, 0x2A, 0x3A);
+    const SURFACE_MUTED: egui::Color32 = egui::Color32::from_rgb(0x10, 0x1E, 0x2A);
+    const SURFACE_SUBTLE: egui::Color32 = egui::Color32::from_rgb(0x16, 0x26, 0x34);
+    const LINE: egui::Color32 = egui::Color32::from_rgb(0x2E, 0x46, 0x5A);
+    const LINE_STRONG: egui::Color32 = egui::Color32::from_rgb(0x42, 0x60, 0x78);
+    const LINE_FOCUS: egui::Color32 = egui::Color32::from_rgb(0x58, 0xC0, 0xD6);
+    const TEXT: egui::Color32 = egui::Color32::from_rgb(0xF0, 0xF4, 0xF8);
+    const TEXT_SOFT: egui::Color32 = egui::Color32::from_rgb(0xD8, 0xE4, 0xEC);
+    const TEXT_MUTED: egui::Color32 = egui::Color32::from_rgb(0x9E, 0xB0, 0xBE);
+    const TEXT_FAINT: egui::Color32 = egui::Color32::from_rgb(0x78, 0x8E, 0xA0);
+    const FOCUS: egui::Color32 = egui::Color32::from_rgb(0x00, 0xB8, 0xD4);
+    const FOCUS_STRONG: egui::Color32 = egui::Color32::from_rgb(0x2E, 0xDC, 0xF0);
+    const FOCUS_SOFT: egui::Color32 = egui::Color32::from_rgb(0x1E, 0x4A, 0x54);
+    const INFO: egui::Color32 = egui::Color32::from_rgb(0x4A, 0x9E, 0xD8);
+    const INFO_STRONG: egui::Color32 = egui::Color32::from_rgb(0x6A, 0xB8, 0xE8);
+    const SUCCESS: egui::Color32 = egui::Color32::from_rgb(0x34, 0xC7, 0x8E);
+    const SUCCESS_STRONG: egui::Color32 = egui::Color32::from_rgb(0x58, 0xD8, 0xA6);
+    const SUCCESS_SOFT: egui::Color32 = egui::Color32::from_rgb(0x14, 0x4A, 0x32);
+    const WARNING: egui::Color32 = egui::Color32::from_rgb(0xF0, 0xB4, 0x29);
+    const WARNING_STRONG: egui::Color32 = egui::Color32::from_rgb(0xFF, 0xC8, 0x4D);
+    const WARNING_SOFT: egui::Color32 = egui::Color32::from_rgb(0x4A, 0x3A, 0x10);
+    const ERROR: egui::Color32 = egui::Color32::from_rgb(0xF0, 0x5A, 0x5A);
+    const ERROR_STRONG: egui::Color32 = egui::Color32::from_rgb(0xFF, 0x7A, 0x7A);
+    const ERROR_SOFT: egui::Color32 = egui::Color32::from_rgb(0x4A, 0x1A, 0x1A);
+    const METHOD_FAT12: egui::Color32 = egui::Color32::from_rgb(0x4A, 0xC8, 0xE8);
+    const METHOD_FAT16: egui::Color32 = egui::Color32::from_rgb(0x34, 0xD8, 0xB4);
+    const METHOD_EXFAT: egui::Color32 = egui::Color32::from_rgb(0x58, 0xD8, 0x8E);
+    const METHOD_NTFS: egui::Color32 = egui::Color32::from_rgb(0x6A, 0xB8, 0xE8);
+    const METHOD_NTFS_CONTIGUOUS: egui::Color32 = egui::Color32::from_rgb(0x4A, 0x9E, 0xC8);
+    const METHOD_PNG: egui::Color32 = egui::Color32::from_rgb(0xB8, 0x8E, 0xE8);
+    const METHOD_JPEG: egui::Color32 = egui::Color32::from_rgb(0xE8, 0xA8, 0x58);
+    const METHOD_GIF: egui::Color32 = egui::Color32::from_rgb(0xE8, 0xC8, 0x58);
+    const METHOD_AVI: egui::Color32 = egui::Color32::from_rgb(0x6A, 0xD8, 0xC4);
+    const METHOD_MP4: egui::Color32 = egui::Color32::from_rgb(0x7A, 0xA8, 0xE8);
+    const METHOD_PDF: egui::Color32 = egui::Color32::from_rgb(0xE8, 0x7A, 0x7A);
+    const METHOD_ZIP_OFFICE: egui::Color32 = egui::Color32::from_rgb(0x58, 0xC8, 0xD8);
 }
 
 fn configure_style(context: &egui::Context) {
@@ -2048,17 +2058,17 @@ fn casework_step(ui: &mut egui::Ui, number: &str, title: &str, detail: &str) {
 
 fn workflow_state_label(app: &EvidenceForgeApp) -> (&'static str, egui::Color32) {
     if app.scan_is_stopping() {
-        return ("STOPPING SCAN", Palette::REVIEW);
+        return ("STOPPING SCAN", Palette::WARNING);
     }
     if app.scan_worker.is_some() {
-        return ("SCAN IN PROGRESS", Palette::FOCUS);
+        return ("SCAN IN PROGRESS", Palette::FOCUS_STRONG);
     }
     match app.source_integrity.as_ref() {
-        Some(SourceIntegrity::Verified) => ("SOURCE VERIFIED", Palette::VERIFIED_STRONG),
-        Some(SourceIntegrity::Changed { .. }) => ("SOURCE CHANGED", Palette::REVIEW),
-        Some(SourceIntegrity::Unavailable { .. }) => ("SOURCE UNAVAILABLE", Palette::DANGER),
-        None if !app.image_path.trim().is_empty() => ("IMAGE READY", Palette::INFO),
-        None => ("START HERE", Palette::INFO),
+        Some(SourceIntegrity::Verified) => ("SOURCE VERIFIED", Palette::SUCCESS_STRONG),
+        Some(SourceIntegrity::Changed { .. }) => ("SOURCE CHANGED", Palette::WARNING),
+        Some(SourceIntegrity::Unavailable { .. }) => ("SOURCE UNAVAILABLE", Palette::ERROR),
+        None if !app.image_path.trim().is_empty() => ("IMAGE READY", Palette::INFO_STRONG),
+        None => ("START HERE", Palette::INFO_STRONG),
     }
 }
 
@@ -2067,7 +2077,7 @@ fn active_scan_presentation(stopping: bool) -> (&'static str, &'static str, egui
         (
             "Stop requested",
             "DiskTrace will acknowledge the request at an implemented cooperative checkpoint. The pending scan result will not be applied, and any completed catalogue remains available.",
-            Palette::REVIEW,
+            Palette::WARNING,
         )
     } else {
         (
@@ -2181,7 +2191,7 @@ fn workflow_steps_panel(ui: &mut egui::Ui, app: &EvidenceForgeApp) {
             (step == 1 && !app.image_path.trim().is_empty()) || (step == 2 && completed_scan);
         let active = active_step == step;
         let color = if complete {
-            Palette::VERIFIED_STRONG
+            Palette::SUCCESS_STRONG
         } else if active {
             Palette::FOCUS_STRONG
         } else {
@@ -2227,22 +2237,22 @@ fn session_workspace_panel(
     let (integrity_label, integrity_color, integrity_detail) = match source_integrity {
         Some(SourceIntegrity::Verified) => (
             "Source verified",
-            Palette::VERIFIED,
+            Palette::SUCCESS,
             "Current byte length, SHA-256, and BLAKE3 match this session.",
         ),
         Some(SourceIntegrity::Changed { .. }) => (
             "Source changed — recovery blocked",
-            Palette::REVIEW,
+            Palette::WARNING,
             "This catalogue is historical. Scan the changed image as a new session before exporting.",
         ),
         Some(SourceIntegrity::Unavailable { .. }) => (
             "Source unavailable — recovery blocked",
-            Palette::DANGER,
+            Palette::ERROR,
             "The catalogue and export history remain readable, but a source must be verified before exporting.",
         ),
         None => (
             "Source status not checked",
-            Palette::REVIEW,
+            Palette::WARNING,
             "Verify the source before attempting a recovery export.",
         ),
     };
@@ -2363,32 +2373,32 @@ fn export_audit_presentation(
     match integrity {
         RecordedExportIntegrity::Verified => (
             "Verified",
-            Palette::VERIFIED,
+            Palette::SUCCESS,
             "Receipt and current SHA-256/BLAKE3 match",
         ),
         RecordedExportIntegrity::ReceiptUnavailable { .. } => (
             "Receipt unavailable",
-            Palette::DANGER,
+            Palette::ERROR,
             "The persisted receipt could not be read",
         ),
         RecordedExportIntegrity::ReceiptChanged => (
             "Receipt changed",
-            Palette::REVIEW,
+            Palette::WARNING,
             "The persisted receipt differs from the session record",
         ),
         RecordedExportIntegrity::ReceiptInconsistent { .. } => (
             "Receipt inconsistent",
-            Palette::REVIEW,
+            Palette::WARNING,
             "The receipt does not safely describe this export",
         ),
         RecordedExportIntegrity::ArtifactUnavailable { .. } => (
             "Artifact unavailable",
-            Palette::DANGER,
+            Palette::ERROR,
             "The recovered output could not be read",
         ),
         RecordedExportIntegrity::ArtifactChanged { .. } => (
             "Artifact changed",
-            Palette::REVIEW,
+            Palette::WARNING,
             "The current output hashes differ from its receipt",
         ),
     }
@@ -2397,9 +2407,9 @@ fn export_audit_presentation(
 fn notice_panel(ui: &mut egui::Ui, notice: &Notice) {
     let color = match notice.tone {
         NoticeTone::Information => Palette::INFO,
-        NoticeTone::Success => Palette::VERIFIED,
-        NoticeTone::Warning => Palette::REVIEW,
-        NoticeTone::Error => Palette::DANGER,
+        NoticeTone::Success => Palette::SUCCESS,
+        NoticeTone::Warning => Palette::WARNING,
+        NoticeTone::Error => Palette::ERROR,
     };
     egui::Frame::NONE
         .fill(color.gamma_multiply(0.18))
@@ -2458,12 +2468,12 @@ fn method_color(method: RecoveryMethod) -> egui::Color32 {
 fn validation_color(validation: CandidateValidation) -> egui::Color32 {
     match validation {
         CandidateValidation::ContentValidated | CandidateValidation::MetadataVerified => {
-            Palette::VERIFIED
+            Palette::SUCCESS
         }
         CandidateValidation::RecoveredUnvalidated | CandidateValidation::PartialOrErrorAffected => {
-            Palette::REVIEW
+            Palette::WARNING
         }
-        CandidateValidation::Unavailable => Palette::DANGER,
+        CandidateValidation::Unavailable => Palette::ERROR,
     }
 }
 
@@ -3128,7 +3138,7 @@ mod tests {
         assert_eq!(stopping_title, "Stop requested");
         assert!(stopping_detail.contains("cooperative checkpoint"));
         assert!(stopping_detail.contains("will not be applied"));
-        assert_eq!(stopping_color, Palette::REVIEW);
+        assert_eq!(stopping_color, Palette::WARNING);
     }
 
     #[test]
