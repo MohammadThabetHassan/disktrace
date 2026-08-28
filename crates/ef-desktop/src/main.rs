@@ -1500,12 +1500,12 @@ impl eframe::App for EvidenceForgeApp {
                                                     ui.label(
                                                         egui::RichText::new(&presentation.candidate.evidence_name)
                                                             .strong()
-                                                            .color(Palette::TEXT),
+                                                            .color(if selected { Palette::TEXT } else { Palette::TEXT }),
                                                     );
                                                     ui.label(
                                                         egui::RichText::new(&presentation.method_label)
                                                             .small()
-                                                            .color(if selected { method_tone } else { Palette::TEXT_MUTED }),
+                                                            .color(if selected { method_tone } else { Palette::TEXT_SOFT }),
                                                     );
                                                 });
                                                 ui.with_layout(
@@ -1527,7 +1527,7 @@ impl eframe::App for EvidenceForgeApp {
                                                     presentation.candidate.source_offset
                                                 ))
                                                 .small()
-                                                .color(Palette::TEXT_MUTED),
+                                                .color(Palette::TEXT_FAINT),
                                             );
                                         })
                                         .response
@@ -1561,7 +1561,7 @@ impl eframe::App for EvidenceForgeApp {
                             egui::RichText::new("Evidence detail")
                                 .size(11.0)
                                 .strong()
-                                .color(Palette::TEXT_MUTED),
+                                .color(Palette::TEXT_SOFT),
                         );
                         let preview_loading = self.selected_preview_is_loading();
                         let preview_error = self.selected_preview_error().map(str::to_owned);
@@ -1591,17 +1591,17 @@ impl eframe::App for EvidenceForgeApp {
                                     .num_columns(2)
                                     .spacing([18.0, 7.0])
                                     .show(ui, |ui| {
-                                        ui.label("Recovery method");
-                                        ui.label(&presentation.method_label);
+                                        ui.label(egui::RichText::new("Recovery method").color(Palette::TEXT_MUTED));
+                                        ui.label(egui::RichText::new(&presentation.method_label).strong().color(Palette::TEXT));
                                         ui.end_row();
-                                        ui.label("Validation");
-                                        ui.label(&presentation.validation_label);
+                                        ui.label(egui::RichText::new("Validation").color(Palette::TEXT_MUTED));
+                                        ui.label(egui::RichText::new(&presentation.validation_label).strong().color(Palette::TEXT));
                                         ui.end_row();
-                                        ui.label("Recovered bytes");
-                                        ui.monospace(presentation.candidate.byte_length.to_string());
+                                        ui.label(egui::RichText::new("Recovered bytes").color(Palette::TEXT_MUTED));
+                                        ui.label(egui::RichText::new(presentation.candidate.byte_length.to_string()).monospace().color(Palette::TEXT));
                                         ui.end_row();
-                                        ui.label("Source offset");
-                                        ui.monospace(presentation.candidate.source_offset.to_string());
+                                        ui.label(egui::RichText::new("Source offset").color(Palette::TEXT_MUTED));
+                                        ui.label(egui::RichText::new(presentation.candidate.source_offset.to_string()).monospace().color(Palette::TEXT));
                                         ui.end_row();
                                     });
                             });
@@ -1634,7 +1634,7 @@ impl eframe::App for EvidenceForgeApp {
                                                             .small()
                                                             .color(Palette::TEXT_MUTED),
                                                     );
-                                                    ui.label(&fact.value);
+                                                    ui.label(egui::RichText::new(&fact.value).color(Palette::TEXT));
                                                     ui.end_row();
                                                 }
                                             });
@@ -1665,21 +1665,20 @@ impl eframe::App for EvidenceForgeApp {
                                 }
                             });
                             ui.add_space(12.0);
+                            let (basis, validation) = candidate_evidence_presentation(&presentation.candidate);
                             ui.group(|ui| {
-                                ui.strong("What this evidence establishes");
-                                let (basis, validation) =
-                                    candidate_evidence_presentation(&presentation.candidate);
-                                ui.label(basis);
-                                ui.small(validation);
+                                ui.label(egui::RichText::new("What this evidence establishes").strong().color(Palette::TEXT));
+                                ui.label(egui::RichText::new(basis).color(Palette::TEXT_SOFT));
+                                ui.small(egui::RichText::new(validation).color(Palette::TEXT_SOFT));
                                 ui.add_space(4.0);
-                                ui.small(
-                                    "It does not establish the original path, completeness, authenticity, safety, legal admissibility, or recovery of every deleted file.",
-                                );
+                                ui.small(egui::RichText::new(
+                                    "It does not establish the original path, completeness, authenticity, safety, legal admissibility, or recovery of every deleted file."
+                                ).color(Palette::TEXT_MUTED));
                             });
                             ui.add_space(8.0);
                             ui.group(|ui| {
-                                ui.strong("Method notes");
-                                ui.label(&presentation.explanation);
+                                ui.label(egui::RichText::new("Method notes").strong().color(Palette::TEXT));
+                                ui.label(egui::RichText::new(&presentation.explanation).color(Palette::TEXT_SOFT));
                             });
                             ui.add_space(8.0);
                             ui.collapsing("Candidate record", |ui| {
@@ -1687,11 +1686,11 @@ impl eframe::App for EvidenceForgeApp {
                                     .num_columns(2)
                                     .spacing([18.0, 8.0])
                                     .show(ui, |ui| {
-                                        ui.label("Candidate ID");
-                                        ui.monospace(&presentation.candidate.id);
+                                        ui.label(egui::RichText::new("Candidate ID").color(Palette::TEXT_MUTED));
+                                        ui.label(egui::RichText::new(&presentation.candidate.id).monospace().color(Palette::TEXT));
                                         ui.end_row();
-                                        ui.label("Original path");
-                                        ui.label("Unavailable for this result");
+                                        ui.label(egui::RichText::new("Original path").color(Palette::TEXT_MUTED));
+                                        ui.label(egui::RichText::new("Unavailable for this result").color(Palette::TEXT_SOFT));
                                         ui.end_row();
                                     });
                             });
@@ -1918,53 +1917,53 @@ fn shortcut_reference_window(context: &egui::Context, open: &mut bool) {
 struct Palette;
 
 impl Palette {
-    const INK: egui::Color32 = egui::Color32::from_rgb(0x06, 0x0E, 0x16);
-    const CANVAS: egui::Color32 = egui::Color32::from_rgb(0x0A, 0x14, 0x1E);
-    const CHROME: egui::Color32 = egui::Color32::from_rgb(0x0E, 0x1A, 0x26);
-    const SURFACE: egui::Color32 = egui::Color32::from_rgb(0x12, 0x22, 0x30);
-    const SURFACE_RAISED: egui::Color32 = egui::Color32::from_rgb(0x18, 0x2A, 0x3A);
-    const SURFACE_MUTED: egui::Color32 = egui::Color32::from_rgb(0x10, 0x1E, 0x2A);
+    const INK: egui::Color32 = egui::Color32::from_rgb(0x04, 0x0A, 0x12);
+    const CANVAS: egui::Color32 = egui::Color32::from_rgb(0x08, 0x10, 0x1A);
+    const CHROME: egui::Color32 = egui::Color32::from_rgb(0x0C, 0x16, 0x22);
+    const SURFACE: egui::Color32 = egui::Color32::from_rgb(0x10, 0x20, 0x2E);
+    const SURFACE_RAISED: egui::Color32 = egui::Color32::from_rgb(0x16, 0x28, 0x38);
+    const SURFACE_MUTED: egui::Color32 = egui::Color32::from_rgb(0x0E, 0x1A, 0x26);
     #[allow(dead_code)]
-    const SURFACE_SUBTLE: egui::Color32 = egui::Color32::from_rgb(0x16, 0x26, 0x34);
-    const LINE: egui::Color32 = egui::Color32::from_rgb(0x2E, 0x46, 0x5A);
-    const LINE_STRONG: egui::Color32 = egui::Color32::from_rgb(0x42, 0x60, 0x78);
+    const SURFACE_SUBTLE: egui::Color32 = egui::Color32::from_rgb(0x14, 0x24, 0x32);
+    const LINE: egui::Color32 = egui::Color32::from_rgb(0x2A, 0x42, 0x56);
+    const LINE_STRONG: egui::Color32 = egui::Color32::from_rgb(0x3E, 0x5A, 0x70);
     #[allow(dead_code)]
     const LINE_FOCUS: egui::Color32 = egui::Color32::from_rgb(0x58, 0xC0, 0xD6);
-    const TEXT: egui::Color32 = egui::Color32::from_rgb(0xF0, 0xF4, 0xF8);
-    const TEXT_SOFT: egui::Color32 = egui::Color32::from_rgb(0xD8, 0xE4, 0xEC);
-    const TEXT_MUTED: egui::Color32 = egui::Color32::from_rgb(0x9E, 0xB0, 0xBE);
+    const TEXT: egui::Color32 = egui::Color32::from_rgb(0xF4, 0xF8, 0xFC);
+    const TEXT_SOFT: egui::Color32 = egui::Color32::from_rgb(0xDC, 0xE8, 0xF0);
+    const TEXT_MUTED: egui::Color32 = egui::Color32::from_rgb(0xB0, 0xC4, 0xD4);
     #[allow(dead_code)]
-    const TEXT_FAINT: egui::Color32 = egui::Color32::from_rgb(0x78, 0x8E, 0xA0);
-    const FOCUS: egui::Color32 = egui::Color32::from_rgb(0x00, 0xB8, 0xD4);
-    const FOCUS_STRONG: egui::Color32 = egui::Color32::from_rgb(0x2E, 0xDC, 0xF0);
+    const TEXT_FAINT: egui::Color32 = egui::Color32::from_rgb(0x88, 0x9E, 0xB4);
+    const FOCUS: egui::Color32 = egui::Color32::from_rgb(0x00, 0xC4, 0xE0);
+    const FOCUS_STRONG: egui::Color32 = egui::Color32::from_rgb(0x30, 0xE0, 0xF8);
     #[allow(dead_code)]
-    const FOCUS_SOFT: egui::Color32 = egui::Color32::from_rgb(0x1E, 0x4A, 0x54);
-    const INFO: egui::Color32 = egui::Color32::from_rgb(0x4A, 0x9E, 0xD8);
-    const INFO_STRONG: egui::Color32 = egui::Color32::from_rgb(0x6A, 0xB8, 0xE8);
-    const SUCCESS: egui::Color32 = egui::Color32::from_rgb(0x34, 0xC7, 0x8E);
-    const SUCCESS_STRONG: egui::Color32 = egui::Color32::from_rgb(0x58, 0xD8, 0xA6);
+    const FOCUS_SOFT: egui::Color32 = egui::Color32::from_rgb(0x1C, 0x4C, 0x58);
+    const INFO: egui::Color32 = egui::Color32::from_rgb(0x50, 0xA8, 0xE0);
+    const INFO_STRONG: egui::Color32 = egui::Color32::from_rgb(0x70, 0xC0, 0xF0);
+    const SUCCESS: egui::Color32 = egui::Color32::from_rgb(0x38, 0xD0, 0x94);
+    const SUCCESS_STRONG: egui::Color32 = egui::Color32::from_rgb(0x5C, 0xE0, 0xAC);
     #[allow(dead_code)]
-    const SUCCESS_SOFT: egui::Color32 = egui::Color32::from_rgb(0x14, 0x4A, 0x32);
-    const WARNING: egui::Color32 = egui::Color32::from_rgb(0xF0, 0xB4, 0x29);
-    const WARNING_STRONG: egui::Color32 = egui::Color32::from_rgb(0xFF, 0xC8, 0x4D);
+    const SUCCESS_SOFT: egui::Color32 = egui::Color32::from_rgb(0x12, 0x4C, 0x34);
+    const WARNING: egui::Color32 = egui::Color32::from_rgb(0xF8, 0xC0, 0x30);
+    const WARNING_STRONG: egui::Color32 = egui::Color32::from_rgb(0xFF, 0xD0, 0x50);
     #[allow(dead_code)]
-    const WARNING_SOFT: egui::Color32 = egui::Color32::from_rgb(0x4A, 0x3A, 0x10);
-    const ERROR: egui::Color32 = egui::Color32::from_rgb(0xF0, 0x5A, 0x5A);
-    const ERROR_STRONG: egui::Color32 = egui::Color32::from_rgb(0xFF, 0x7A, 0x7A);
+    const WARNING_SOFT: egui::Color32 = egui::Color32::from_rgb(0x4C, 0x3C, 0x0E);
+    const ERROR: egui::Color32 = egui::Color32::from_rgb(0xF8, 0x60, 0x60);
+    const ERROR_STRONG: egui::Color32 = egui::Color32::from_rgb(0xFF, 0x80, 0x80);
     #[allow(dead_code)]
-    const ERROR_SOFT: egui::Color32 = egui::Color32::from_rgb(0x4A, 0x1A, 0x1A);
-    const METHOD_FAT12: egui::Color32 = egui::Color32::from_rgb(0x4A, 0xC8, 0xE8);
-    const METHOD_FAT16: egui::Color32 = egui::Color32::from_rgb(0x34, 0xD8, 0xB4);
-    const METHOD_EXFAT: egui::Color32 = egui::Color32::from_rgb(0x58, 0xD8, 0x8E);
-    const METHOD_NTFS: egui::Color32 = egui::Color32::from_rgb(0x6A, 0xB8, 0xE8);
-    const METHOD_NTFS_CONTIGUOUS: egui::Color32 = egui::Color32::from_rgb(0x4A, 0x9E, 0xC8);
-    const METHOD_PNG: egui::Color32 = egui::Color32::from_rgb(0xB8, 0x8E, 0xE8);
-    const METHOD_JPEG: egui::Color32 = egui::Color32::from_rgb(0xE8, 0xA8, 0x58);
-    const METHOD_GIF: egui::Color32 = egui::Color32::from_rgb(0xE8, 0xC8, 0x58);
-    const METHOD_AVI: egui::Color32 = egui::Color32::from_rgb(0x6A, 0xD8, 0xC4);
-    const METHOD_MP4: egui::Color32 = egui::Color32::from_rgb(0x7A, 0xA8, 0xE8);
-    const METHOD_PDF: egui::Color32 = egui::Color32::from_rgb(0xE8, 0x7A, 0x7A);
-    const METHOD_ZIP_OFFICE: egui::Color32 = egui::Color32::from_rgb(0x58, 0xC8, 0xD8);
+    const ERROR_SOFT: egui::Color32 = egui::Color32::from_rgb(0x4C, 0x1C, 0x1C);
+    const METHOD_FAT12: egui::Color32 = egui::Color32::from_rgb(0x50, 0xD0, 0xF0);
+    const METHOD_FAT16: egui::Color32 = egui::Color32::from_rgb(0x38, 0xE0, 0xBC);
+    const METHOD_EXFAT: egui::Color32 = egui::Color32::from_rgb(0x60, 0xE0, 0x94);
+    const METHOD_NTFS: egui::Color32 = egui::Color32::from_rgb(0x70, 0xC0, 0xF0);
+    const METHOD_NTFS_CONTIGUOUS: egui::Color32 = egui::Color32::from_rgb(0x50, 0xA8, 0xD0);
+    const METHOD_PNG: egui::Color32 = egui::Color32::from_rgb(0xC0, 0x94, 0xF0);
+    const METHOD_JPEG: egui::Color32 = egui::Color32::from_rgb(0xF0, 0xB0, 0x60);
+    const METHOD_GIF: egui::Color32 = egui::Color32::from_rgb(0xF0, 0xD0, 0x60);
+    const METHOD_AVI: egui::Color32 = egui::Color32::from_rgb(0x70, 0xE0, 0xCC);
+    const METHOD_MP4: egui::Color32 = egui::Color32::from_rgb(0x80, 0xB0, 0xF0);
+    const METHOD_PDF: egui::Color32 = egui::Color32::from_rgb(0xF0, 0x80, 0x80);
+    const METHOD_ZIP_OFFICE: egui::Color32 = egui::Color32::from_rgb(0x60, 0xD0, 0xE0);
 }
 
 fn configure_style(context: &egui::Context) {
@@ -2135,38 +2134,55 @@ fn candidate_evidence_presentation(candidate: &RecoveryCandidate) -> (&'static s
 }
 
 fn status_badge(ui: &mut egui::Ui, label: &str, color: egui::Color32) {
+    let bg = color.gamma_multiply(0.16);
+    let text_color = if color == Palette::WARNING || color == Palette::WARNING_STRONG {
+        Palette::INK
+    } else {
+        Palette::TEXT
+    };
     egui::Frame::NONE
-        .fill(color.gamma_multiply(0.12))
-        .stroke(egui::Stroke::new(1.0_f32, color.gamma_multiply(0.58)))
+        .fill(bg)
+        .stroke(egui::Stroke::new(1.0_f32, color.gamma_multiply(0.7)))
         .corner_radius(egui::CornerRadius::same(5))
         .inner_margin(egui::Margin::symmetric(7, 3))
         .show(ui, |ui| {
-            ui.label(egui::RichText::new(label).size(10.0).strong().color(color));
+            ui.label(egui::RichText::new(label).size(10.0).strong().color(text_color));
         });
 }
 
 fn action_guidance_panel(ui: &mut egui::Ui, title: &str, detail: &str, color: egui::Color32) {
+    let bg = color.gamma_multiply(0.14);
+    let text_color = if color == Palette::WARNING || color == Palette::WARNING_STRONG {
+        Palette::INK
+    } else {
+        Palette::TEXT
+    };
     egui::Frame::NONE
-        .fill(color.gamma_multiply(0.10))
-        .stroke(egui::Stroke::new(1.0_f32, color.gamma_multiply(0.68)))
+        .fill(bg)
+        .stroke(egui::Stroke::new(1.0_f32, color.gamma_multiply(0.75)))
         .corner_radius(egui::CornerRadius::same(6))
         .inner_margin(egui::Margin::same(11))
         .show(ui, |ui| {
-            ui.label(egui::RichText::new(title).strong().color(color));
-            ui.small(detail);
+            ui.label(egui::RichText::new(title).strong().color(text_color));
+            ui.small(egui::RichText::new(detail).color(Palette::TEXT_SOFT));
         });
 }
 
 fn workspace_empty_panel(ui: &mut egui::Ui, title: &str, detail: &str, color: egui::Color32) {
+    let text_color = if color == Palette::WARNING || color == Palette::WARNING_STRONG {
+        Palette::INK
+    } else {
+        Palette::TEXT
+    };
     egui::Frame::NONE
         .fill(Palette::SURFACE)
-        .stroke(egui::Stroke::new(1.0_f32, color.gamma_multiply(0.62)))
+        .stroke(egui::Stroke::new(1.0_f32, color.gamma_multiply(0.7)))
         .corner_radius(egui::CornerRadius::same(6))
         .inner_margin(egui::Margin::same(14))
         .show(ui, |ui| {
-            ui.label(egui::RichText::new(title).strong().color(color));
+            ui.label(egui::RichText::new(title).strong().color(text_color));
             ui.add_space(4.0);
-            ui.small(detail);
+            ui.small(egui::RichText::new(detail).color(Palette::TEXT_SOFT));
         });
 }
 
@@ -2186,7 +2202,7 @@ fn workflow_steps_panel(ui: &mut egui::Ui, app: &EvidenceForgeApp) {
         egui::RichText::new("Recovery workflow")
             .size(11.0)
             .strong()
-            .color(Palette::TEXT_MUTED),
+            .color(Palette::TEXT_SOFT),
     );
     ui.add_space(5.0);
     for (step, title, detail) in [
@@ -2197,12 +2213,17 @@ fn workflow_steps_panel(ui: &mut egui::Ui, app: &EvidenceForgeApp) {
         let complete =
             (step == 1 && !app.image_path.trim().is_empty()) || (step == 2 && completed_scan);
         let active = active_step == step;
-        let color = if complete {
+        let _step_color = if complete {
             Palette::SUCCESS_STRONG
         } else if active {
             Palette::FOCUS_STRONG
         } else {
             Palette::TEXT_MUTED
+        };
+        let text_color = if complete {
+            Palette::INK
+        } else {
+            Palette::TEXT
         };
         ui.horizontal(|ui| {
             ui.label(
@@ -2213,13 +2234,15 @@ fn workflow_steps_panel(ui: &mut egui::Ui, app: &EvidenceForgeApp) {
                 })
                 .monospace()
                 .strong()
-                .color(color),
+                .color(text_color),
             );
             ui.vertical(|ui| {
                 ui.label(egui::RichText::new(title).strong().color(if active {
                     Palette::TEXT
+                } else if complete {
+                    Palette::SUCCESS_STRONG
                 } else {
-                    color
+                    Palette::TEXT_SOFT
                 }));
                 ui.label(
                     egui::RichText::new(detail)
