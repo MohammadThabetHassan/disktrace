@@ -1500,7 +1500,7 @@ impl eframe::App for EvidenceForgeApp {
                                                     ui.label(
                                                         egui::RichText::new(&presentation.candidate.evidence_name)
                                                             .strong()
-                                                            .color(if selected { Palette::TEXT } else { Palette::TEXT }),
+                                                            .color(Palette::TEXT),
                                                     );
                                                     ui.label(
                                                         egui::RichText::new(&presentation.method_label)
