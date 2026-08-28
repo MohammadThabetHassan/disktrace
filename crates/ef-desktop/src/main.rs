@@ -1924,27 +1924,34 @@ impl Palette {
     const SURFACE: egui::Color32 = egui::Color32::from_rgb(0x12, 0x22, 0x30);
     const SURFACE_RAISED: egui::Color32 = egui::Color32::from_rgb(0x18, 0x2A, 0x3A);
     const SURFACE_MUTED: egui::Color32 = egui::Color32::from_rgb(0x10, 0x1E, 0x2A);
+    #[allow(dead_code)]
     const SURFACE_SUBTLE: egui::Color32 = egui::Color32::from_rgb(0x16, 0x26, 0x34);
     const LINE: egui::Color32 = egui::Color32::from_rgb(0x2E, 0x46, 0x5A);
     const LINE_STRONG: egui::Color32 = egui::Color32::from_rgb(0x42, 0x60, 0x78);
+    #[allow(dead_code)]
     const LINE_FOCUS: egui::Color32 = egui::Color32::from_rgb(0x58, 0xC0, 0xD6);
     const TEXT: egui::Color32 = egui::Color32::from_rgb(0xF0, 0xF4, 0xF8);
     const TEXT_SOFT: egui::Color32 = egui::Color32::from_rgb(0xD8, 0xE4, 0xEC);
     const TEXT_MUTED: egui::Color32 = egui::Color32::from_rgb(0x9E, 0xB0, 0xBE);
+    #[allow(dead_code)]
     const TEXT_FAINT: egui::Color32 = egui::Color32::from_rgb(0x78, 0x8E, 0xA0);
     const FOCUS: egui::Color32 = egui::Color32::from_rgb(0x00, 0xB8, 0xD4);
     const FOCUS_STRONG: egui::Color32 = egui::Color32::from_rgb(0x2E, 0xDC, 0xF0);
+    #[allow(dead_code)]
     const FOCUS_SOFT: egui::Color32 = egui::Color32::from_rgb(0x1E, 0x4A, 0x54);
     const INFO: egui::Color32 = egui::Color32::from_rgb(0x4A, 0x9E, 0xD8);
     const INFO_STRONG: egui::Color32 = egui::Color32::from_rgb(0x6A, 0xB8, 0xE8);
     const SUCCESS: egui::Color32 = egui::Color32::from_rgb(0x34, 0xC7, 0x8E);
     const SUCCESS_STRONG: egui::Color32 = egui::Color32::from_rgb(0x58, 0xD8, 0xA6);
+    #[allow(dead_code)]
     const SUCCESS_SOFT: egui::Color32 = egui::Color32::from_rgb(0x14, 0x4A, 0x32);
     const WARNING: egui::Color32 = egui::Color32::from_rgb(0xF0, 0xB4, 0x29);
     const WARNING_STRONG: egui::Color32 = egui::Color32::from_rgb(0xFF, 0xC8, 0x4D);
+    #[allow(dead_code)]
     const WARNING_SOFT: egui::Color32 = egui::Color32::from_rgb(0x4A, 0x3A, 0x10);
     const ERROR: egui::Color32 = egui::Color32::from_rgb(0xF0, 0x5A, 0x5A);
     const ERROR_STRONG: egui::Color32 = egui::Color32::from_rgb(0xFF, 0x7A, 0x7A);
+    #[allow(dead_code)]
     const ERROR_SOFT: egui::Color32 = egui::Color32::from_rgb(0x4A, 0x1A, 0x1A);
     const METHOD_FAT12: egui::Color32 = egui::Color32::from_rgb(0x4A, 0xC8, 0xE8);
     const METHOD_FAT16: egui::Color32 = egui::Color32::from_rgb(0x34, 0xD8, 0xB4);
