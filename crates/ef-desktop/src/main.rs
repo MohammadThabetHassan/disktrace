@@ -2146,7 +2146,12 @@ fn status_badge(ui: &mut egui::Ui, label: &str, color: egui::Color32) {
         .corner_radius(egui::CornerRadius::same(5))
         .inner_margin(egui::Margin::symmetric(7, 3))
         .show(ui, |ui| {
-            ui.label(egui::RichText::new(label).size(10.0).strong().color(text_color));
+            ui.label(
+                egui::RichText::new(label)
+                    .size(10.0)
+                    .strong()
+                    .color(text_color),
+            );
         });
 }
 
