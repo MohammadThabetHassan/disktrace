@@ -17,11 +17,11 @@ jobs:
   verify:
     name: Rust workspace and recovery fixtures
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 35
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Install Rust 1.97.1
         uses: dtolnay/rust-toolchain@1.97.1
