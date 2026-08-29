@@ -56,6 +56,7 @@ fn main() -> Result<()> {
         "scan" => scan(arguments.collect()),
         "catalogue" => catalogue(arguments.collect()),
         "recover" => recover(arguments.collect()),
+        "recover-all" => recover_all(arguments.collect()),
         "save-session" => save_session(arguments.collect()),
         "session-status" => session_status(arguments.collect()),
         "audit-session" => audit_session(arguments.collect()),
@@ -207,6 +208,66 @@ fn recover_session(arguments: Vec<String>) -> Result<()> {
     print_json(&export_report(export))
 }
 
+fn recover_all(arguments: Vec<String>) -> Result<()> {
+    if arguments.len() < 2 {
+        bail!("recover-all requires an image path, destination directory, and optional --validation filter");
+    }
+
+    let image_path = &arguments[0];
+    let destination = &arguments[1];
+    
+    let mut validation_filter = None;
+    let mut i = 2;
+    while i < arguments.len() {
+        if arguments[i] == "--validation" {
+            if i + 1 >= arguments.len() {
+                bail!("--validation requires a value (metadata_verified|content_validated|recovered_unvalidated|partial_or_error_affected|unavailable)");
+            }
+            validation_filter = Some(parse_validation_filter(&arguments[i + 1])?);
+            i += 2;
+        } else {
+            bail!("unknown argument: {}", arguments[i]);
+        }
+    }
+
+    let scan = scan_image(image_path).context("scan recovery image")?;
+    
+    let source = ef_core::ImageSource::inspect(image_path).context("inspect recovery image")?;
+    let destination_path = approve_destination(&source, destination).context("validate recovery destination")?;
+
+    let filtered_candidates: Vec<_> = scan.candidates
+        .into_iter()
+        .filter(|c| {
+            if let Some(ref vf) = validation_filter {
+                c.validation == *vf
+            } else {
+                true
+            }
+        })
+        .collect();
+
+    if filtered_candidates.is_empty() {
+        bail!("no candidates found matching the criteria");
+    }
+
+    let mut results = Vec::new();
+    for candidate in filtered_candidates {
+        match recover_to_destination(image_path, &candidate.id, destination) {
+            Ok(export) => results.push(export_report(export)),
+            Err(e) => {
+                eprintln!("Failed to recover {}: {}", candidate.id, e);
+            }
+        }
+    }
+
+    if results.is_empty() {
+        bail!("no candidates were successfully recovered");
+    }
+
+    println!("{}", serde_json::to_string_pretty(&results).context("serialize JSON output")?);
+    Ok(())
+}
+
 fn export_report(export: RecoveryExport) -> RecoveryExportReport {
     RecoveryExportReport {
         output_path: export.output_path.display().to_string(),
@@ -285,6 +346,6 @@ fn print_json(value: &impl Serialize) -> Result<()> {
 
 fn print_usage() {
     eprintln!(
-        "Usage:\n  evidenceforge inspect <image-path>\n  evidenceforge check-destination <image-path> <destination-directory>\n  evidenceforge scan <image-path>\n  evidenceforge catalogue <image-path> [--search <text>] [--method <fat12|fat16|exfat|ntfs|ntfs-contiguous|png|jpeg|gif|avi|mp4|mov|pdf|zip|office>] [--validation <state>]\n  evidenceforge recover <image-path> <candidate-id> <destination-directory>\n  evidenceforge save-session <image-path> <manifest-path>\n  evidenceforge session-status <manifest-path>\n  evidenceforge audit-session <manifest-path>\n  evidenceforge case-brief <manifest-path> <output-markdown-path>\n  evidenceforge recover-session <manifest-path> <candidate-id> <destination-directory>"
+        "Usage:\n  evidenceforge inspect <image-path>\n  evidenceforge check-destination <image-path> <destination-directory>\n  evidenceforge scan <image-path>\n  evidenceforge catalogue <image-path> [--search <text>] [--method <fat12|fat16|exfat|ntfs|ntfs-contiguous|png|jpeg|gif|avi|mp4|mov|pdf|zip|office>] [--validation <state>]\n  evidenceforge recover <image-path> <candidate-id> <destination-directory>\n  evidenceforge recover-all <image-path> <destination-directory> [--validation <state>]\n  evidenceforge save-session <image-path> <manifest-path>\n  evidenceforge session-status <manifest-path>\n  evidenceforge audit-session <manifest-path>\n  evidenceforge case-brief <manifest-path> <output-markdown-path>\n  evidenceforge recover-session <manifest-path> <candidate-id> <destination-directory>"
     );
 }
