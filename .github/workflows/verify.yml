@@ -29,10 +29,11 @@ jobs:
       - name: Install Linux desktop smoke dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes libxkbcommon-x11-0
+          sudo apt-get install --yes libxkbcommon-x11-0 xvfb
 
-      - name: Install RustSec advisory scanner
+- name: Install RustSec advisory scanner
         run: cargo install cargo-audit --version 0.22.2 --locked
 
-      - name: Run deterministic verification matrix
+- name: Run deterministic verification matrix
+        timeout-minutes: 30
         run: sh scripts/verify-all.sh
