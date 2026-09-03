@@ -4,12 +4,21 @@ set -eu
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$ROOT"
 
+# Report which contract string went missing. Without this the script exits 1 with no
+# output under `set -e`, and the only way to find the drift is to bisect by hand.
+require_pattern() {
+    if ! grep -q "$1" "$2"; then
+        printf '%s\n' "desktop UI contract verification failed: $2 no longer contains '$1'" >&2
+        exit 1
+    fi
+}
+
 for pattern in \
     'struct Palette' \
     'Palette::FOCUS' \
-    'Palette::VERIFIED' \
-    'Palette::REVIEW' \
-    'Palette::DANGER' \
+    'Palette::SUCCESS' \
+    'Palette::WARNING' \
+    'Palette::ERROR' \
     'show_shortcuts' \
     'show_recovery_review' \
     'recheck_source_integrity' \
@@ -103,7 +112,7 @@ for pattern in \
     'What this evidence establishes' \
     'active_scan_presentation_explains_truthful_scan_and_stop_states' \
     'candidate_evidence_presentation_distinguishes_metadata_and_carving_scope'; do
-    grep -q "$pattern" crates/ef-desktop/src/main.rs
+    require_pattern "$pattern" crates/ef-desktop/src/main.rs
 done
 
 if grep -Eq 'Color32::from_rgb\([0-9]{1,3},' crates/ef-desktop/src/main.rs; then
@@ -111,29 +120,29 @@ if grep -Eq 'Color32::from_rgb\([0-9]{1,3},' crates/ef-desktop/src/main.rs; then
     exit 1
 fi
 
-grep -q 'native confirmation window' docs/gui-workflow-v1.md
-grep -q 'quiet casework' docs/gui-workflow-v1.md
-grep -q 'Up`/`Down` to compare' docs/gui-workflow-v1.md
-grep -q 'Audit exports' docs/gui-workflow-v1.md
-grep -q 'Save case brief' docs/gui-workflow-v1.md
-grep -q 'self-contained MP4/MOV' docs/gui-workflow-v1.md
-grep -q 'Preparing bounded local preview' docs/gui-workflow-v1.md
-grep -q 'Bounded local preview unavailable' docs/gui-workflow-v1.md
-grep -q 'cooperatively stops a superseded preview' docs/gui-workflow-v1.md
-grep -q 'exact local byte range' docs/gui-workflow-v1.md
-grep -q 'quick or full format' docs/gui-workflow-v1.md
-grep -q 'Stopping scan' docs/gui-workflow-v1.md
-grep -q 'partial scan results' docs/gui-workflow-v1.md
-grep -q 'At a glance' docs/gui-workflow-v1.md
-grep -q 'collapsed candidate record' docs/gui-workflow-v1.md
-grep -q 'Read-only scan active' docs/gui-workflow-v1.md
-grep -q 'tested scan-progress contract' docs/gui-workflow-v1.md
-grep -q 'What this evidence establishes' docs/gui-workflow-v1.md
-grep -q 'PreviewFact' crates/ef-catalogue/src/lib.rs
-grep -q 'candidate_preview_structure' crates/ef-catalogue/src/lib.rs
-grep -q 'gif_preview_facts' crates/ef-catalogue/src/lib.rs
-grep -q 'avi_preview_facts' crates/ef-catalogue/src/lib.rs
-grep -q 'mp4_preview_facts' crates/ef-catalogue/src/lib.rs
+require_pattern 'native confirmation window' docs/gui-workflow-v1.md
+require_pattern 'quiet casework' docs/gui-workflow-v1.md
+require_pattern 'Up`/`Down` to compare' docs/gui-workflow-v1.md
+require_pattern 'Audit exports' docs/gui-workflow-v1.md
+require_pattern 'Save case brief' docs/gui-workflow-v1.md
+require_pattern 'self-contained MP4/MOV' docs/gui-workflow-v1.md
+require_pattern 'Preparing bounded local preview' docs/gui-workflow-v1.md
+require_pattern 'Bounded local preview unavailable' docs/gui-workflow-v1.md
+require_pattern 'cooperatively stops a superseded preview' docs/gui-workflow-v1.md
+require_pattern 'exact local byte range' docs/gui-workflow-v1.md
+require_pattern 'quick or full format' docs/gui-workflow-v1.md
+require_pattern 'Stopping scan' docs/gui-workflow-v1.md
+require_pattern 'partial scan results' docs/gui-workflow-v1.md
+require_pattern 'At a glance' docs/gui-workflow-v1.md
+require_pattern 'collapsed candidate record' docs/gui-workflow-v1.md
+require_pattern 'Read-only scan active' docs/gui-workflow-v1.md
+require_pattern 'tested scan-progress contract' docs/gui-workflow-v1.md
+require_pattern 'What this evidence establishes' docs/gui-workflow-v1.md
+require_pattern 'PreviewFact' crates/ef-catalogue/src/lib.rs
+require_pattern 'candidate_preview_structure' crates/ef-catalogue/src/lib.rs
+require_pattern 'gif_preview_facts' crates/ef-catalogue/src/lib.rs
+require_pattern 'avi_preview_facts' crates/ef-catalogue/src/lib.rs
+require_pattern 'mp4_preview_facts' crates/ef-catalogue/src/lib.rs
 cargo test -p ef-desktop recovery_review_requires_verified_source_and_does_not_export_until_confirmed
 cargo test -p ef-desktop result_navigation_stays_within_filtered_presentations
 cargo test -p ef-desktop source_recheck_refreshes_integrity_without_discarding_candidates
