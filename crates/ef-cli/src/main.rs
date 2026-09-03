@@ -233,8 +233,10 @@ fn recover_all(arguments: Vec<String>) -> Result<()> {
     let scan = scan_image(image_path).context("scan recovery image")?;
 
     let source = ef_core::ImageSource::inspect(image_path).context("inspect recovery image")?;
-    let destination_path =
-        approve_destination(&source, destination).context("validate recovery destination")?;
+    // Reject an unusable destination before scanning candidates. The approved path is
+    // deliberately discarded: every export re-approves the destination and writes through
+    // the canonical path it returns.
+    approve_destination(&source, destination).context("validate recovery destination")?;
 
     let filtered_candidates: Vec<_> = scan
         .candidates
