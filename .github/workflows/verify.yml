@@ -31,9 +31,29 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes libxkbcommon-x11-0 xvfb
 
-- name: Install RustSec advisory scanner
+      - name: Cache cargo registry and build output
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
+            target
+          key: verify-cargo-${{ runner.os }}-1.97.1-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            verify-cargo-${{ runner.os }}-1.97.1-
+
+      - name: Cache RustSec advisory scanner
+        id: cache-cargo-audit
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-audit
+          key: cargo-audit-0.22.2-${{ runner.os }}
+
+      - name: Install RustSec advisory scanner
+        if: steps.cache-cargo-audit.outputs.cache-hit != 'true'
         run: cargo install cargo-audit --version 0.22.2 --locked
 
-- name: Run deterministic verification matrix
+      - name: Run deterministic verification matrix
         timeout-minutes: 30
         run: sh scripts/verify-all.sh
