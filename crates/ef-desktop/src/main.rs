@@ -410,7 +410,7 @@ impl EvidenceForgeApp {
     fn choose_session_to_open(&mut self) {
         if let Some(path) = FileDialog::new()
             .set_title("Open local recovery session")
-            .add_filter("EvidenceForge session", &["json"])
+            .add_filter("DiskTrace session", &["json"])
             .pick_file()
         {
             match SessionManifest::load(&path) {
@@ -524,7 +524,7 @@ impl EvidenceForgeApp {
             self.notice = Some(Notice {
                 tone: NoticeTone::Information,
                 title: "Destination selected".to_owned(),
-                detail: "EvidenceForge will validate this destination against the source image before any export.".to_owned(),
+                detail: "DiskTrace will validate this destination against the source image before any export.".to_owned(),
             });
         }
     }
@@ -566,7 +566,7 @@ impl EvidenceForgeApp {
         self.notice = Some(Notice {
             tone: NoticeTone::Information,
             title: "Scanning image".to_owned(),
-            detail: "EvidenceForge is reading the selected image in the background. The source remains read-only.".to_owned(),
+            detail: "DiskTrace is reading the selected image in the background. The source remains read-only.".to_owned(),
         });
     }
 
@@ -576,7 +576,7 @@ impl EvidenceForgeApp {
             self.notice = Some(Notice {
                 tone: NoticeTone::Warning,
                 title: "Stopping scan".to_owned(),
-                detail: "EvidenceForge is stopping the current local read. The pending result will be discarded and any previous catalogue remains available.".to_owned(),
+                detail: "DiskTrace is stopping the current local read. The pending result will be discarded and any previous catalogue remains available.".to_owned(),
             });
         }
     }
@@ -887,7 +887,7 @@ impl EvidenceForgeApp {
             self.notice = Some(Notice {
                 tone: NoticeTone::Warning,
                 title: "Choose a separate destination".to_owned(),
-                detail: "EvidenceForge refuses to write recovered files into the source image storage location.".to_owned(),
+                detail: "DiskTrace refuses to write recovered files into the source image storage location.".to_owned(),
             });
             return;
         }
@@ -938,7 +938,7 @@ impl EvidenceForgeApp {
             self.notice = Some(Notice {
                 tone: NoticeTone::Warning,
                 title: "Choose a separate destination".to_owned(),
-                detail: "EvidenceForge refuses to write recovered files into the source image storage location.".to_owned(),
+                detail: "DiskTrace refuses to write recovered files into the source image storage location.".to_owned(),
             });
             return;
         }
@@ -1713,7 +1713,7 @@ impl eframe::App for EvidenceForgeApp {
                                             ui.label("Preparing bounded local preview…");
                                         });
                                         ui.small(
-                                            "EvidenceForge is rechecking the saved source identity, then reading only this selected candidate range. The source remains read-only and no file is opened or executed.",
+                                            "DiskTrace is rechecking the saved source identity, then reading only this selected candidate range. The source remains read-only and no file is opened or executed.",
                                         );
                                     }
                                     PreviewKind::MetadataOnly if preview_error.is_some() => {
@@ -1910,7 +1910,7 @@ fn recovery_review_window(context: &egui::Context, app: &mut EvidenceForgeApp) {
             action_guidance_panel(
                 ui,
                 "One final safety check will run",
-                "EvidenceForge validates the destination against the source before writing. If the destination is unsafe or unavailable, no recovery file is created.",
+                "DiskTrace validates the destination against the source before writing. If the destination is unsafe or unavailable, no recovery file is created.",
                 Palette::WARNING,
             );
             ui.add_space(12.0);
