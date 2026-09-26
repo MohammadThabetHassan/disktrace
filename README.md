@@ -21,6 +21,11 @@ DiskTrace is a local-first native desktop application for reviewing and exportin
 | --- | --- | --- |
 | Choose a local image, scan in the background, filter candidates, inspect bounded previews, and export only to a separate destination. | See the method, source range, validation state, known limits, source identity, session state, and export receipt for each supported candidate. | No cloud recovery, account system, runtime AI, telemetry, or source writes. |
 
+<p align="center">
+  <img src="docs/assets/desktop-workspace.png" width="900" alt="DiskTrace desktop workspace after a verified read-only scan of the bundled synthetic FAT12 demo image: two recovered candidates, and the evidence detail for a checked PNG with its source offset and structure summary">
+</p>
+<p align="center"><sub>The guided demo, run on the bundled synthetic FAT12 fixture. No real evidence image is shown.</sub></p>
+
 ## Why DiskTrace
 
 Useful recovery software should state both **what it found** and **why it is willing to show it**. DiskTrace records how a candidate was discovered, where its bytes originate, which bounded checks passed, and where the method stops. Before export, it enforces a separate destination and creates a receipt that binds source identity, candidate facts, and output hashes.
@@ -136,6 +141,8 @@ Those results are bounded CI evidence only. They are not a macOS package, Intel-
 | [`crates/ef-core`](crates/ef-core) | Source identity, session model, candidate types, and recovery-method vocabulary. |
 | [`crates/ef-fat`](crates/ef-fat) | Bounded FAT12, FAT16, exFAT, and NTFS metadata parsers and extraction. |
 | [`crates/ef-carve`](crates/ef-carve) | Bounded PNG, JPEG, GIF, AVI, MP4/MOV, PDF, and ZIP/Open XML structural carvers. |
+| [`crates/ef-policy`](crates/ef-policy) | Destination policy: approves only an existing, separate output folder outside source storage. |
+| [`crates/ef-report`](crates/ef-report) | Recovery receipts and exported-artifact records, serialised to JSON. |
 | [`crates/ef-workflow`](crates/ef-workflow) | Shared scan, recovery, session, source-integrity, receipt, and export-audit workflow. |
 | [`crates/ef-catalogue`](crates/ef-catalogue) | Deterministic candidate search, filtering, summaries, explanations, and bounded previews. |
 | [`crates/ef-cli`](crates/ef-cli) | Command-line interface for inspection, scanning, sessions, auditing, and selected-candidate recovery. |
