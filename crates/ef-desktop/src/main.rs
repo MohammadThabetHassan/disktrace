@@ -254,13 +254,7 @@ impl EvidenceForgeApp {
         manifest_path: Option<PathBuf>,
         source_integrity: SourceIntegrity,
     ) {
-        self.image_path = manifest
-            .session
-            .source
-            .identity
-            .canonical_path
-            .display()
-            .to_string();
+        self.image_path = display_path(&manifest.session.source.identity.canonical_path);
         self.candidates = manifest.candidates.clone();
         self.source_detail = Some(format!(
             "{} • {} bytes • SHA-256 {}…",
@@ -1071,58 +1065,95 @@ impl eframe::App for EvidenceForgeApp {
             context.request_repaint_after(Duration::from_millis(80));
         }
         let (workflow_label, workflow_color) = workflow_state_label(self);
-        egui::TopBottomPanel::top("top_bar").show(context, |ui| {
-            egui::Frame::NONE
-                .fill(Palette::CHROME)
-                .inner_margin(egui::Margin::symmetric(18, 8))
-                .show(ui, |ui| {
-                    ui.horizontal(|ui| {
-                        ui.label(
-                            egui::RichText::new("DiskTrace")
-                                .size(21.0)
-                                .strong()
-                                .color(Palette::TEXT),
-                        );
-                        ui.separator();
-                        ui.label(
-                            egui::RichText::new("Recovery workspace")
-                                .small()
-                                .color(Palette::TEXT_MUTED),
-                        );
-                        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                            if ui.small_button("Help · F1").clicked() {
-                                self.show_shortcuts = true;
-                            }
-                            ui.add_space(10.0);
-                            ui.colored_label(workflow_color, format!("• {workflow_label}"));
-                            ui.add_space(10.0);
+        egui::TopBottomPanel::top("top_bar")
+            .frame(
+                egui::Frame::NONE
+                    .fill(Palette::INK)
+                    .stroke(egui::Stroke::new(1.0_f32, Palette::LINE)),
+            )
+            .show(context, |ui| {
+                egui::Frame::NONE
+                    .inner_margin(egui::Margin::symmetric(20, 10))
+                    .show(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            // Brand mark: a disk platter with its read head, drawn rather than
+                            // shipped as an image so it stays crisp at any scale.
+                            let (mark, _) = ui
+                                .allocate_exact_size(egui::vec2(26.0, 26.0), egui::Sense::hover());
+                            let painter = ui.painter();
+                            painter.circle_stroke(
+                                mark.center(),
+                                11.0,
+                                egui::Stroke::new(2.0_f32, Palette::FOCUS_STRONG),
+                            );
+                            painter.circle_filled(mark.center(), 3.0, Palette::FOCUS_STRONG);
+                            painter.line_segment(
+                                [
+                                    mark.center() + egui::vec2(3.0, -3.0),
+                                    mark.center() + egui::vec2(9.0, -9.0),
+                                ],
+                                egui::Stroke::new(2.0_f32, Palette::FOCUS_STRONG),
+                            );
+                            ui.add_space(2.0);
                             ui.label(
-                                egui::RichText::new("Read-only source")
-                                    .small()
+                                egui::RichText::new("DiskTrace")
+                                    .size(19.0)
+                                    .strong()
+                                    .color(Palette::TEXT),
+                            );
+                            ui.add_space(6.0);
+                            ui.label(
+                                egui::RichText::new("Recovery workspace")
                                     .color(Palette::TEXT_MUTED),
                             );
-                            ui.add_space(8.0);
-                            ui.label(
-                                egui::RichText::new("Local only")
-                                    .small()
-                                    .color(Palette::TEXT_MUTED),
+                            ui.with_layout(
+                                egui::Layout::right_to_left(egui::Align::Center),
+                                |ui| {
+                                    if ui.button("Help · F1").clicked() {
+                                        self.show_shortcuts = true;
+                                    }
+                                    ui.add_space(12.0);
+                                    status_badge(ui, workflow_label, workflow_color);
+                                    ui.add_space(12.0);
+                                    ui.label(
+                                        egui::RichText::new("Read-only source")
+                                            .small()
+                                            .color(Palette::TEXT_MUTED),
+                                    );
+                                    ui.add_space(8.0);
+                                    ui.label(
+                                        egui::RichText::new("Local only")
+                                            .small()
+                                            .color(Palette::TEXT_MUTED),
+                                    );
+                                },
                             );
                         });
                     });
-                });
-        });
+            });
 
         egui::SidePanel::left("workflow_panel")
             .resizable(false)
             .default_width(320.0)
+            .frame(
+                egui::Frame::NONE
+                    .fill(Palette::CHROME)
+                    .stroke(egui::Stroke::new(1.0_f32, Palette::LINE))
+                    .inner_margin(egui::Margin::symmetric(16, 12)),
+            )
             .show(context, |ui| {
                 egui::ScrollArea::vertical()
                     .auto_shrink([false, false])
                     .show(ui, |ui| {
-                ui.add_space(12.0);
+                ui.add_space(4.0);
                 workflow_steps_panel(ui, self);
-                ui.small("The rail continues with filters and destination controls below.");
-                ui.add_space(14.0);
+                ui.add_space(6.0);
+                ui.label(
+                    egui::RichText::new("The rail continues with filters and destination controls below.")
+                        .small()
+                        .color(Palette::TEXT_FAINT),
+                );
+                ui.add_space(10.0);
                 ui.collapsing("Open or save an evidence session", |ui| {
                     ui.label("Keep a local, resumable record of a completed scan and its exports.");
                     ui.horizontal(|ui| {
@@ -1138,12 +1169,13 @@ impl eframe::App for EvidenceForgeApp {
                 ui.add_space(14.0);
                 ui.separator();
                 ui.add_space(10.0);
-                ui.heading("1. Select a recovery image");
+                rail_heading(ui, "1", "Select a recovery image");
                 ui.label("Use an image copy whenever possible. Your selected image stays read-only.");
                 ui.add_space(8.0);
                 ui.label("Local image path");
                 ui.add(
                     egui::TextEdit::multiline(&mut self.image_path)
+                        .desired_width(f32::INFINITY)
                         .desired_rows(3)
                         .hint_text("/path/to/recovery-image.img"),
                 );
@@ -1259,7 +1291,7 @@ impl eframe::App for EvidenceForgeApp {
                 ui.add_space(18.0);
                 ui.separator();
                 ui.add_space(10.0);
-                ui.heading("2. Filter results");
+                rail_heading(ui, "2", "Filter results");
                 ui.label("Search");
                 ui.text_edit_singleline(&mut self.search);
                 ui.add_space(6.0);
@@ -1372,10 +1404,11 @@ impl eframe::App for EvidenceForgeApp {
                 ui.add_space(18.0);
                 ui.separator();
                 ui.add_space(10.0);
-                ui.heading("3. Save safely");
+                rail_heading(ui, "3", "Save safely");
                 ui.label("Separate destination folder");
                 ui.add(
                     egui::TextEdit::multiline(&mut self.destination_path)
+                        .desired_width(f32::INFINITY)
                         .desired_rows(3)
                         .hint_text("/path/to/separate/recovery-output"),
                 );
@@ -1388,7 +1421,13 @@ impl eframe::App for EvidenceForgeApp {
                     });
             });
 
-        egui::CentralPanel::default().show(context, |ui| {
+        egui::CentralPanel::default()
+            .frame(
+                egui::Frame::NONE
+                    .fill(Palette::CANVAS)
+                    .inner_margin(egui::Margin::symmetric(22, 16)),
+            )
+            .show(context, |ui| {
             if let Some(notice) = &self.notice {
                 notice_panel(ui, notice);
                 ui.add_space(12.0);
@@ -1430,7 +1469,7 @@ impl eframe::App for EvidenceForgeApp {
                     |ui| {
                         ui.label(
                             egui::RichText::new("Recovered evidence")
-                                .size(19.0)
+                                .size(18.0)
                                 .strong(),
                         );
                         let results_prompt = if let Some(source_detail) = &self.source_detail {
@@ -1442,19 +1481,46 @@ impl eframe::App for EvidenceForgeApp {
                         } else {
                             "The image is ready. Start a read-only scan from the workflow rail or press Cmd/Ctrl + Enter."
                         };
-                        ui.label(results_prompt);
+                        if self.source_detail.is_some() {
+                            ui.label(
+                                egui::RichText::new(results_prompt)
+                                    .monospace()
+                                    .color(Palette::TEXT_MUTED),
+                            );
+                        } else {
+                            ui.label(egui::RichText::new(results_prompt).color(Palette::TEXT_SOFT));
+                        }
                         if let Some(catalogue) = &self.catalogue {
-                            ui.add_space(4.0);
-                            ui.label(format!(
-                                "{} results • {} metadata • {} carved • {} checked",
-                                catalogue.summary.total_candidates,
-                                catalogue.summary.metadata_candidates,
-                                catalogue.summary.carved_candidates,
-                                catalogue.summary.content_validated_candidates
-                            ));
+                            ui.add_space(6.0);
+                            ui.horizontal_wrapped(|ui| {
+                                status_badge(
+                                    ui,
+                                    &format!("{} results", catalogue.summary.total_candidates),
+                                    Palette::FOCUS,
+                                );
+                                status_badge(
+                                    ui,
+                                    &format!("{} metadata", catalogue.summary.metadata_candidates),
+                                    Palette::INFO,
+                                );
+                                status_badge(
+                                    ui,
+                                    &format!("{} carved", catalogue.summary.carved_candidates),
+                                    Palette::INFO,
+                                );
+                                status_badge(
+                                    ui,
+                                    &format!("{} checked", catalogue.summary.content_validated_candidates),
+                                    Palette::SUCCESS,
+                                );
+                            });
                         }
                         if !self.presentations.is_empty() {
-                            ui.small("Use Up/Down to review the filtered results without leaving the evidence detail.");
+                            ui.label(
+                                egui::RichText::new("Use Up/Down to review the filtered results without leaving the evidence detail.")
+                                    .small()
+                                    .color(Palette::TEXT_FAINT),
+                            );
                         }
                         ui.add_space(8.0);
                         if self.catalogue.is_some() && self.presentations.is_empty() {
@@ -1478,24 +1544,29 @@ impl eframe::App for EvidenceForgeApp {
                                         .fill(if selected {
                                             Palette::SURFACE_RAISED
                                         } else {
-                                            Palette::CANVAS
+                                            Palette::SURFACE
                                         })
                                         .stroke(egui::Stroke::new(
-                                            if selected { 1.2_f32 } else { 0.0_f32 },
-                                            if selected { Palette::FOCUS } else { Palette::CANVAS },
+                                            1.0_f32,
+                                            if selected { Palette::FOCUS } else { Palette::LINE },
                                         ))
-                                        .corner_radius(egui::CornerRadius::same(6))
-                                        .inner_margin(egui::Margin::symmetric(10, 9))
+                                        .corner_radius(egui::CornerRadius::same(8))
+                                        .inner_margin(egui::Margin::symmetric(12, 10))
                                         .show(ui, |ui| {
+                                            ui.set_width(ui.available_width());
                                             ui.horizontal_top(|ui| {
-                                                if selected {
-                                                    let (rule, _) = ui.allocate_exact_size(
-                                                        egui::vec2(3.0, 38.0),
-                                                        egui::Sense::hover(),
-                                                    );
-                                                    ui.painter().rect_filled(rule, 1.0, method_tone);
-                                                    ui.add_space(3.0);
-                                                }
+                                                // Method colour rule on every card, so the list
+                                                // reads by method at a glance, not only when selected.
+                                                let (rule, _) = ui.allocate_exact_size(
+                                                    egui::vec2(3.0, 38.0),
+                                                    egui::Sense::hover(),
+                                                );
+                                                ui.painter().rect_filled(
+                                                    rule,
+                                                    1.5,
+                                                    if selected { method_tone } else { method_tone.gamma_multiply(0.55) },
+                                                );
+                                                ui.add_space(4.0);
                                                 ui.vertical(|ui| {
                                                     ui.label(
                                                         egui::RichText::new(&presentation.candidate.evidence_name)
@@ -1505,7 +1576,7 @@ impl eframe::App for EvidenceForgeApp {
                                                     ui.label(
                                                         egui::RichText::new(&presentation.method_label)
                                                             .small()
-                                                            .color(if selected { method_tone } else { Palette::TEXT_SOFT }),
+                                                            .color(if selected { method_tone } else { Palette::TEXT_MUTED }),
                                                     );
                                                 });
                                                 ui.with_layout(
@@ -1522,11 +1593,12 @@ impl eframe::App for EvidenceForgeApp {
                                             ui.add_space(3.0);
                                             ui.label(
                                                 egui::RichText::new(format!(
-                                                    "{} bytes  •  source offset {}",
+                                                    "{} bytes  ·  source offset {}",
                                                     presentation.candidate.byte_length,
                                                     presentation.candidate.source_offset
                                                 ))
-                                                .small()
+                                                .monospace()
+                                                .size(11.5)
                                                 .color(Palette::TEXT_FAINT),
                                             );
                                         })
@@ -1557,19 +1629,14 @@ impl eframe::App for EvidenceForgeApp {
                             .id_salt("evidence_detail_scroll")
                             .auto_shrink([false, false])
                             .show(ui, |ui| {
-                        ui.label(
-                            egui::RichText::new("Evidence detail")
-                                .size(11.0)
-                                .strong()
-                                .color(Palette::TEXT_SOFT),
-                        );
+                        section_label(ui, "Evidence detail");
                         let preview_loading = self.selected_preview_is_loading();
                         let preview_error = self.selected_preview_error().map(str::to_owned);
                         if let Some(presentation) = self.selected_presentation().cloned() {
                             ui.add_space(6.0);
                             ui.label(
                                 egui::RichText::new(&presentation.candidate.evidence_name)
-                                    .size(21.0)
+                                    .size(20.0)
                                     .strong(),
                             );
                             ui.horizontal_wrapped(|ui| {
@@ -1585,7 +1652,7 @@ impl eframe::App for EvidenceForgeApp {
                                 );
                             });
                             ui.add_space(10.0);
-                            ui.group(|ui| {
+                            detail_card(ui, |ui| {
                                 ui.label(egui::RichText::new("At a glance").strong());
                                 egui::Grid::new("candidate_at_a_glance")
                                     .num_columns(2)
@@ -1606,13 +1673,14 @@ impl eframe::App for EvidenceForgeApp {
                                     });
                             });
                             ui.add_space(12.0);
-                            ui.group(|ui| {
+                            detail_card(ui, |ui| {
                                 ui.strong("Preview");
                                 match presentation.preview.kind {
                                     PreviewKind::TextExcerpt => {
                                         if let Some(mut text) = presentation.preview.text_excerpt {
                                             ui.add(
                                                 egui::TextEdit::multiline(&mut text)
+                                                    .desired_width(f32::INFINITY)
                                                     .desired_rows(6)
                                                     .interactive(false),
                                             );
@@ -1666,7 +1734,7 @@ impl eframe::App for EvidenceForgeApp {
                             });
                             ui.add_space(12.0);
                             let (basis, validation) = candidate_evidence_presentation(&presentation.candidate);
-                            ui.group(|ui| {
+                            detail_card(ui, |ui| {
                                 ui.label(egui::RichText::new("What this evidence establishes").strong().color(Palette::TEXT));
                                 ui.label(egui::RichText::new(basis).color(Palette::TEXT_SOFT));
                                 ui.small(egui::RichText::new(validation).color(Palette::TEXT_SOFT));
@@ -1676,7 +1744,7 @@ impl eframe::App for EvidenceForgeApp {
                                 ).color(Palette::TEXT_MUTED));
                             });
                             ui.add_space(8.0);
-                            ui.group(|ui| {
+                            detail_card(ui, |ui| {
                                 ui.label(egui::RichText::new("Method notes").strong().color(Palette::TEXT));
                                 ui.label(egui::RichText::new(&presentation.explanation).color(Palette::TEXT_SOFT));
                             });
@@ -1967,27 +2035,123 @@ impl Palette {
 }
 
 fn configure_style(context: &egui::Context) {
+    // The palette is dark-only. Pin the theme so a light OS theme can't swap in
+    // egui's stock light style underneath it (white panels, unreadable text).
+    context.set_theme(egui::ThemePreference::Dark);
     let mut style = (*context.style()).clone();
-    style.spacing.item_spacing = egui::vec2(8.0, 8.0);
-    style.spacing.button_padding = egui::vec2(9.0, 5.0);
+    style.spacing.item_spacing = egui::vec2(8.0, 7.0);
+    style.spacing.button_padding = egui::vec2(12.0, 6.0);
     style.spacing.interact_size = egui::vec2(40.0, 30.0);
     style.spacing.text_edit_width = 220.0;
+    // One type scale for the whole app. egui's stock `small` (9pt) is too small to
+    // read on a dense forensic screen, and its heading is louder than a rail title needs.
+    use egui::{FontFamily, FontId, TextStyle};
+    style.text_styles = [
+        (
+            TextStyle::Small,
+            FontId::new(11.5, FontFamily::Proportional),
+        ),
+        (TextStyle::Body, FontId::new(13.5, FontFamily::Proportional)),
+        (
+            TextStyle::Button,
+            FontId::new(13.5, FontFamily::Proportional),
+        ),
+        (
+            TextStyle::Monospace,
+            FontId::new(12.5, FontFamily::Monospace),
+        ),
+        (
+            TextStyle::Heading,
+            FontId::new(16.0, FontFamily::Proportional),
+        ),
+    ]
+    .into();
     context.set_style(style);
 
     let mut visuals = egui::Visuals::dark();
     visuals.panel_fill = Palette::CHROME;
     visuals.window_fill = Palette::CANVAS;
     visuals.extreme_bg_color = Palette::INK;
+    visuals.code_bg_color = Palette::SURFACE_MUTED;
     visuals.faint_bg_color = Palette::SURFACE_RAISED;
     visuals.selection.bg_fill = Palette::FOCUS.gamma_multiply(0.46);
     visuals.selection.stroke = egui::Stroke::new(1.0_f32, Palette::FOCUS_STRONG);
+    let radius = egui::CornerRadius::same(6);
+    visuals.widgets.noninteractive.bg_stroke = egui::Stroke::new(1.0_f32, Palette::LINE);
+    visuals.widgets.noninteractive.corner_radius = radius;
     visuals.widgets.inactive.bg_fill = Palette::SURFACE_RAISED;
-    visuals.widgets.inactive.weak_bg_fill = Palette::SURFACE_MUTED;
-    visuals.widgets.hovered.bg_fill = Palette::FOCUS.gamma_multiply(0.42);
-    visuals.widgets.hovered.weak_bg_fill = Palette::FOCUS.gamma_multiply(0.32);
-    visuals.widgets.active.bg_fill = Palette::FOCUS.gamma_multiply(0.56);
+    visuals.widgets.inactive.weak_bg_fill = Palette::SURFACE_RAISED;
+    visuals.widgets.inactive.bg_stroke = egui::Stroke::new(1.0_f32, Palette::LINE);
+    visuals.widgets.inactive.corner_radius = radius;
+    visuals.widgets.hovered.bg_fill = Palette::SURFACE_SUBTLE;
+    visuals.widgets.hovered.weak_bg_fill = Palette::SURFACE_SUBTLE;
+    visuals.widgets.hovered.bg_stroke = egui::Stroke::new(1.0_f32, Palette::LINE_FOCUS);
+    visuals.widgets.hovered.corner_radius = radius;
+    visuals.widgets.active.bg_fill = Palette::FOCUS_SOFT;
+    visuals.widgets.active.weak_bg_fill = Palette::FOCUS_SOFT;
+    visuals.widgets.active.bg_stroke = egui::Stroke::new(1.0_f32, Palette::FOCUS_STRONG);
+    visuals.widgets.active.corner_radius = radius;
+    visuals.widgets.open.corner_radius = radius;
+    visuals.window_corner_radius = egui::CornerRadius::same(10);
+    visuals.window_stroke = egui::Stroke::new(1.0_f32, Palette::LINE_STRONG);
     visuals.override_text_color = Some(Palette::TEXT);
     context.set_visuals(visuals);
+}
+
+/// A bordered surface used for every grouped block in the workspace, so cards
+/// share one fill, edge, radius and inner padding instead of mixing `ui.group`
+/// defaults with ad hoc frames.
+fn card_frame() -> egui::Frame {
+    egui::Frame::NONE
+        .fill(Palette::SURFACE)
+        .stroke(egui::Stroke::new(1.0_f32, Palette::LINE))
+        .corner_radius(egui::CornerRadius::same(8))
+        .inner_margin(egui::Margin::symmetric(14, 12))
+}
+
+fn detail_card(ui: &mut egui::Ui, add_contents: impl FnOnce(&mut egui::Ui)) {
+    card_frame().show(ui, |ui| {
+        ui.set_width(ui.available_width());
+        add_contents(ui);
+    });
+}
+
+/// Small uppercase-style label that introduces a region of the screen.
+fn section_label(ui: &mut egui::Ui, text: &str) {
+    ui.label(
+        egui::RichText::new(text)
+            .size(11.5)
+            .strong()
+            .color(Palette::TEXT_FAINT),
+    );
+}
+
+/// Rail section title with a step number, e.g. "1 · Select a recovery image".
+fn rail_heading(ui: &mut egui::Ui, number: &str, title: &str) {
+    ui.horizontal(|ui| {
+        ui.label(
+            egui::RichText::new(number)
+                .monospace()
+                .strong()
+                .color(Palette::FOCUS),
+        );
+        ui.label(
+            egui::RichText::new(title)
+                .size(15.0)
+                .strong()
+                .color(Palette::TEXT),
+        );
+    });
+}
+
+/// Windows canonical paths carry a `\\?\` verbatim prefix. It is valid for I/O but
+/// reads as noise in a path field, so drop it for ordinary drive paths.
+fn display_path(path: &std::path::Path) -> String {
+    let text = path.display().to_string();
+    match text.strip_prefix(r"\\?\") {
+        Some(rest) if rest.len() < 248 && rest.as_bytes().get(1) == Some(&b':') => rest.to_owned(),
+        _ => text,
+    }
 }
 
 fn start_workspace_panel(ui: &mut egui::Ui, app: &mut EvidenceForgeApp) {
@@ -1997,6 +2161,7 @@ fn start_workspace_panel(ui: &mut egui::Ui, app: &mut EvidenceForgeApp) {
         .corner_radius(egui::CornerRadius::same(6))
         .inner_margin(egui::Margin::symmetric(24, 22))
         .show(ui, |ui| {
+            ui.set_width(ui.available_width());
             ui.label(
                 egui::RichText::new("Start a local recovery session")
                     .size(24.0)
@@ -2133,52 +2298,51 @@ fn candidate_evidence_presentation(candidate: &RecoveryCandidate) -> (&'static s
     (basis, validation)
 }
 
-fn status_badge(ui: &mut egui::Ui, label: &str, color: egui::Color32) {
-    let bg = color.gamma_multiply(0.16);
-    let text_color = if color == Palette::WARNING || color == Palette::WARNING_STRONG {
-        Palette::INK
+/// Readable foreground for text drawn on a tinted `color` background. Every surface in
+/// this palette is dark, so tinted chips take the tone's bright variant, never ink.
+fn tone_text(color: egui::Color32) -> egui::Color32 {
+    if color == Palette::WARNING || color == Palette::WARNING_STRONG {
+        Palette::WARNING_STRONG
+    } else if color == Palette::SUCCESS || color == Palette::SUCCESS_STRONG {
+        Palette::SUCCESS_STRONG
+    } else if color == Palette::ERROR || color == Palette::ERROR_STRONG {
+        Palette::ERROR_STRONG
     } else {
         Palette::TEXT
-    };
+    }
+}
+
+fn status_badge(ui: &mut egui::Ui, label: &str, color: egui::Color32) {
     egui::Frame::NONE
-        .fill(bg)
-        .stroke(egui::Stroke::new(1.0_f32, color.gamma_multiply(0.7)))
-        .corner_radius(egui::CornerRadius::same(5))
-        .inner_margin(egui::Margin::symmetric(7, 3))
+        .fill(color.gamma_multiply(0.14))
+        .stroke(egui::Stroke::new(1.0_f32, color.gamma_multiply(0.6)))
+        .corner_radius(egui::CornerRadius::same(10))
+        .inner_margin(egui::Margin::symmetric(9, 3))
         .show(ui, |ui| {
             ui.label(
                 egui::RichText::new(label)
-                    .size(10.0)
+                    .size(11.0)
                     .strong()
-                    .color(text_color),
+                    .color(tone_text(color)),
             );
         });
 }
 
 fn action_guidance_panel(ui: &mut egui::Ui, title: &str, detail: &str, color: egui::Color32) {
-    let bg = color.gamma_multiply(0.14);
-    let text_color = if color == Palette::WARNING || color == Palette::WARNING_STRONG {
-        Palette::INK
-    } else {
-        Palette::TEXT
-    };
     egui::Frame::NONE
-        .fill(bg)
-        .stroke(egui::Stroke::new(1.0_f32, color.gamma_multiply(0.75)))
-        .corner_radius(egui::CornerRadius::same(6))
-        .inner_margin(egui::Margin::same(11))
+        .fill(color.gamma_multiply(0.12))
+        .stroke(egui::Stroke::new(1.0_f32, color.gamma_multiply(0.6)))
+        .corner_radius(egui::CornerRadius::same(8))
+        .inner_margin(egui::Margin::symmetric(14, 11))
         .show(ui, |ui| {
-            ui.label(egui::RichText::new(title).strong().color(text_color));
+            ui.set_width(ui.available_width());
+            ui.label(egui::RichText::new(title).strong().color(tone_text(color)));
             ui.small(egui::RichText::new(detail).color(Palette::TEXT_SOFT));
         });
 }
 
 fn workspace_empty_panel(ui: &mut egui::Ui, title: &str, detail: &str, color: egui::Color32) {
-    let text_color = if color == Palette::WARNING || color == Palette::WARNING_STRONG {
-        Palette::INK
-    } else {
-        Palette::TEXT
-    };
+    let text_color = tone_text(color);
     egui::Frame::NONE
         .fill(Palette::SURFACE)
         .stroke(egui::Stroke::new(1.0_f32, color.gamma_multiply(0.7)))
@@ -2203,13 +2367,8 @@ fn workflow_steps_panel(ui: &mut egui::Ui, app: &EvidenceForgeApp) {
         2
     };
 
-    ui.label(
-        egui::RichText::new("Recovery workflow")
-            .size(11.0)
-            .strong()
-            .color(Palette::TEXT_SOFT),
-    );
-    ui.add_space(5.0);
+    section_label(ui, "Recovery workflow");
+    ui.add_space(4.0);
     for (step, title, detail) in [
         (1, "Select image", "Choose a local image copy"),
         (2, "Scan and review", "Read methods and limitations"),
@@ -2217,47 +2376,82 @@ fn workflow_steps_panel(ui: &mut egui::Ui, app: &EvidenceForgeApp) {
     ] {
         let complete =
             (step == 1 && !app.image_path.trim().is_empty()) || (step == 2 && completed_scan);
-        let active = active_step == step;
-        let _step_color = if complete {
+        let active = active_step == step && !complete;
+        let step_color = if complete {
             Palette::SUCCESS_STRONG
         } else if active {
             Palette::FOCUS_STRONG
         } else {
-            Palette::TEXT_MUTED
+            Palette::LINE_STRONG
         };
-        let text_color = if complete {
-            Palette::INK
-        } else {
-            Palette::TEXT
-        };
-        ui.horizontal(|ui| {
-            ui.label(
-                egui::RichText::new(if complete {
-                    "OK".to_owned()
+        egui::Frame::NONE
+            .fill(if active {
+                Palette::SURFACE
+            } else {
+                egui::Color32::TRANSPARENT
+            })
+            .stroke(egui::Stroke::new(
+                1.0_f32,
+                if active {
+                    Palette::LINE
                 } else {
-                    format!("0{step}")
-                })
-                .monospace()
-                .strong()
-                .color(text_color),
-            );
-            ui.vertical(|ui| {
-                ui.label(egui::RichText::new(title).strong().color(if active {
-                    Palette::TEXT
-                } else if complete {
-                    Palette::SUCCESS_STRONG
-                } else {
-                    Palette::TEXT_SOFT
-                }));
-                ui.label(
-                    egui::RichText::new(detail)
-                        .small()
-                        .color(Palette::TEXT_MUTED),
-                );
+                    egui::Color32::TRANSPARENT
+                },
+            ))
+            .corner_radius(egui::CornerRadius::same(8))
+            .inner_margin(egui::Margin::symmetric(10, 7))
+            .show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                ui.horizontal(|ui| {
+                    // Step marker: a filled ring for the active step, a solid disc with a
+                    // check for completed ones, and a quiet outline for steps still ahead.
+                    let (marker, _) =
+                        ui.allocate_exact_size(egui::vec2(26.0, 26.0), egui::Sense::hover());
+                    let painter = ui.painter();
+                    let center = marker.center();
+                    if complete {
+                        painter.circle_filled(center, 11.0, step_color.gamma_multiply(0.22));
+                        painter.circle_stroke(center, 11.0, egui::Stroke::new(1.5_f32, step_color));
+                        painter.text(
+                            center,
+                            egui::Align2::CENTER_CENTER,
+                            "✔",
+                            egui::FontId::proportional(12.0),
+                            step_color,
+                        );
+                    } else {
+                        painter.circle_stroke(center, 11.0, egui::Stroke::new(1.5_f32, step_color));
+                        painter.text(
+                            center,
+                            egui::Align2::CENTER_CENTER,
+                            step.to_string(),
+                            egui::FontId::monospace(12.0),
+                            if active {
+                                Palette::FOCUS_STRONG
+                            } else {
+                                Palette::TEXT_MUTED
+                            },
+                        );
+                    }
+                    ui.add_space(4.0);
+                    ui.vertical(|ui| {
+                        ui.label(egui::RichText::new(title).strong().color(if active {
+                            Palette::TEXT
+                        } else if complete {
+                            Palette::SUCCESS_STRONG
+                        } else {
+                            Palette::TEXT_SOFT
+                        }));
+                        ui.label(
+                            egui::RichText::new(detail)
+                                .small()
+                                .color(Palette::TEXT_MUTED),
+                        );
+                    });
+                });
             });
-        });
         if step != 3 {
-            ui.add_space(5.0);
+            ui.add_space(2.0);
         }
     }
 }
@@ -2447,13 +2641,18 @@ fn notice_panel(ui: &mut egui::Ui, notice: &Notice) {
         NoticeTone::Error => Palette::ERROR,
     };
     egui::Frame::NONE
-        .fill(color.gamma_multiply(0.18))
-        .stroke(egui::Stroke::new(1.0_f32, color))
+        .fill(color.gamma_multiply(0.12))
+        .stroke(egui::Stroke::new(1.0_f32, color.gamma_multiply(0.6)))
         .corner_radius(egui::CornerRadius::same(8))
-        .inner_margin(egui::Margin::same(10))
+        .inner_margin(egui::Margin::symmetric(14, 10))
         .show(ui, |ui| {
-            ui.colored_label(color, &notice.title);
-            ui.label(&notice.detail);
+            ui.set_width(ui.available_width());
+            ui.label(
+                egui::RichText::new(&notice.title)
+                    .strong()
+                    .color(tone_text(color)),
+            );
+            ui.label(egui::RichText::new(&notice.detail).color(Palette::TEXT_SOFT));
         });
 }
 
