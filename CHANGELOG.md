@@ -11,6 +11,7 @@ All notable changes to DiskTrace are documented here. v0.1.0 was published on 20
 ### Changed
 
 - Desktop contrast pass: deeper dark base colors, higher-contrast text levels, dark text on warning badges and panels, explicit text colors in the evidence-detail grid, and dark text on completed workflow steps.
+- Desktop redesign: the workspace now pins its dark theme, so a light operating-system theme no longer swaps in egui's stock light style (white panels with unreadable pale text). It also uses one type scale, padded rail and workspace margins, bordered evidence and detail cards, a method colour rule on every result card, legible status pills and step markers, shows every on-screen message under the DiskTrace name (not the internal EvidenceForge name), and shows Windows image paths without the `\\?\` verbatim prefix. This replaces the dark-on-dark badge and step text from the contrast pass above.
 
 ### Fixed
 
@@ -42,7 +43,6 @@ All notable changes to DiskTrace are documented here. v0.1.0 was published on 20
 ### Changed
 
 - The desktop workflow now includes persistent local-only and read-only-source status, a scrollable step-progress rail, a stronger first-run orientation panel, resettable filters, evidence cards with method and validation badges, session metrics, and a refined safe-export detail view.
-- The desktop workspace now pins its dark theme, so a light operating-system theme no longer swaps in egui's stock light style (white panels with unreadable pale text). It also uses one type scale, padded rail and workspace margins, bordered evidence and detail cards, a method colour rule on every result card, legible status pills and step markers, shows every on-screen message under the DiskTrace name (not the internal EvidenceForge name), and shows Windows image paths without the `\\?\` verbatim prefix.
 - The desktop visual system now uses a named graphite, slate, cyan, mineral-green, amber, and coral palette. The palette separates structural surfaces from active focus and makes verification, review, and failure semantics consistent across the recovery workflow.
 - The native desktop workflow now includes a discoverable platform-command shortcut reference, adaptive candidate and evidence-detail sizing, state-specific result guidance, a disabled-until-ready scan action, a single first-run primary action location, and keyboard navigation across filtered evidence results. These refinements retain native system dialogs and avoid WebView, telemetry, and framework dependencies.
 - Recovery export now opens a native final-review window that identifies the selected candidate, recovery method, validation state, recovered byte count, verified session status, and requested destination. Cancelling this review produces no output; confirmation preserves the existing destination-policy and receipt-backed export path.
