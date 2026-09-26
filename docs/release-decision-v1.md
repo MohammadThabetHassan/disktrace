@@ -1,5 +1,7 @@
 # DiskTrace controlled release decision package v1
 
+> **Later publication:** v0.1.0 was published on 2026-08-28 as an unsigned GitHub pre-release from annotated tag `v0.1.0` (commit `68d4ca7`), not from the `f70f2f5` target recorded here. This no-go record is kept for history, and a production release remains blocked on the gaps listed below.
+
 ## Decision summary
 
 **Decision: no public-release action.** This record identifies `f70f2f517a56ffe8ed4fadc654e47eb9a421b3cb` as a verified pre-release source target for maintainer review. It does not authorize a semantic version, annotated tag, GitHub Release, release asset upload, signing, notarization, support-level change, or production-release statement.

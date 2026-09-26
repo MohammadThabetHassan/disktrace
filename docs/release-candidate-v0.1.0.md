@@ -1,5 +1,7 @@
 # DiskTrace v0.1.0 release-candidate record
 
+> **Published pre-release:** v0.1.0 was published on 2026-08-28 as an unsigned GitHub pre-release (annotated tag `v0.1.0` → commit `68d4ca7`). It is not a production release. The preparation record below is kept for history.
+
 > **Status: preparation only.** This record does not create or authorize a semantic tag, GitHub Release, public artifact, code-signing action, notarization action, support commitment, or production-release claim.
 
 ## Candidate intent
@@ -9,7 +11,7 @@ The proposed first public version is **v0.1.0**, scoped as a local-first forensi
 | Field | Current record |
 | --- | --- |
 | Proposed version | `v0.1.0` |
-| Release state | Preparation only; no tag and no GitHub Release exist. |
+| Release state | Published 2026-08-28 as an unsigned GitHub pre-release, `v0.1.0` (annotated tag → `68d4ca7`). |
 | Candidate source target | Not yet frozen. The final target must be recorded after all release-candidate changes are committed and verified. |
 | Authorized source identity | `MohammadThabetHassan <20220002188@students.cud.ac.ae>` for all project commits. |
 | Release visibility | Not yet authorized. |

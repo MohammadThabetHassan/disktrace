@@ -72,4 +72,4 @@ No completed manual record is asserted by this document. The existing public evi
 
 ## Related contracts
 
-This checklist should be used with the [GUI workflow](gui-workflow-v1.md), [session persistence contract](session-persistence-v1.md), [export and audit verification](export-audit-v1.md), [project status](project-status.md), and [release process](release-process.md). The most conservative applicable safety boundary governs.
+This checklist should be used with the [GUI workflow](gui-workflow-v1.md), [session persistence contract](session-persistence-v1.md), [project status](project-status.md), and [release process](release-process.md). The most conservative applicable safety boundary governs.

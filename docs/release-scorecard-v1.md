@@ -15,7 +15,7 @@ This scorecard prevents DiskTrace from being described as release-grade merely b
 | Hosted verification | Exact `f70f2f517a56ffe8ed4fadc654e47eb9a421b3cb` Linux, native Windows installer/SBOM, macOS 14 ARM64, and Rust CodeQL workflows passed.[1] [2] [3] [4] | The exact tagged target must repeat every required context; a previous green SHA is not tag-target evidence. |
 | Governance | `main` requires the four exact Linux, Windows, macOS ARM64, and CodeQL contexts; current pull requests require CODEOWNERS review; linear history, resolved conversations, and force-push/deletion blocks are active. | Workflow permissions, security/update policy, release ownership, and failure-triage procedure remain documented and current. |
 | Distribution | Linux and Windows package contracts exist; Windows passed disposable installer mechanics and generated a retained SBOM review artifact; macOS 14 ARM64 produces an unsigned review binary. | Versioned consumer artifacts, support-scoped manual acceptance records, public release assets, provenance where authorized, and signing status are recorded. |
-| Public release | No semantic tag or GitHub Release exists. | An explicitly authorized annotated tag and public release resolve to the verified release target and approved notes. |
+| Public release | v0.1.0 was published on 2026-08-28 as an unsigned GitHub pre-release from annotated tag `v0.1.0` (commit `68d4ca7`), not from the `f70f2f5` target evidenced here. No release-grade public release exists. | An explicitly authorized annotated tag and public release resolve to the verified release target and approved notes. |
 
 ## Release target record
 

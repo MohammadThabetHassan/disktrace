@@ -94,6 +94,8 @@ cargo run -p ef-cli -- scan /path/to/image.img
 cargo run -p ef-cli -- catalogue /path/to/image.img --method ntfs-contiguous
 # Review the method and byte range, then copy the efc1 candidate ID from scan output.
 cargo run -p ef-cli -- recover /path/to/image.img efc1-<candidate-id-from-scan> /separate/output-directory
+# Or recover every candidate, optionally filtered by one validation state, with a receipt for each export.
+cargo run -p ef-cli -- recover-all /path/to/image.img /separate/output-directory --validation content_validated
 ```
 
 ## Sessions, previews, and exports
@@ -126,7 +128,7 @@ Every fixture is synthetic and versioned with known expected bytes and source of
 
 ## Distribution status
 
-DiskTrace is a **public source project and local pre-release workspace**. It is not a tagged production release.
+DiskTrace is a **public source project**. [v0.1.0](https://github.com/MohammadThabetHassan/disktrace/releases/tag/v0.1.0) was published on 2026-08-28 as an unsigned GitHub pre-release; it is not a production release.
 
 A Linux x86_64 bundle and a Windows x86_64 cross-target compatibility bundle can be built locally using the scripts in this repository. The Linux bundle has local native smoke evidence. The native hosted Windows workflow additionally verifies the portable bundle, a disposable silent installer install/uninstall path, and a retained SBOM review artifact. Hosted macOS 14 ARM64 validation builds and checks an unsigned review binary.
 
@@ -159,7 +161,7 @@ Those results are bounded CI evidence only. They are not a macOS package, Intel-
 
 ## Status and responsible reporting
 
-DiskTrace should not be described as production-ready until the remaining manual platform acceptance, package/signing/notarization, consumer-facing artifact, authorization, and release-evidence gaps are closed. The current [controlled release decision](docs/release-decision-v1.md) is intentionally a no-go record, not publication authorization.
+DiskTrace should not be described as production-ready until the remaining manual platform acceptance, package/signing/notarization, consumer-facing artifact, authorization, and release-evidence gaps are closed. The unsigned v0.1.0 pre-release does not close them. The [controlled release decision](docs/release-decision-v1.md) is kept as the earlier no-go record for the source target it names.
 
 Use the public issue tracker for reproducible bugs and feature discussions. Do not publish real disk images, private recovered material, credentials, cryptographic keys, personal data, or active exploitation details. Report potential vulnerabilities privately through the process in [SECURITY.md](SECURITY.md).
 

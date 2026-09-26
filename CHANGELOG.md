@@ -1,8 +1,24 @@
 # Changelog
 
-All notable changes to DiskTrace are documented here. The workspace is currently local and pre-release: entries below describe verified implementation work, not published versions or public release artifacts.
+All notable changes to DiskTrace are documented here. v0.1.0 was published on 2026-08-28 as an unsigned GitHub pre-release; it is not a production release. Entries under **Unreleased** are on `main` after the `v0.1.0` tag.
 
 ## Unreleased
+
+### Added
+
+- `recover-all` CLI command that scans an image and recovers every candidate, optionally filtered by `--validation <state>`, to a separate destination directory. Each export writes a receipt, a failed candidate is reported on stderr without stopping the run, and the results are printed as a JSON array.
+
+### Changed
+
+- Desktop contrast pass: deeper dark base colors, higher-contrast text levels, dark text on warning badges and panels, explicit text colors in the evidence-detail grid, and dark text on completed workflow steps.
+- Desktop redesign: the workspace now pins its dark theme, so a light operating-system theme no longer swaps in egui's stock light style (white panels with unreadable pale text). It also uses one type scale, padded rail and workspace margins, bordered evidence and detail cards, a method colour rule on every result card, legible status pills and step markers, shows every on-screen message under the DiskTrace name (not the internal EvidenceForge name), and shows Windows image paths without the `\\?\` verbatim prefix. This replaces the dark-on-dark badge and step text from the contrast pass above.
+
+### Fixed
+
+- Clippy `dead_code` and `if_same_then_else` warnings and rustfmt drift in the desktop and CLI crates.
+- The hosted Linux verification workflow parses again after a step-indentation break, has longer timeouts and the xvfb dependency, and caches `cargo-audit` and build output; macOS validation uses the same cache. `scripts/verify-desktop-ui.sh` now checks the renamed palette constants and names any missing contract string.
+
+## 0.1.0 - 2026-08-28 (unsigned pre-release)
 
 ### Added
 
@@ -27,7 +43,6 @@ All notable changes to DiskTrace are documented here. The workspace is currently
 ### Changed
 
 - The desktop workflow now includes persistent local-only and read-only-source status, a scrollable step-progress rail, a stronger first-run orientation panel, resettable filters, evidence cards with method and validation badges, session metrics, and a refined safe-export detail view.
-- The desktop workspace now pins its dark theme, so a light operating-system theme no longer swaps in egui's stock light style (white panels with unreadable pale text). It also uses one type scale, padded rail and workspace margins, bordered evidence and detail cards, a method colour rule on every result card, legible status pills and step markers, shows every on-screen message under the DiskTrace name (not the internal EvidenceForge name), and shows Windows image paths without the `\\?\` verbatim prefix.
 - The desktop visual system now uses a named graphite, slate, cyan, mineral-green, amber, and coral palette. The palette separates structural surfaces from active focus and makes verification, review, and failure semantics consistent across the recovery workflow.
 - The native desktop workflow now includes a discoverable platform-command shortcut reference, adaptive candidate and evidence-detail sizing, state-specific result guidance, a disabled-until-ready scan action, a single first-run primary action location, and keyboard navigation across filtered evidence results. These refinements retain native system dialogs and avoid WebView, telemetry, and framework dependencies.
 - Recovery export now opens a native final-review window that identifies the selected candidate, recovery method, validation state, recovered byte count, verified session status, and requested destination. Cancelling this review produces no output; confirmation preserves the existing destination-policy and receipt-backed export path.
@@ -60,7 +75,7 @@ All notable changes to DiskTrace are documented here. The workspace is currently
 
 - No direct device acquisition, physical-drive access, image creation, encryption bypass, password recovery, cloud upload, telemetry, or AI-assisted recovery.
 - No filesystem repair, universal or generic fragmented-file reconstruction, path reconstruction, long filename recovery for FAT, recursive directory recovery, arbitrary NTFS runlists, alternate streams, or semantic file validation. GIF carving requires a complete supported block stream and trailer; AVI support excludes RF64/OpenDML extensions; MP4/MOV support requires a self-contained non-fragmented `ftyp`/`moov`/`mdat` layout and does not validate playback, codecs, or sample offsets.
-- No Authenticode-signed Windows installer, consumer-facing signed artifact, SmartScreen evidence, completed manual platform acceptance record, accessibility certification, maintainer support SLA, semantic tag, GitHub Release, or published release asset exists.
+- No Authenticode-signed Windows installer, consumer-facing signed artifact, SmartScreen evidence, completed manual platform acceptance record, accessibility certification, or maintainer support SLA exists.
 
 ## Release process
 

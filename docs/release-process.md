@@ -1,6 +1,6 @@
 # DiskTrace Release Process
 
-This document defines DiskTrace’s release gate. DiskTrace source is public, `main` is protected, and the repository has exact-SHA hosted Linux, Windows, macOS 14 ARM64, and CodeQL verification evidence. Those facts do **not** make the project a tagged, signed, or production release. A local archive, CI review artifact, or pushed commit is not a public release.
+This document defines DiskTrace’s release gate. DiskTrace source is public, `main` is protected, and the repository has exact-SHA hosted Linux, Windows, macOS 14 ARM64, and CodeQL verification evidence. Those facts do **not** make the project a signed or production release. A local archive, CI review artifact, or pushed commit is not a public release. v0.1.0 was published on 2026-08-28 as an unsigned GitHub pre-release; it is not a production release, and the gates below still apply to one.
 
 ## Current release posture
 
@@ -9,7 +9,7 @@ This document defines DiskTrace’s release gate. DiskTrace source is public, `m
 | Source and governance | Public repository, authorized commit identity, protected `main`, required current-branch checks, linear history, and force-push/deletion blocks. | The authorized owner can use the documented direct-main path; external pull-request merges must satisfy the required checks. |
 | Hosted verification | Exact hosted Ubuntu Linux Verify, native Windows distribution, macOS 14 ARM64 validation, and Rust CodeQL workflows passed on the protected pre-release revision. | A release must repeat every required context on the exact tagged target; passing a previous revision is not release evidence. |
 | Local quality | `sh scripts/verify-all.sh` executes format, strict linting, rustdoc, `cargo audit`, workspace tests, deterministic recovery fixtures, build, and Linux desktop smoke where supported. | Local evidence does not substitute for release-target hosted evidence or native platform acceptance. |
-| Distribution | Linux and Windows package contracts exist; Windows has hosted installer-mechanics and SBOM review-artifact evidence; macOS 14 ARM64 produces an unsigned review binary. | No public release assets, consumer-facing immutable provenance/attestation, production code signing, macOS package, or notarization evidence exists. |
+| Distribution | Linux and Windows package contracts exist; Windows has hosted installer-mechanics and SBOM review-artifact evidence; macOS 14 ARM64 produces an unsigned review binary. | v0.1.0 is published as an unsigned GitHub pre-release; no consumer-facing immutable provenance/attestation, production code signing, macOS package, or notarization evidence exists. |
 | Product scope | Supported-method and refusal boundaries are published in the README and method contracts. | No universal recovery, fragmented-file, overwritten/TRIM, encrypted, or controller-discard claim is permitted. |
 
 ## Release prerequisites
