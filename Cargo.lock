@@ -143,7 +143,7 @@ dependencies = [
  "ndk-context",
  "ndk-sys",
  "num_enum",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
@@ -807,7 +807,7 @@ name = "ef-carve"
 version = "0.1.0"
 dependencies = [
  "serde",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
@@ -840,7 +840,7 @@ dependencies = [
  "hex",
  "serde",
  "sha2",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
  "uuid",
 ]
 
@@ -861,7 +861,7 @@ name = "ef-fat"
 version = "0.1.0"
 dependencies = [
  "serde",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
 ]
 
 [[package]]
@@ -869,7 +869,7 @@ name = "ef-policy"
 version = "0.1.0"
 dependencies = [
  "ef-core",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
  "uuid",
 ]
 
@@ -882,7 +882,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
  "uuid",
 ]
 
@@ -898,7 +898,7 @@ dependencies = [
  "ef-report",
  "serde",
  "serde_json",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
  "uuid",
 ]
 
@@ -968,7 +968,7 @@ dependencies = [
  "epaint",
  "log",
  "profiling",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
  "type-map",
  "web-time",
  "wgpu",
@@ -1597,7 +1597,7 @@ dependencies = [
  "jni-sys 0.4.1",
  "log",
  "simd_cesu8",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
  "walkdir",
  "windows-link 0.2.1",
 ]
@@ -1808,7 +1808,7 @@ dependencies = [
  "num-traits",
  "once_cell",
  "rustc-hash 1.1.0",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
  "unicode-ident",
 ]
 
@@ -2700,7 +2700,7 @@ dependencies = [
  "log",
  "memmap2",
  "rustix 1.1.4",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
  "wayland-backend",
  "wayland-client",
  "wayland-csd-frame",
@@ -2802,11 +2802,11 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "2.0.20"
+version = "2.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec86235f5fcc2a73650310756d2ac5b138a5780bbbdfae3eeccec992c435ba4f"
+checksum = "09e52cb86a36cede5cb101bf8908837b3e4c6e5e59fe7fd85c23fb56200d189e"
 dependencies = [
- "thiserror-impl 2.0.20",
+ "thiserror-impl 2.0.21",
 ]
 
 [[package]]
@@ -2822,9 +2822,9 @@ dependencies = [
 
 [[package]]
 name = "thiserror-impl"
-version = "2.0.20"
+version = "2.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc04cd3e1236dd4a98afca4569f2deb3f120e5422a4023be2cb683f8486292af"
+checksum = "fe5197923287db20a58125f0bc85c062f7f2c892de97b18c356f9efb14b28524"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2987,9 +2987,9 @@ checksum = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be"
 
 [[package]]
 name = "uuid"
-version = "1.24.1"
+version = "1.26.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2cefc03fd367c0c6d4305de1b312cf00248c4114f4a0418ce6a6af769e3b0bd9"
+checksum = "2ef6dac1e96601b4fb3acccccff2139741fcb757cb9a36089bf5be91cfb285ce"
 dependencies = [
  "getrandom 0.4.3",
  "js-sys",
@@ -3301,7 +3301,7 @@ dependencies = [
  "raw-window-handle",
  "rustc-hash 1.1.0",
  "smallvec",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
  "wgpu-core-deps-windows-linux-android",
  "wgpu-hal",
  "wgpu-types",
@@ -3332,7 +3332,7 @@ dependencies = [
  "portable-atomic-util",
  "raw-window-handle",
  "renderdoc-sys",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
  "wgpu-types",
 ]
 
@@ -3346,7 +3346,7 @@ dependencies = [
  "bytemuck",
  "js-sys",
  "log",
- "thiserror 2.0.20",
+ "thiserror 2.0.21",
  "web-sys",
 ]
 
